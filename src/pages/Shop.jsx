@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import useAuthGuard from '../hooks/useAuthGuard'
 
 function Shop() {
-
+const { requireAuth } = useAuthGuard()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeStore, setActiveStore] = useState('All')
@@ -158,17 +159,23 @@ function Shop() {
 
   // ✅ Generate WhatsApp order message
   const handleOrder = (product) => {
-    const message = `Hello Ultimate Tech Lab! 👋
+  const user = JSON.parse(localStorage.getItem('utl_current_user'))
+  const message = `
+🛒 *New Order from UTL Shop!*
 
-I want to place an order:
+*Customer:* ${user.firstName} ${user.lastName}
+*Email:* ${user.email}
+*Phone:* ${user.phone}
 
 *Product:* ${product.name}
 *Price:* ${product.price}
 *Store:* ${product.store}
 
-Please assist me with this order. Thank you!`
-    window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
-  }
+Please process this order. Thank you!`.trim()
+
+  // Open WhatsApp
+  window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
+}
 
   // ✅ Store badge colors
   const storeColors = {
@@ -422,14 +429,12 @@ Please assist me with this order. Thank you!`
                       </div>
 
                       {/* Buttons */}
-                      <div className="flex gap-2">
-                        {/* Order via WhatsApp */}
-                        <button
-                          onClick={() => handleOrder(product)}
-                          className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
-                        >
-                          Order via WhatsApp
-                        </button>
+                      <button
+  onClick={() => requireAuth(() => handleOrder(product))}
+  className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
+>
+  Place Order
+</button>
 
                         {/* View on store */}
                         <a
@@ -443,7 +448,7 @@ Please assist me with this order. Thank you!`
                         </a>
                       </div>
                     </div>
-                  </div>
+
                 ))}
               </div>
 

@@ -43,10 +43,12 @@ function Login() {
 
     setTimeout(() => {
       if (user) {
-        // ✅ Remove password before storing in session
-        const { password, ...safeUser } = user
-        localStorage.setItem('utl_current_user', JSON.stringify(safeUser))
-        navigate('/dashboard')
+  const { password, ...safeUser } = user
+  localStorage.setItem('utl_current_user', JSON.stringify(safeUser))
+  // ✅ Redirect to where they were before login
+  const redirect = localStorage.getItem('utl_redirect_after_login')
+  localStorage.removeItem('utl_redirect_after_login')
+  navigate(redirect || '/dashboard')
       } else {
         setError('Invalid email or password. Please try again.')
       }

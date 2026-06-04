@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import useAuthGuard from '../hooks/useAuthGuard'
 
 function Blog() {
-
+  const { requireAuth, isLoggedIn } = useAuthGuard()
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -197,9 +198,20 @@ function Blog() {
                         </span>
                       ))}
                     </div>
-                    <button className="text-blue-600 text-sm font-bold hover:gap-2 flex items-center gap-1 transition-all">
-                      Read More →
-                    </button>
+                    <button
+  onClick={() => {
+    const user = localStorage.getItem('utl_current_user')
+    if (!user) {
+      localStorage.setItem('utl_redirect_after_login', '/blog')
+      window.location.href = '/signup'
+    } else {
+      alert('Full blog coming soon! 📝')
+    }
+  }}
+  className="text-blue-600 text-xs font-bold hover:text-blue-700 cursor-pointer"
+>
+  {localStorage.getItem('utl_current_user') ? 'Read More →' : '🔒 Sign up to Read'}
+</button>
                   </div>
                 </div>
               </div>
@@ -279,9 +291,12 @@ function Blog() {
                       </div>
                       <span className="text-gray-500 text-xs">{post.author}</span>
                     </div>
-                    <button className="text-blue-600 text-xs font-bold">
-                      Read →
-                    </button>
+                    <button
+  onClick={() => requireAuth()}
+  className="text-blue-600 text-xs font-bold hover:text-blue-700"
+>
+  {isLoggedIn() ? 'Read →' : '🔒 Sign up to Read'}
+</button>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import logo from '../assets/logo_utl.png'
 
@@ -6,7 +6,22 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const location = useLocation()
+  const navigate = useNavigate()
   const dropdownRef = useRef(null)
+
+  // ✅ Get current logged in user
+  const getCurrentUser = () => {
+    const user = localStorage.getItem('utl_current_user')
+    return user ? JSON.parse(user) : null
+  }
+  const user = getCurrentUser()
+
+  // ✅ Logout function
+  const handleLogout = () => {
+    localStorage.removeItem('utl_current_user')
+    navigate('/')
+    window.location.reload()
+  }
 
   // ✅ Close dropdown when clicking outside
   useEffect(() => {
@@ -19,7 +34,7 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // ✅ Close dropdown when route changes
+  // ✅ Close everything when route changes
   useEffect(() => {
     setActiveDropdown(null)
     setIsOpen(false)
@@ -32,6 +47,7 @@ function Navbar() {
       name: 'Services',
       path: '/services',
       dropdown: [
+        { name: 'All Services', path: '/services', icon: '📋' },
         { name: 'Web Development', path: '/services/web-development', icon: '🖥️' },
         { name: 'Crypto Services', path: '/services/crypto', icon: '💰' },
         { name: 'Shopping Assistance', path: '/services/shopping', icon: '🛒' },
@@ -41,6 +57,7 @@ function Navbar() {
       name: 'About',
       path: '/about',
       dropdown: [
+        { name: 'About UTL', path: '/about', icon: '📋' },
         { name: 'Who Are We', path: '/about/who-we-are', icon: '👥' },
         { name: 'Values & Updates', path: '/about/values', icon: '💎' },
         { name: 'Our Vision', path: '/about/vision', icon: '🎯' },
@@ -59,9 +76,7 @@ function Navbar() {
   }
 
   const isActive = (link) => {
-    if (link.dropdown) {
-      return location.pathname.startsWith(link.path)
-    }
+    if (link.dropdown) return location.pathname.startsWith(link.path)
     return location.pathname === link.path
   }
 
@@ -83,9 +98,7 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-1" ref={dropdownRef}>
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
-
                 {link.dropdown ? (
-                  // ── Dropdown trigger ──
                   <div>
                     <button
                       onClick={() => toggleDropdown(link.name)}
@@ -98,27 +111,12 @@ function Navbar() {
                       {link.name}
                       <span className={`text-[10px] transition-transform duration-200 ${
                         activeDropdown === link.name ? 'rotate-180' : ''
-                      }`}>
-                        ▾
-                      </span>
+                      }`}>▾</span>
                     </button>
 
-                    {/* ── Dropdown Menu ── */}
+                    {/* Dropdown Menu */}
                     {activeDropdown === link.name && (
                       <div className="absolute top-full left-0 mt-1 w-52 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
-                        {/* Main page link */}
-                        <Link
-                          to={link.path}
-                          className={`flex items-center gap-3 px-4 py-3 text-sm border-b border-white/10 transition-colors ${
-                            location.pathname === link.path
-                              ? 'text-blue-400 bg-blue-600/10'
-                              : 'text-gray-300 hover:text-white hover:bg-white/5'
-                          }`}
-                        >
-                          <span>📋</span>
-                          All {link.name}
-                        </Link>
-                        {/* Sub links */}
                         {link.dropdown.map((item) => (
                           <Link
                             key={item.path}
@@ -136,9 +134,7 @@ function Navbar() {
                       </div>
                     )}
                   </div>
-
                 ) : (
-                  // ── Regular link ──
                   <Link
                     to={link.path}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -150,21 +146,99 @@ function Navbar() {
                     {link.name}
                   </Link>
                 )}
-
               </div>
             ))}
           </div>
 
-          {/* ── Desktop Auth Buttons ── */}
-          <div className="hidden md:flex items-center gap-2">
-            <Link to="/login"
-              className="px-4 py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors rounded-lg hover:bg-white/5">
-              Sign In
-            </Link>
-            <Link to="/signup"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-all">
-              Get Started
-            </Link>
+          {/* ── Desktop Auth / Profile ── */}
+          <div className="hidden md:flex items-center gap-2" ref={dropdownRef}>
+            {user ? (
+              // ✅ Logged in — show profile avatar
+              <div className="relative">
+                <button
+                  onClick={() => toggleDropdown('profile')}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors border border-white/10"
+                >
+                  {/* Avatar initials */}
+                  <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                    {user.firstName?.[0]}{user.lastName?.[0]}
+                  </div>
+                  <div className="hidden lg:block text-left">
+                    <p className="text-white text-xs font-semibold leading-tight">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="text-gray-400 text-[10px] capitalize">{user.accountType}</p>
+                  </div>
+                  <span className={`text-gray-400 text-[10px] transition-transform duration-200 ${
+                    activeDropdown === 'profile' ? 'rotate-180' : ''
+                  }`}>▾</span>
+                </button>
+
+                {/* Profile Dropdown */}
+                {activeDropdown === 'profile' && (
+                  <div className="absolute top-full right-0 mt-1 w-52 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                          {user.firstName?.[0]}{user.lastName?.[0]}
+                        </div>
+                        <div>
+                          <p className="text-white text-xs font-bold">{user.firstName} {user.lastName}</p>
+                          <p className="text-gray-400 text-[10px]">{user.email}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${
+                        user.accountType === 'seller' ? 'bg-orange-100 text-orange-700' :
+                        user.accountType === 'learner' ? 'bg-purple-100 text-purple-700' :
+                        user.accountType === 'crypto' ? 'bg-green-100 text-green-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {user.accountType === 'client' ? '👤 Client' :
+                         user.accountType === 'seller' ? '🏪 Seller' :
+                         user.accountType === 'learner' ? '🤖 AI Learner' :
+                         '💰 Crypto Student'}
+                      </span>
+                    </div>
+
+                    {/* Menu items */}
+                    <Link to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
+                      📊 Dashboard
+                    </Link>
+                    <Link to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
+                      🛒 My Orders
+                    </Link>
+                    <Link to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
+                      🎓 Mentorship
+                    </Link>
+                    <Link to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
+                      ⚙️ Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:text-white hover:bg-red-600 transition-colors">
+                      🚪 Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // ✅ Not logged in — show auth buttons
+              <>
+                <Link to="/login"
+                  className="px-4 py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors rounded-lg hover:bg-white/5">
+                  Sign In
+                </Link>
+                <Link to="/signup"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-all">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* ── Mobile Burger ── */}
@@ -189,11 +263,24 @@ function Navbar() {
       {/* ── Mobile Menu ── */}
       {isOpen && (
         <div className="md:hidden bg-[#0d1530] border-t border-white/10 px-4 py-4 space-y-1">
+
+          {/* Mobile user info if logged in */}
+          {user && (
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl mb-3">
+              <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                {user.firstName?.[0]}{user.lastName?.[0]}
+              </div>
+              <div>
+                <p className="text-white text-sm font-bold">{user.firstName} {user.lastName}</p>
+                <p className="text-gray-400 text-xs capitalize">{user.accountType}</p>
+              </div>
+            </div>
+          )}
+
           {navLinks.map((link) => (
             <div key={link.name}>
               {link.dropdown ? (
                 <>
-                  {/* Dropdown toggle */}
                   <button
                     onClick={() => toggleDropdown(link.name)}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -208,18 +295,8 @@ function Navbar() {
                     }`}>▾</span>
                   </button>
 
-                  {/* Mobile dropdown items */}
                   {activeDropdown === link.name && (
                     <div className="ml-3 mt-1 mb-2 border-l-2 border-blue-600/30 pl-3 space-y-1">
-                      {/* Main page link */}
-                      <Link
-                        to={link.path}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all"
-                      >
-                        <span>📋</span>
-                        All {link.name}
-                      </Link>
-                      {/* Sub links */}
                       {link.dropdown.map((item) => (
                         <Link
                           key={item.path}
@@ -254,14 +331,30 @@ function Navbar() {
 
           {/* Mobile auth buttons */}
           <div className="flex gap-2 pt-3 border-t border-white/10 mt-3">
-            <Link to="/login"
-              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white text-sm font-semibold rounded-xl text-center transition-colors hover:bg-white/10">
-              Sign In
-            </Link>
-            <Link to="/signup"
-              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl text-center transition-colors">
-              Get Started
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl text-center">
+                  📊 Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl">
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login"
+                  className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white text-sm font-semibold rounded-xl text-center">
+                  Sign In
+                </Link>
+                <Link to="/signup"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl text-center">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
