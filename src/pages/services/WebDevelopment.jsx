@@ -103,14 +103,12 @@ function WebDevelopment() {
                 From simple landing pages to complex web applications, we build fast, scalable and modern digital solutions tailored to your business needs.
               </p>
               <div className="flex flex-wrap gap-4">
-                <a
-                  href="https://wa.me/2348038786037"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link to="/signup"
+                  
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
                 >
                   Start a Project
-                </a>
+                </Link>
                 <Link
                   to="/portfolio"
                   className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
@@ -217,14 +215,12 @@ function WebDevelopment() {
             Let's discuss your project and bring your vision to life.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="https://wa.me/2348038786037"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link to="/signup"
+              
               className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
             >
               Start a Project →
-            </a>
+            </Link>
             <Link
               to="/signup"
               className="px-8 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"

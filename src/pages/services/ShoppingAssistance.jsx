@@ -116,11 +116,9 @@ function ShoppingAssistance() {
                   className="px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
                   Place an Order →
                 </a>
-                <a href="https://wa.me/2348038786037"
-                  target="_blank" rel="noopener noreferrer"
-                  className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
-                  Chat on WhatsApp
-                </a>
+               <Link to="/signup" className="px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
+  Place an Order →
+</Link>
               </div>
             </div>
 

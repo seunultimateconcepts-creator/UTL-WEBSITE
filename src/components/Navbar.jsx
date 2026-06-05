@@ -36,6 +36,7 @@ function Navbar() {
 
   // ✅ Close everything when route changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveDropdown(null)
     setIsOpen(false)
   }, [location.pathname])
@@ -95,7 +96,7 @@ function Navbar() {
           </Link>
 
           {/* ── Desktop Links ── */}
-          <div className="hidden md:flex items-center gap-1" ref={dropdownRef}>
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
                 {link.dropdown ? (
@@ -151,7 +152,7 @@ function Navbar() {
           </div>
 
           {/* ── Desktop Auth / Profile ── */}
-          <div className="hidden md:flex items-center gap-2" ref={dropdownRef}>
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
               // ✅ Logged in — show profile avatar
               <div className="relative">

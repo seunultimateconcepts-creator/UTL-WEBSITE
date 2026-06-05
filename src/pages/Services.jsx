@@ -181,14 +181,14 @@ function Services() {
             Choose a service above or contact us and we'll guide you through everything!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/signup"
+  className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
+  Get Started →
+</Link>
             <Link to="/contact"
-              className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
-              Contact Us →
-            </Link>
-            <a href="https://wa.me/2348038786037" target="_blank" rel="noopener noreferrer"
               className="px-8 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
               Chat on WhatsApp
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -81,12 +81,10 @@ function About() {
                 We are passionate about using technology and digital solutions to make life easier for individuals and businesses. Our mission is to deliver reliable, secure and innovative services that empower our clients to achieve more in the digital world.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link
-                  to="/contact"
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
-                >
-                  Work With Us
-                </Link>
+                <Link to="/signup"
+  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
+  Work With Us
+</Link>
                 <Link
                   to="/portfolio"
                   className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
