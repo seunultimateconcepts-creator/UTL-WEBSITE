@@ -21,6 +21,7 @@ import SignUp from './pages/auth/SignUp'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/auth/Dashboard'
 import AILearning from './pages/AILearning'
+import NotFound from './pages/NotFound'
 
 function App() {
   const location = useLocation()
@@ -54,6 +55,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/ai-learning" element={<AILearning />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
