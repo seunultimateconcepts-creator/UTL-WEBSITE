@@ -12,7 +12,7 @@ function About() {
     skills: ['React', 'Node.js', 'MongoDB', 'Tailwind CSS', 'Crypto Trading', 'P2P Trading'],
     socials: [
       { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: 'in' },
-      { name: 'Twitter', url: 'https://x.com/seun_ultimate', icon: '𝕏' },
+      { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: '𝕏' },
       { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: '📸' },
       { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: '▶' },
     ],

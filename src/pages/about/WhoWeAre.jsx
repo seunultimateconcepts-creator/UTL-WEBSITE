@@ -11,7 +11,7 @@ function WhoWeAre() {
       skills: ['React', 'Node.js', 'MongoDB', 'Crypto Trading'],
       photo: founderPhoto,
       socials: {
-        twitter: 'https://x.com/seun_ultimate',
+        twitter: 'https://x.com/U_Tech_Lab',
         linkedin: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228',
         instagram: 'https://www.instagram.com/seun_ultimate',
       }

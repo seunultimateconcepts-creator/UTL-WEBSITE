@@ -131,7 +131,7 @@ ${formData.message}
                 <div className="flex gap-3">
                   {[
                     { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: '📸' },
-                    { name: 'Twitter', url: 'https://x.com/seun_ultimate', icon: '𝕏' },
+                    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: '𝕏' },
                     { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: 'in' },
                     { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: '▶' },
                   ].map((social) => (

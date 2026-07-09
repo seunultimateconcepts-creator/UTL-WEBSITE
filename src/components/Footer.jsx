@@ -14,8 +14,8 @@ function Footer() {
   const socialLinks = [
     { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: '▶' },
     { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: 'in' },
-    { name: 'Facebook', url: 'https://www.facebook.com/share/1HuSz3zX5g/', icon: 'f' },
-    { name: 'Twitter', url: 'https://x.com/seun_ultimate', icon: '𝕏' },
+    { name: 'Facebook', url: 'https://www.facebook.com/share/1HWXsT7c9p/', icon: 'f' },
+    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: '𝕏' },
     { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: '📸' },
   ]
 
