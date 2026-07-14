@@ -80,7 +80,7 @@ function FAQs() {
     {
       category: 'General',
       question: 'How do I contact Ultimate Tech Lab?',
-      answer: 'WhatsApp is the fastest way — +234 803 878 6037. You can also email us at hello@ultimatetechlab.com or fill the contact form on our website.',
+      answer: 'WhatsApp is the fastest way — +234 803 878 6037. You can also email us at seunultimateconcepts@gmail.com or fill the contact form on our website.',
     },
     {
       category: 'General',

@@ -37,7 +37,7 @@ ABOUT ULTIMATE TECH LAB:
 - Based in Edo, Nigeria
 - Serves clients in Nigeria and globally
 - Working hours: Monday to Saturday, 9AM to 8PM
-- Email: hello@ultimatetechlab.com
+- Email: seunultimateconcepts@gmail.com
 - WhatsApp: +2348038786037
 
 ABOUT THE FOUNDER/DEVELOPER:

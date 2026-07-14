@@ -6,7 +6,7 @@ function Footer() {
 
   const contactInfo = {
     whatsapp: '+2348038786037',
-    email: 'hello@ultimatetechlab.com',
+    email: 'seunultimateconcepts@gmail.com',
     location: 'Edo, Nigeria',
     hours: 'Mon–Sat: 9AM–8PM',
   }

@@ -273,7 +273,7 @@ useEffect(() => {
               Enroll via WhatsApp
             </a>
             <a
-              href={`mailto:hello@ultimatetechlab.com?subject=Crypto Mentorship Enrollment&body=Hello! I want to enroll for Crypto Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
+              href={`mailto:seunultimateconcepts@gmail.com?subject=Crypto Mentorship Enrollment&body=Hello! I want to enroll for Crypto Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
               className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-sm"
             >
               ✉️ Enroll via Email
@@ -325,7 +325,7 @@ useEffect(() => {
               Enroll via WhatsApp
             </a>
             <a
-              href={`mailto:hello@ultimatetechlab.com?subject=AI Mentorship Enrollment&body=Hello! I want to enroll for AI Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
+              href={`mailto:seunultimateconcepts@gmail.com?subject=AI Mentorship Enrollment&body=Hello! I want to enroll for AI Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
               className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-sm"
             >
               ✉️ Enroll via Email

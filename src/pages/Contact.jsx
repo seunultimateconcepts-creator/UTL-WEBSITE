@@ -105,7 +105,7 @@ ${formData.message}
               {/* Contact cards */}
               {[
                 { icon: '📱', title: 'WhatsApp', value: '+234 803 878 6037', link: 'https://wa.me/2348038786037', color: 'bg-green-50 border-green-100' },
-                { icon: '✉️', title: 'Email', value: 'hello@ultimatetechlab.com', link: 'mailto:hello@ultimatetechlab.com', color: 'bg-blue-50 border-blue-100' },
+                { icon: '✉️', title: 'Email', value: 'seunultimateconcepts@gmail.com', link: 'mailto:seunultimateconcepts@gmail.com', color: 'bg-blue-50 border-blue-100' },
                 { icon: '📍', title: 'Location', value: 'Edo, Nigeria', link: null, color: 'bg-orange-50 border-orange-100' },
                 { icon: '🕐', title: 'Working Hours', value: 'Mon–Sat: 9AM–8PM', link: null, color: 'bg-purple-50 border-purple-100' },
               ].map((item) => (
