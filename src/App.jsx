@@ -26,6 +26,7 @@ import SignUpSuccess from './pages/auth/SignUpSuccess'
 import VerifyEmail from './pages/auth/VerifyEmail'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
+import VerifyEmailPending from './pages/auth/VerifyEmailPending'
 
 function App() {
   const location = useLocation()
@@ -67,6 +68,7 @@ function App() {
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
