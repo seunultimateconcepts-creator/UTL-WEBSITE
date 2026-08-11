@@ -22,12 +22,19 @@ import Login from './pages/auth/Login'
 import Dashboard from './pages/auth/Dashboard'
 import AILearning from './pages/AILearning'
 import NotFound from './pages/NotFound'
+import SignUpSuccess from './pages/auth/SignUpSuccess'
+import VerifyEmail from './pages/auth/VerifyEmail'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
 
 function App() {
   const location = useLocation()
 
   // ✅ Pages that should NOT show Navbar and Footer
-  const authPages = ['/signup', '/login', '/dashboard']
+  const authPages = ['/signup', '/login', '/dashboard',
+                  '/signup-success', '/verify-email',
+                '/forgot-password', '/reset-password'
+  ]
   const isAuthPage = authPages.some(page =>
     location.pathname.startsWith(page)
   )
@@ -56,6 +63,10 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/ai-learning" element={<AILearning />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/signup-success" element={<SignUpSuccess />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

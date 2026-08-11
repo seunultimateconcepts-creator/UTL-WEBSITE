@@ -156,9 +156,9 @@ return (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Password</label>
-                <a href="#" className="text-blue-400 text-xs hover:text-blue-300 transition-colors">
+                <Link to="/forgot-password" className="text-blue-400 text-xs hover:text-blue-300 transition-colors">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <input

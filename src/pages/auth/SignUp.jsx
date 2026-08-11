@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
 
 function SignUp() {
@@ -95,11 +97,38 @@ function SignUp() {
     if (validateStep1()) setStep(2)
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!validateStep2()) return
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+  setError('')
 
-    setLoading(true)
+  if (!formData.email || !formData.password) {
+    setError('Please fill in all fields')
+    return
+  }
+
+  setLoading(true)
+
+  try {
+    const result = await authAPI.login({
+      email: formData.email,
+      password: formData.password,
+    })
+
+    if (result.success) {
+      // ✅ Save token and user to localStorage
+      localStorage.setItem('utl_token', result.token)
+      localStorage.setItem('utl_current_user', JSON.stringify(result.user))
+
+      // ✅ Redirect to intended page or dashboard
+      const redirect = localStorage.getItem('utl_redirect_after_login')
+      localStorage.removeItem('utl_redirect_after_login')
+      navigate(redirect || '/dashboard')
+    }
+  } catch (err) {
+    setError(err.message || 'Invalid email or password')
+    setLoading(false)
+  }
+
 
     // ✅ Save user to localStorage for now
     // When backend is ready we'll replace this with API call
