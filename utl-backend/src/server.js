@@ -14,7 +14,7 @@ const app = express()
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://ultimate-tech-k14lhpx6l-utl1.vercel.app'
+    'https://utl-website.vercel.app/'
   ],
   credentials: true
 }))
