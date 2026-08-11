@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const crypto = require('crypto')
-const User = require('../models/User')
+const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 const sendEmail = require('../utils/sendEmail')
 const { welcomeEmail, verificationEmail, passwordResetEmail } = require('../utils/emailTemplates')

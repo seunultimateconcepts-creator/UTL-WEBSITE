@@ -82,7 +82,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 }
 
 
-const User = mongoose.model('User', userSchema)
+const user = mongoose.model('user', userSchema)
 
 
-module.exports = User
+module.exports = user
