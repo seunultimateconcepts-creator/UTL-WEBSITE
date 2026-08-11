@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
@@ -97,74 +96,36 @@ function SignUp() {
     if (validateStep1()) setStep(2)
   }
 
+  // ✅ SIGNUP — calls the real backend signup endpoint
   const handleSubmit = async (e) => {
-  e.preventDefault()
-  setError('')
+    e.preventDefault()
+    setError('')
 
-  if (!formData.email || !formData.password) {
-    setError('Please fill in all fields')
-    return
-  }
+    if (!validateStep2()) return
 
-  setLoading(true)
+    setLoading(true)
 
-  try {
-    const result = await authAPI.login({
-      email: formData.email,
-      password: formData.password,
-    })
+    try {
+      const result = await authAPI.signup({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        accountType: formData.accountType,
+      })
 
-    if (result.success) {
-      // ✅ Save token and user to localStorage
-      localStorage.setItem('utl_token', result.token)
-      localStorage.setItem('utl_current_user', JSON.stringify(result.user))
-
-      // ✅ Redirect to intended page or dashboard
-      const redirect = localStorage.getItem('utl_redirect_after_login')
-      localStorage.removeItem('utl_redirect_after_login')
-      navigate(redirect || '/dashboard')
-    }
-  } catch (err) {
-    setError(err.message || 'Invalid email or password')
-    setLoading(false)
-  }
-
-
-    // ✅ Save user to localStorage for now
-    // When backend is ready we'll replace this with API call
-    const user = {
-      id: Date.now(),
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      accountType: formData.accountType,
-      createdAt: new Date().toISOString(),
-      avatar: null,
-    }
-
-    // ✅ Check if email already exists
-    const existingUsers = JSON.parse(localStorage.getItem('utl_users') || '[]')
-    const emailExists = existingUsers.find(u => u.email === formData.email)
-
-    if (emailExists) {
-      setError('An account with this email already exists')
+      if (result.success) {
+        // ✅ Do NOT log the user in here — backend requires email
+        // verification before login is allowed. Send them to a
+        // "check your email" screen instead of the dashboard.
+        navigate('/verify-email-pending', { state: { email: formData.email } })
+      }
+    } catch (err) {
+      setError(err.message || 'Something went wrong during signup')
+    } finally {
       setLoading(false)
-      return
     }
-
-    // ✅ Save user with password (hashed in production)
-    const userWithPassword = { ...user, password: formData.password }
-    existingUsers.push(userWithPassword)
-    localStorage.setItem('utl_users', JSON.stringify(existingUsers))
-
-    // ✅ Log user in immediately after signup
-    localStorage.setItem('utl_current_user', JSON.stringify(user))
-
-    setTimeout(() => {
-      setLoading(false)
-      navigate('/dashboard')
-    }, 1500)
   }
 
   return (
