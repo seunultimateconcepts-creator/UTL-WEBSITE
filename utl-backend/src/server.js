@@ -1,14 +1,13 @@
 /* eslint-disable no-undef */
-const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose')
 const cors = require('cors')
 const dotenv = require('dotenv')
 
 // ✅ Load environment variables
-dotenv.config({
-  path: path.join(__dirname, '.env')
-});
+dotenv.config()
+  
+
 const app = express()
 
 // ✅ Middleware
@@ -43,6 +42,7 @@ const PORT = process.env.PORT || 5000
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected successfully')
+    console.log('📦 Database:', mongoose.connection.db.databaseName)
     app.listen(PORT, () => {
       console.log(`✅ UTL Server running on port ${PORT}`)
     })
