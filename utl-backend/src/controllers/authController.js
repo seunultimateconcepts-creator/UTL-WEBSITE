@@ -37,20 +37,24 @@ const signup = async (req, res) => {
       verificationExpire,
     })
 
-    // ✅ Send verification email
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`
-    await sendEmail({
-      to: user.email,
-      subject: 'Verify your Ultimate Tech Lab account',
-      html: verificationEmail(user.firstName, verifyUrl),
-    })
+    // ✅ Send verification email and welcome email
+    try {
+      const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`
+      await sendEmail({
+        to: user.email,
+        subject: 'Verify your Ultimate Tech Lab account',
+        html: verificationEmail(user.firstName, verifyUrl),
+      })
 
-    // ✅ Also send welcome email
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to Ultimate Tech Lab! 🎉',
-      html: welcomeEmail(user.firstName),
-    })
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to Ultimate Tech Lab! 🎉',
+        html: welcomeEmail(user.firstName),
+      })
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError.message)
+      // Don't throw — user account still created successfully
+    }
 
     res.status(201).json({
       success: true,
