@@ -137,6 +137,7 @@ HOW TO RESPOND:
         content: data.content[0].text
       }
       setMessages(prev => [...prev, assistantMessage])
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setMessages(prev => [...prev, {
         role: 'assistant',

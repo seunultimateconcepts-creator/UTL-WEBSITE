@@ -1,6 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import logo from '../assets/logo_utl.png'
+import {
+  ChevronDown, Menu, X, LayoutGrid, Monitor, TrendingUp, ShoppingCart,
+  Users, Gem, Target, HelpCircle, LayoutDashboard, ShoppingBag,
+  GraduationCap, Settings, LogOut, User, Store,
+} from 'lucide-react'
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,6 +23,7 @@ function Navbar() {
 
   // ✅ Logout function
   const handleLogout = () => {
+    localStorage.removeItem('utl_token')
     localStorage.removeItem('utl_current_user')
     navigate('/')
     window.location.reload()
@@ -41,28 +47,28 @@ function Navbar() {
     setIsOpen(false)
   }, [location.pathname])
 
-  // ✅ Nav links — add new pages here
+  // ✅ Nav links — add new pages here. Icon is a lucide-react component.
   const navLinks = [
     { name: 'Home', path: '/' },
     {
       name: 'Services',
       path: '/services',
       dropdown: [
-        { name: 'All Services', path: '/services', icon: '📋' },
-        { name: 'Web Development', path: '/services/web-development', icon: '🖥️' },
-        { name: 'Crypto Services', path: '/services/crypto', icon: '💰' },
-        { name: 'Shopping Assistance', path: '/services/shopping', icon: '🛒' },
+        { name: 'All Services', path: '/services', icon: LayoutGrid },
+        { name: 'Web Development', path: '/services/web-development', icon: Monitor },
+        { name: 'Crypto Services', path: '/services/crypto', icon: TrendingUp },
+        { name: 'Shopping Assistance', path: '/services/shopping', icon: ShoppingCart },
       ]
     },
     {
       name: 'About',
       path: '/about',
       dropdown: [
-        { name: 'About UTL', path: '/about', icon: '📋' },
-        { name: 'Who Are We', path: '/about/who-we-are', icon: '👥' },
-        { name: 'Values & Updates', path: '/about/values', icon: '💎' },
-        { name: 'Our Vision', path: '/about/vision', icon: '🎯' },
-        { name: 'FAQs', path: '/about/faqs', icon: '❓' },
+        { name: 'About UTL', path: '/about', icon: LayoutGrid },
+        { name: 'Who Are We', path: '/about/who-we-are', icon: Users },
+        { name: 'Values & Updates', path: '/about/values', icon: Gem },
+        { name: 'Our Vision', path: '/about/vision', icon: Target },
+        { name: 'FAQs', path: '/about/faqs', icon: HelpCircle },
       ]
     },
     { name: 'Portfolio', path: '/portfolio' },
@@ -71,6 +77,15 @@ function Navbar() {
     { name: 'AI Academy', path: '/ai-learning' },
     { name: 'Contact', path: '/contact' },
   ]
+
+  // ✅ Account type badge — icon + label + color, matches dashboard config
+  const accountBadges = {
+    client:  { icon: User,          label: 'Client',         color: 'bg-blue-100 text-blue-700' },
+    seller:  { icon: Store,         label: 'Seller',         color: 'bg-orange-100 text-orange-700' },
+    learner: { icon: GraduationCap, label: 'AI Learner',     color: 'bg-purple-100 text-purple-700' },
+    crypto:  { icon: TrendingUp,    label: 'Crypto Student', color: 'bg-green-100 text-green-700' },
+  }
+  const badge = user ? (accountBadges[user.accountType] || accountBadges.client) : null
 
   const toggleDropdown = (name) => {
     setActiveDropdown(activeDropdown === name ? null : name)
@@ -82,7 +97,7 @@ function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f2c] shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f2c]/95 backdrop-blur-sm border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -90,13 +105,13 @@ function Navbar() {
           <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <img src={logo} alt="UTL Logo" className="h-10 w-auto rounded-lg" />
             <div className="hidden sm:block">
-              <div className="text-white font-black text-xs leading-tight">ULTIMATE</div>
-              <div className="text-green-400 font-bold text-[10px] tracking-widest">TECH LAB</div>
+              <div className="text-white font-black text-xs leading-tight tracking-wide">ULTIMATE</div>
+              <div className="text-amber-400 font-bold text-[10px] tracking-widest">TECH LAB</div>
             </div>
           </Link>
 
           {/* ── Desktop Links ── */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1" ref={dropdownRef}>
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
                 {link.dropdown ? (
@@ -105,33 +120,39 @@ function Navbar() {
                       onClick={() => toggleDropdown(link.name)}
                       className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         isActive(link)
-                          ? 'text-blue-400 bg-blue-600/10'
+                          ? 'text-amber-400 bg-amber-400/10'
                           : 'text-gray-300 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       {link.name}
-                      <span className={`text-[10px] transition-transform duration-200 ${
-                        activeDropdown === link.name ? 'rotate-180' : ''
-                      }`}>▾</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${
+                          activeDropdown === link.name ? 'rotate-180' : ''
+                        }`}
+                      />
                     </button>
 
                     {/* Dropdown Menu */}
                     {activeDropdown === link.name && (
-                      <div className="absolute top-full left-0 mt-1 w-52 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
-                        {link.dropdown.map((item) => (
-                          <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-4 py-3 text-sm border-b border-white/5 last:border-0 transition-colors ${
-                              location.pathname === item.path
-                                ? 'text-blue-400 bg-blue-600/10'
-                                : 'text-gray-300 hover:text-white hover:bg-white/5'
-                            }`}
-                          >
-                            <span>{item.icon}</span>
-                            {item.name}
-                          </Link>
-                        ))}
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
+                        {link.dropdown.map((item) => {
+                          const ItemIcon = item.icon
+                          return (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              className={`flex items-center gap-3 px-4 py-3 text-sm border-b border-white/5 last:border-0 transition-colors ${
+                                location.pathname === item.path
+                                  ? 'text-amber-400 bg-amber-400/10'
+                                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                              }`}
+                            >
+                              <ItemIcon size={16} className="flex-shrink-0" />
+                              {item.name}
+                            </Link>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -140,7 +161,7 @@ function Navbar() {
                     to={link.path}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                       isActive(link)
-                        ? 'text-blue-400 bg-blue-600/10'
+                        ? 'text-amber-400 bg-amber-400/10'
                         : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -154,13 +175,11 @@ function Navbar() {
           {/* ── Desktop Auth / Profile ── */}
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              // ✅ Logged in — show profile avatar
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('profile')}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors border border-white/10"
                 >
-                  {/* Avatar initials */}
                   <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                     {user.firstName?.[0]}{user.lastName?.[0]}
                   </div>
@@ -170,17 +189,19 @@ function Navbar() {
                     </p>
                     <p className="text-gray-400 text-[10px] capitalize">{user.accountType}</p>
                   </div>
-                  <span className={`text-gray-400 text-[10px] transition-transform duration-200 ${
-                    activeDropdown === 'profile' ? 'rotate-180' : ''
-                  }`}>▾</span>
+                  <ChevronDown
+                    size={12}
+                    className={`text-gray-400 transition-transform duration-200 ${
+                      activeDropdown === 'profile' ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
 
                 {/* Profile Dropdown */}
                 {activeDropdown === 'profile' && (
-                  <div className="absolute top-full right-0 mt-1 w-52 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
-                    {/* User info */}
+                  <div className="absolute top-full right-0 mt-1 w-56 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
                     <div className="px-4 py-3 border-b border-white/10">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                           {user.firstName?.[0]}{user.lastName?.[0]}
                         </div>
@@ -189,53 +210,46 @@ function Navbar() {
                           <p className="text-gray-400 text-[10px]">{user.email}</p>
                         </div>
                       </div>
-                      <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${
-                        user.accountType === 'seller' ? 'bg-orange-100 text-orange-700' :
-                        user.accountType === 'learner' ? 'bg-purple-100 text-purple-700' :
-                        user.accountType === 'crypto' ? 'bg-green-100 text-green-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {user.accountType === 'client' ? '👤 Client' :
-                         user.accountType === 'seller' ? '🏪 Seller' :
-                         user.accountType === 'learner' ? '🤖 AI Learner' :
-                         '💰 Crypto Student'}
-                      </span>
+                      {badge && (
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
+                          <badge.icon size={11} />
+                          {badge.label}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Menu items */}
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      📊 Dashboard
+                      <LayoutDashboard size={16} /> Dashboard
                     </Link>
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      🛒 My Orders
+                      <ShoppingBag size={16} /> My Orders
                     </Link>
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      🎓 Mentorship
+                      <GraduationCap size={16} /> Mentorship
                     </Link>
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      ⚙️ Settings
+                      <Settings size={16} /> Settings
                     </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:text-white hover:bg-red-600 transition-colors">
-                      🚪 Sign Out
+                      <LogOut size={16} /> Sign Out
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              // ✅ Not logged in — show auth buttons
               <>
                 <Link to="/login"
                   className="px-4 py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors rounded-lg hover:bg-white/5">
                   Sign In
                 </Link>
                 <Link to="/signup"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-all">
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] text-sm font-bold rounded-lg transition-all">
                   Get Started
                 </Link>
               </>
@@ -247,15 +261,7 @@ function Navbar() {
             className="md:hidden text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
             onClick={() => setIsOpen(!isOpen)}
           >
-            {isOpen ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            )}
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
         </div>
@@ -263,9 +269,8 @@ function Navbar() {
 
       {/* ── Mobile Menu ── */}
       {isOpen && (
-        <div className="md:hidden bg-[#0d1530] border-t border-white/10 px-4 py-4 space-y-1">
+        <div className="md:hidden bg-[#0d1530] border-t border-white/10 px-4 py-4 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
 
-          {/* Mobile user info if logged in */}
           {user && (
             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl mb-3">
               <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -286,32 +291,38 @@ function Navbar() {
                     onClick={() => toggleDropdown(link.name)}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive(link)
-                        ? 'text-blue-400 bg-blue-600/10'
+                        ? 'text-amber-400 bg-amber-400/10'
                         : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <span>{link.name}</span>
-                    <span className={`text-xs transition-transform duration-200 ${
-                      activeDropdown === link.name ? 'rotate-180' : ''
-                    }`}>▾</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${
+                        activeDropdown === link.name ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
 
                   {activeDropdown === link.name && (
-                    <div className="ml-3 mt-1 mb-2 border-l-2 border-blue-600/30 pl-3 space-y-1">
-                      {link.dropdown.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all ${
-                            location.pathname === item.path
-                              ? 'text-blue-400 bg-blue-600/10'
-                              : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`}
-                        >
-                          <span>{item.icon}</span>
-                          {item.name}
-                        </Link>
-                      ))}
+                    <div className="ml-3 mt-1 mb-2 border-l-2 border-amber-400/30 pl-3 space-y-1">
+                      {link.dropdown.map((item) => {
+                        const ItemIcon = item.icon
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all ${
+                              location.pathname === item.path
+                                ? 'text-amber-400 bg-amber-400/10'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            <ItemIcon size={15} />
+                            {item.name}
+                          </Link>
+                        )
+                      })}
                     </div>
                   )}
                 </>
@@ -320,7 +331,7 @@ function Navbar() {
                   to={link.path}
                   className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive(link)
-                      ? 'text-blue-400 bg-blue-600/10'
+                      ? 'text-amber-400 bg-amber-400/10'
                       : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -335,8 +346,8 @@ function Navbar() {
             {user ? (
               <>
                 <Link to="/dashboard"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl text-center">
-                  📊 Dashboard
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl text-center">
+                  <LayoutDashboard size={16} /> Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -351,7 +362,7 @@ function Navbar() {
                   Sign In
                 </Link>
                 <Link to="/signup"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl text-center">
+                  className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] text-sm font-bold rounded-xl text-center">
                   Get Started
                 </Link>
               </>
