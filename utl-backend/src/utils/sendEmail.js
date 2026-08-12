@@ -1,32 +1,32 @@
 /* eslint-disable no-undef */
-const nodemailer = require('nodemailer')
+const { Resend } = require('resend')
 
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+// ✅ Sends an email via Resend
+// Usage stays the same as before: sendEmail({ to, subject, html })
 const sendEmail = async ({ to, subject, html }) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  })
+  try {
+    const { data, error } = await resend.emails.send({
+      // ⚠️ Using Resend's free test sender for now since we don't
+      // have a verified domain yet. Once UTL has its own domain,
+      // change this to something like 'Ultimate Tech Lab <noreply@ultimatetechlab.com>'
+      from: 'Ultimate Tech Lab <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    })
 
-const mailOptions = {
-  from: process.env.EMAIL_FROM,
-  to,
-  subject,
-  html,
-  headers: {
-    'X-Priority': '1',
-    'X-Mailer': 'Ultimate Tech Lab Mailer',
-  },
-}
+    if (error) {
+      console.error('Resend email error:', error)
+      throw new Error(error.message || 'Failed to send email')
+    }
 
-  const info = await transporter.sendMail(mailOptions)
-  console.log('✅ Email sent:', info.messageId)
-  return info
-
-  
+    return data
+  } catch (err) {
+    console.error('sendEmail failed:', err.message)
+    throw err
+  }
 }
 
 module.exports = sendEmail

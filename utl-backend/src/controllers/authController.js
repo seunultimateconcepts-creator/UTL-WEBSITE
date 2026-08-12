@@ -37,7 +37,9 @@ const signup = async (req, res) => {
       verificationExpire,
     })
 
-    // ✅ Send verification email and welcome email
+    // ✅ Try to send verification + welcome emails, but don't let a
+    // broken email provider block account creation. The account is
+    // already saved at this point — email issues should never 500 here.
     try {
       const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`
       await sendEmail({
@@ -52,8 +54,7 @@ const signup = async (req, res) => {
         html: welcomeEmail(user.firstName),
       })
     } catch (emailError) {
-      console.error('Email sending failed:', emailError.message)
-      // Don't throw — user account still created successfully
+      console.error('Signup email failed (account still created):', emailError.message)
     }
 
     res.status(201).json({
@@ -191,7 +192,6 @@ const forgotPassword = async (req, res) => {
         message: 'If an account exists with this email, a reset link has been sent.',
       })
     }
-    
 
     // ✅ Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex')
@@ -199,26 +199,30 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpire = Date.now() + 60 * 60 * 1000 // 1 hour
     await user.save()
 
-    // ✅ Send reset email
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`
-    await sendEmail({
-      to: user.email,
-      subject: 'Reset your Ultimate Tech Lab password',
-      html: passwordResetEmail(user.firstName, resetUrl),
-    })
+    // ✅ Try to send reset email, but don't fail the request if it breaks
+    try {
+      const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset your Ultimate Tech Lab password',
+        html: passwordResetEmail(user.firstName, resetUrl),
+      })
+    } catch (emailError) {
+      console.error('Forgot password email failed:', emailError.message)
+    }
 
     res.status(200).json({
       success: true,
       message: 'Password reset link sent to your email!',
     })
   } catch (error) {
-  console.error('Forgot password error:', error) // ✅ Add this
-  res.status(500).json({
-    success: false,
-    message: 'Server error during password reset',
-    error: error.message,
-  })
-}
+    console.error('Forgot password error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Server error during password reset',
+      error: error.message,
+    })
+  }
 }
 
 // ✅ RESET PASSWORD
