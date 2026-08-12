@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { Coins, DollarSign, RefreshCw, ArrowUpRight, ArrowDownRight, Lightbulb } from 'lucide-react'
 
 function MarketTracker() {
   const navigate = useNavigate()
@@ -44,6 +45,7 @@ function MarketTracker() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll()
     const interval = setInterval(fetchAll, 60000)
     return () => clearInterval(interval)
@@ -66,7 +68,7 @@ function MarketTracker() {
 
         {/* Header */}
         <div className="text-center mb-12">
-          <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">LIVE DATA</p>
+          <p className="text-amber-600 text-sm font-semibold tracking-widest uppercase mb-3">LIVE DATA</p>
           <h2 className="text-4xl font-black text-gray-900 mb-4">Mini Market Tracker</h2>
           <p className="text-gray-500 max-w-md mx-auto">
             Real-time crypto prices and currency rates — updated every 60 seconds.
@@ -74,8 +76,11 @@ function MarketTracker() {
           {lastUpdated && (
             <div className="flex items-center justify-center gap-3 mt-4">
               <span className="text-gray-400 text-xs">Last updated: {lastUpdated}</span>
-              <button onClick={fetchAll} className="text-blue-600 text-xs font-semibold hover:text-blue-700">
-                🔄 Refresh
+              <button
+                onClick={fetchAll}
+                className="flex items-center gap-1 text-blue-600 text-xs font-semibold hover:text-blue-700"
+              >
+                <RefreshCw size={12} /> Refresh
               </button>
             </div>
           )}
@@ -84,7 +89,7 @@ function MarketTracker() {
         {/* Loading */}
         {loading && (
           <div className="text-center py-12">
-            <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-gray-400 text-sm">Fetching live market data...</p>
           </div>
         )}
@@ -93,7 +98,7 @@ function MarketTracker() {
         {error && !loading && (
           <div className="text-center py-8">
             <p className="text-red-400 text-sm mb-3">{error}</p>
-            <button onClick={fetchAll} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl">
+            <button onClick={fetchAll} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-semibold text-sm rounded-xl">
               Try Again
             </button>
           </div>
@@ -107,7 +112,7 @@ function MarketTracker() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🪙</span>
+                  <Coins size={20} className="text-amber-500" />
                   <h3 className="text-gray-900 font-bold">Crypto Prices</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -130,10 +135,12 @@ function MarketTracker() {
                       <p className="text-gray-900 text-sm font-bold">
                         ${coin.current_price.toLocaleString()}
                       </p>
-                      <p className={`text-xs font-semibold ${
+                      <p className={`flex items-center justify-end gap-0.5 text-xs font-semibold ${
                         coin.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
-                        {coin.price_change_percentage_24h >= 0 ? '▲' : '▼'}{' '}
+                        {coin.price_change_percentage_24h >= 0
+                          ? <ArrowUpRight size={12} />
+                          : <ArrowDownRight size={12} />}
                         {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
                       </p>
                     </div>
@@ -146,7 +153,7 @@ function MarketTracker() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">💵</span>
+                  <DollarSign size={20} className="text-green-600" />
                   <h3 className="text-gray-900 font-bold">Currency Rates</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -174,8 +181,9 @@ function MarketTracker() {
                   </div>
                 ))}
               </div>
-              <div className="px-6 py-4 bg-blue-50 border-t border-blue-100">
-                <p className="text-blue-600 text-xs">💡 Contact us for best P2P rates.</p>
+              <div className="flex items-center gap-2 px-6 py-4 bg-amber-50 border-t border-amber-100">
+                <Lightbulb size={14} className="text-amber-600 flex-shrink-0" />
+                <p className="text-amber-700 text-xs">Contact us for best P2P rates.</p>
               </div>
             </div>
 
@@ -186,7 +194,7 @@ function MarketTracker() {
         <div className="text-center mt-10">
           <button
             onClick={handleViewFull}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#0a0f2c] hover:bg-[#111827] text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
           >
             View Full Market Tracker →
           </button>

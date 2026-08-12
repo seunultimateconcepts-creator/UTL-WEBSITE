@@ -74,7 +74,7 @@ function Navbar() {
     { name: 'Portfolio', path: '/portfolio' },
     { name: 'Shop', path: '/shop' },
     { name: 'Blog', path: '/blog' },
-    { name: 'AI Academy', path: '/ai-learning' },
+    { name: 'U Tech Hub', path: '/tech-hub' },
     { name: 'Contact', path: '/contact' },
   ]
 

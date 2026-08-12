@@ -62,7 +62,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/ai-learning" element={<AILearning />} />
+        <Route path="/tech-hub" element={<AILearning />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/signup-success" element={<SignUpSuccess />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
