@@ -1,5 +1,6 @@
 import logo from '../assets/logo_utl.png'
 import { Link } from 'react-router-dom'
+import { Phone, Mail, MapPin, Clock, Youtube, Linkedin, Facebook, Twitter, Instagram } from 'lucide-react'
 
 function Footer() {
   const currentYear = new Date().getFullYear()
@@ -11,12 +12,13 @@ function Footer() {
     hours: 'Mon–Sat: 9AM–8PM',
   }
 
+  // ✅ icon is now a lucide-react component — real brand glyphs, not emoji
   const socialLinks = [
-    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: '▶' },
-    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: 'in' },
-    { name: 'Facebook', url: 'https://www.facebook.com/share/1HWXsT7c9p/', icon: 'f' },
-    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: '𝕏' },
-    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: '📸' },
+    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: Youtube },
+    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: Linkedin },
+    { name: 'Facebook', url: 'https://www.facebook.com/share/1HWXsT7c9p/', icon: Facebook },
+    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: Twitter },
+    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: Instagram },
   ]
 
   const quickLinks = [
@@ -30,12 +32,12 @@ function Footer() {
   ]
 
   const services = [
-    {name: 'Web Development', path: '/services/web-development'},
-    {name: 'Frontend Development', path: '/services/web-development'},
-    {name: 'Backend Development', path: '/services/web-development'},
-    {name: 'Crypto Trading', path: '/services/crypto'},
-    {name: 'P2P Trading', path: '/services/crypto'},
-    {name: 'Shopping Assistance', path: '/services/shopping'},
+    { name: 'Web Development', path: '/services/web-development' },
+    { name: 'Frontend Development', path: '/services/web-development' },
+    { name: 'Backend Development', path: '/services/web-development' },
+    { name: 'Crypto Trading', path: '/services/crypto' },
+    { name: 'P2P Trading', path: '/services/crypto' },
+    { name: 'Shopping Assistance', path: '/services/shopping' },
   ]
 
   return (
@@ -48,26 +50,22 @@ function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
 
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-3 mb-5">
-  {/* Logo image */}
-  <img
-    src={logo}
-    alt="Ultimate Tech Lab Logo"
-    className="h-12 w-auto rounded-lg"
-  />
-  {/* Brand text beside logo */}
-  <div>
-    <div className="text-white font-black text-sm leading-tight tracking-wide">
-      ULTIMATE
-    </div>
-    <div className="text-green-400 font-bold text-[11px] tracking-widest">
-      TECH LAB
-    </div>
-  </div>
-</Link>
+              <img
+                src={logo}
+                alt="Ultimate Tech Lab Logo"
+                className="h-12 w-auto rounded-lg"
+              />
+              <div>
+                <div className="text-white font-black text-sm leading-tight tracking-wide">
+                  ULTIMATE
+                </div>
+                <div className="text-amber-400 font-bold text-[11px] tracking-widest">
+                  TECH LAB
+                </div>
+              </div>
+            </Link>
 
-            {/* Tagline */}
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               Building digital solutions for a global audience. We build, trade and deliver value with excellence.
             </p>
@@ -78,27 +76,27 @@ function Footer() {
                 href={`https://wa.me/${contactInfo.whatsapp.replace(/\+/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition-colors text-sm"
+                className="flex items-center gap-2.5 text-gray-400 hover:text-green-400 transition-colors text-sm"
               >
-                <span>📱</span>
+                <Phone size={15} className="flex-shrink-0" />
                 <span>{contactInfo.whatsapp}</span>
               </a>
 
               <a
                 href={`mailto:${contactInfo.email}`}
-                className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors text-sm"
+                className="flex items-center gap-2.5 text-gray-400 hover:text-amber-400 transition-colors text-sm"
               >
-                <span>✉️</span>
+                <Mail size={15} className="flex-shrink-0" />
                 <span>{contactInfo.email}</span>
               </a>
 
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <span>📍</span>
+              <div className="flex items-center gap-2.5 text-gray-400 text-sm">
+                <MapPin size={15} className="flex-shrink-0" />
                 <span>{contactInfo.location}</span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <span>🕐</span>
+              <div className="flex items-center gap-2.5 text-gray-400 text-sm">
+                <Clock size={15} className="flex-shrink-0" />
                 <span>{contactInfo.hours}</span>
               </div>
             </div>
@@ -114,7 +112,7 @@ function Footer() {
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block"
+                    className="text-gray-400 text-sm hover:text-amber-400 hover:translate-x-1 transition-all inline-block"
                   >
                     → {link.name}
                   </Link>
@@ -133,7 +131,7 @@ function Footer() {
                 <li key={service.name}>
                   <Link
                     to={service.path}
-                    className="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block"
+                    className="text-gray-400 text-sm hover:text-amber-400 hover:translate-x-1 transition-all inline-block"
                   >
                     → {service.name}
                   </Link>
@@ -154,9 +152,9 @@ function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
               />
-              <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors">
+              <button className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] text-sm font-bold rounded-lg transition-colors">
                 Subscribe
               </button>
             </div>
@@ -167,25 +165,27 @@ function Footer() {
         {/* Bottom Section */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          {/* Copyright */}
           <p className="text-gray-500 text-sm">
             © {currentYear} Ultimate Tech Lab. All rights reserved.
           </p>
 
           {/* Social Links */}
           <div className="flex items-center gap-3">
-            {socialLinks.map((social) => (
-              <a
-                key={social.name}
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={social.name}
-                className="w-9 h-9 rounded-full bg-white/5 hover:bg-blue-600 flex items-center justify-center transition-all text-gray-400 hover:text-white text-xs font-bold"
-              >
-                {social.icon}
-              </a>
-            ))}
+            {socialLinks.map((social) => {
+              const SocialIcon = social.icon
+              return (
+                <a
+                  key={social.name}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={social.name}
+                  className="w-9 h-9 rounded-full bg-white/5 hover:bg-amber-500 flex items-center justify-center transition-all text-gray-400 hover:text-[#0a0f2c]"
+                >
+                  <SocialIcon size={16} />
+                </a>
+              )
+            })}
           </div>
 
         </div>
