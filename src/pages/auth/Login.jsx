@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
 
 function Login() {
@@ -23,7 +23,8 @@ function Login() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  // ✅ LOGIN — calls the real backend login endpoint
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -34,26 +35,26 @@ function Login() {
 
     setLoading(true)
 
-    // ✅ Check user in localStorage
-    // Replace with API call when backend is ready
-    const users = JSON.parse(localStorage.getItem('utl_users') || '[]')
-    const user = users.find(
-      u => u.email === formData.email && u.password === formData.password
-    )
+    try {
+      const result = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+      })
 
-    setTimeout(() => {
-      if (user) {
-  const { password, ...safeUser } = user
-  localStorage.setItem('utl_current_user', JSON.stringify(safeUser))
-  // ✅ Redirect to where they were before login
-  const redirect = localStorage.getItem('utl_redirect_after_login')
-  localStorage.removeItem('utl_redirect_after_login')
-  navigate(redirect || '/dashboard')
-      } else {
-        setError('Invalid email or password. Please try again.')
+      if (result.success) {
+        localStorage.setItem('utl_token', result.token)
+        localStorage.setItem('utl_current_user', JSON.stringify(result.user))
+
+        // ✅ Redirect to where they were before login, or dashboard
+        const redirect = localStorage.getItem('utl_redirect_after_login')
+        localStorage.removeItem('utl_redirect_after_login')
+        navigate(redirect || '/dashboard')
       }
+    } catch (err) {
+      setError(err.message || 'Invalid email or password. Please try again.')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
 return (
