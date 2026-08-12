@@ -1,6 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom'
+/* eslint-disable react-hooks/exhaustive-deps */
+import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import useAuthGuard from '../../hooks/useAuthGuard'
+import { ArrowRight } from 'lucide-react'
 
 function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -81,42 +82,40 @@ function HeroSection() {
   const headline = "All Your Digital Needs,"
   const subHeadline = "One Trusted Platform"
   const description = "We build modern websites, provide secure crypto services, and help you shop globally with ease."
-  const whatsappNumber = "2348038786037"
 
   return (
     <section className="relative min-h-auto bg-[#0a0f2c] flex items-center overflow-hidden pt-16">
 
-      {/* Background Effects */}
+      {/* Background — a single intentional amber glow behind the headline,
+          not scattered blue blobs. Dot grid stays as quiet texture. */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-blue-800/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-amber-500/[0.07] rounded-full blur-[100px]" />
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-            backgroundSize: "50px 50px"
+            backgroundSize: "48px 48px"
           }}
         />
       </div>
 
       {/* Main Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20 grid lg:grid-cols-2 gap-8 items-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-20 grid lg:grid-cols-2 gap-10 items-center">
         {/* Left Side */}
-        <div className="space-y-8">
+        <div className="space-y-7">
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-full px-4 py-1.5">
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            <span className="text-blue-300 text-xs font-medium tracking-wide">
+          <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/30 rounded-full px-4 py-1.5">
+            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+            <span className="text-amber-300 text-xs font-semibold tracking-wide">
               WELCOME TO ULTIMATE TECH LAB
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-black text-white leading-[1.08] tracking-tight">
             {headline}{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">
               {subHeadline}
             </span>
           </h1>
@@ -127,33 +126,34 @@ function HeroSection() {
           </p>
 
           {/* Buttons */}
-<div className="flex flex-wrap gap-4">
-  <Link
-    to="/signup"
-    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 active:scale-95"
-  >
-    Get Started
-  </Link>
-  <Link
-    to="/signup"
-    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
-  >
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-green-400">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.054 23.447a.5.5 0 0 0 .609.61l5.704-1.49A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.009-1.374l-.36-.213-3.726.973.997-3.634-.234-.374A9.818 9.818 0 1 1 12 21.818z"/>
-    </svg>
-    Sign Up to Chat
-  </Link>
-</div>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              to="/signup"
+              className="group flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:shadow-xl hover:shadow-amber-500/20 hover:-translate-y-0.5 active:scale-95"
+            >
+              Get Started
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/signup"
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-green-400">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.054 23.447a.5.5 0 0 0 .609.61l5.704-1.49A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.009-1.374l-.36-.213-3.726.973.997-3.634-.234-.374A9.818 9.818 0 1 1 12 21.818z"/>
+              </svg>
+              Sign Up to Chat
+            </Link>
+          </div>
 
           {/* Trust Line */}
           <div className="flex items-center gap-3 pt-2">
             <div className="flex -space-x-2">
-              {["#60A5FA", "#34D399", "#F59E0B"].map((color, i) => (
+              {["#F5A623", "#60A5FA", "#34D399"].map((color, i) => (
                 <div
                   key={i}
                   className="w-8 h-8 rounded-full border-2 border-[#0a0f2c]"
-                  style={{ backgroundColor: color, opacity: 0.85 }}
+                  style={{ backgroundColor: color, opacity: 0.9 }}
                 />
               ))}
             </div>
@@ -171,7 +171,7 @@ function HeroSection() {
           <div className="relative w-full max-w-lg">
 
             {/* Glow */}
-            <div className="absolute inset-0 bg-blue-600/20 rounded-3xl blur-2xl scale-110" />
+            <div className="absolute inset-0 bg-amber-500/10 rounded-3xl blur-2xl scale-110" />
 
             {/* Slider */}
             <div
@@ -184,19 +184,16 @@ function HeroSection() {
                   className="absolute inset-0 transition-opacity duration-700"
                   style={{ opacity: index === currentSlide ? 1 : 0 }}
                 >
-                  {/* Image */}
                   <img
                     src={slide.image}
                     alt={slide.title}
                     className="w-full h-full object-cover"
                   />
 
-                  {/* Dark gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f2c]/90 via-[#0a0f2c]/20 to-transparent" />
 
-                  {/* Slide text */}
                   <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <span className="inline-block bg-blue-600/80 text-white text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                    <span className="inline-block bg-amber-500/90 text-[#0a0f2c] text-xs font-bold px-3 py-1 rounded-full mb-2">
                       {slide.tag}
                     </span>
                     <h3 className="text-white font-bold text-lg leading-tight">
@@ -215,9 +212,10 @@ function HeroSection() {
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
+                    aria-label={`Go to slide ${index + 1}`}
                     className={`transition-all duration-300 rounded-full ${
                       index === currentSlide
-                        ? 'w-6 h-2 bg-blue-500'
+                        ? 'w-6 h-2 bg-amber-400'
                         : 'w-2 h-2 bg-white/40 hover:bg-white/60'
                     }`}
                   />
