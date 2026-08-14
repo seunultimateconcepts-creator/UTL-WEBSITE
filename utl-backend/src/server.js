@@ -14,7 +14,7 @@ const app = express()
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://utl-website.vercel.app'
+    'https://ultechlab.com'
   ],
   credentials: true
 }))
