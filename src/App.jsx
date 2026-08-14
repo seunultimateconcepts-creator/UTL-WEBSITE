@@ -70,7 +70,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
         <Route path="/tech-hub" element={<TechHub />} />
-        <Route path="/tools/json-formatter" element={<JsonFormatter />} />
+        <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
