@@ -1,6 +1,37 @@
 import logo from '../assets/logo_utl.png'
 import { Link } from 'react-router-dom'
-import { Phone, Mail, MapPin, Clock, Youtube, Linkedin, Facebook, Twitter, Instagram } from 'lucide-react'
+import { Phone, Mail, MapPin, Clock } from 'lucide-react'
+
+// ✅ lucide-react removed brand/logo icons (trademark reasons), so social
+// icons are small inline SVGs here instead — same approach as the
+// WhatsApp icon already used elsewhere on the site.
+const YoutubeIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/>
+  </svg>
+)
+const LinkedinIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20.4 20.4h-3.6v-5.6c0-1.3 0-3-1.9-3s-2.1 1.4-2.1 2.9v5.7H9.2V9h3.5v1.6h.05c.5-.9 1.7-1.9 3.4-1.9 3.6 0 4.3 2.4 4.3 5.5v6.2ZM5.3 7.4a2.1 2.1 0 1 1 0-4.2 2.1 2.1 0 0 1 0 4.2ZM7.1 20.4H3.6V9h3.5v11.4Z"/>
+  </svg>
+)
+const FacebookIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.5 2.9h-2.3v7A10 10 0 0 0 22 12Z"/>
+  </svg>
+)
+const TwitterIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M18.9 2H22l-7.2 8.3L23.3 22h-6.6l-5.2-6.8L5.4 22H2.3l7.7-8.9L1 2h6.8l4.7 6.2L18.9 2Zm-1.2 18.1h1.7L7.4 3.8H5.6l12.1 16.3Z"/>
+  </svg>
+)
+const InstagramIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <rect x="2" y="2" width="20" height="20" rx="5"/>
+    <circle cx="12" cy="12" r="4"/>
+    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+  </svg>
+)
 
 function Footer() {
   const currentYear = new Date().getFullYear()
@@ -12,13 +43,12 @@ function Footer() {
     hours: 'Mon–Sat: 9AM–8PM',
   }
 
-  // ✅ icon is now a lucide-react component — real brand glyphs, not emoji
   const socialLinks = [
-    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: Youtube },
-    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: Linkedin },
-    { name: 'Facebook', url: 'https://www.facebook.com/share/1HWXsT7c9p/', icon: Facebook },
-    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: Twitter },
-    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: Instagram },
+    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: YoutubeIcon },
+    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: LinkedinIcon },
+    { name: 'Facebook', url: 'https://www.facebook.com/share/1HWXsT7c9p/', icon: FacebookIcon },
+    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: TwitterIcon },
+    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: InstagramIcon },
   ]
 
   const quickLinks = [
@@ -70,7 +100,6 @@ function Footer() {
               Building digital solutions for a global audience. We build, trade and deliver value with excellence.
             </p>
 
-            {/* Contact Info */}
             <div className="space-y-3">
               <a
                 href={`https://wa.me/${contactInfo.whatsapp.replace(/\+/g, '')}`}
@@ -169,7 +198,6 @@ function Footer() {
             © {currentYear} Ultimate Tech Lab. All rights reserved.
           </p>
 
-          {/* Social Links */}
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => {
               const SocialIcon = social.icon
@@ -182,7 +210,7 @@ function Footer() {
                   title={social.name}
                   className="w-9 h-9 rounded-full bg-white/5 hover:bg-amber-500 flex items-center justify-center transition-all text-gray-400 hover:text-[#0a0f2c]"
                 >
-                  <SocialIcon size={16} />
+                  <SocialIcon className="w-4 h-4" />
                 </a>
               )
             })}
