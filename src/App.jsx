@@ -28,6 +28,7 @@ import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmailPending from './pages/auth/VerifyEmailPending'
 import TechHub from './pages/TechHub'
 import JsonFormatter from './pages/tools/JsonFormatter'
+import ScrollToTop from './components/ScrollToTop'
 
 function App() {
   const location = useLocation()
@@ -43,6 +44,7 @@ function App() {
 
   return (
     <div>
+      <ScrollToTop />
       {!isAuthPage && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
