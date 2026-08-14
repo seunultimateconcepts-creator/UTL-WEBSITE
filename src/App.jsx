@@ -29,6 +29,7 @@ import VerifyEmailPending from './pages/auth/VerifyEmailPending'
 import TechHub from './pages/TechHub'
 import JsonFormatter from './pages/tools/JsonFormatter'
 import ScrollToTop from './components/ScrollToTop'
+import PasswordGenerator from './pages/tools/PasswordGenerator'
 
 function App() {
   const location = useLocation()
@@ -73,6 +74,8 @@ function App() {
         <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
         <Route path="/tech-hub" element={<TechHub />} />
         <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
+        <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
+        <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

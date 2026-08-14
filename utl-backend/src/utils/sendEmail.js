@@ -11,7 +11,7 @@ const sendEmail = async ({ to, subject, html }) => {
       // ⚠️ Using Resend's free test sender for now since we don't
       // have a verified domain yet. Once UTL has its own domain,
       // change this to something like 'Ultimate Tech Lab <noreply@ultimatetechlab.com>'
-      from: 'Ultimate Tech Lab <onboarding@resend.dev>',
+      from: 'Ultimate Tech Lab <hello@ultechlab.com>',
       to,
       subject,
       html,
