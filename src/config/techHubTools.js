@@ -36,7 +36,7 @@ export const techHubTools = [
     description: 'Turn any link or text into a scannable QR code.',
     category: 'Image & Media',
     icon: QrCode,
-    live: false,
+    live: true,
   },
   {
     slug: 'image-compressor',
