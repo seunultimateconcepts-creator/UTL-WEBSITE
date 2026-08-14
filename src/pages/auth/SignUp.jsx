@@ -22,31 +22,19 @@ function SignUp() {
 
   // ✅ Account types users can register as
   const accountTypes = [
-    {
-      id: 'client',
-      label: 'Client',
-      desc: 'I want to hire services',
-      icon: '👤',
-    },
-    {
-      id: 'seller',
-      label: 'Seller',
-      desc: 'I want to sell products',
-      icon: '🏪',
-    },
-    {
-      id: 'learner',
-      label: 'AI Learner',
-      desc: 'I want to learn AI & Tech',
-      icon: '🤖',
-    },
-    {
-      id: 'crypto',
-      label: 'Crypto Student',
-      desc: 'I want to learn crypto trading',
-      icon: '💰',
-    },
-  ]
+  {
+    id: 'client',
+    label: 'Client',
+    desc: 'I want to hire services',
+    icon: '👤',
+  },
+  {
+    id: 'seller',
+    label: 'Seller',
+    desc: 'I want to sell products',
+    icon: '🏪',
+  },
+]
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -238,7 +226,7 @@ function SignUp() {
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">
                   Join as
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-2 gap-4">
                   {accountTypes.map((type) => (
                     <button
                       key={type.id}
