@@ -75,7 +75,6 @@ function App() {
         <Route path="/tech-hub" element={<TechHub />} />
         <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
         <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
-        <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
