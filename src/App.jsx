@@ -20,13 +20,14 @@ import BecomeSeller from './pages/BecomeSeller'
 import SignUp from './pages/auth/SignUp'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/auth/Dashboard'
-import AILearning from './pages/AILearning'
 import NotFound from './pages/NotFound'
 import SignUpSuccess from './pages/auth/SignUpSuccess'
 import VerifyEmail from './pages/auth/VerifyEmail'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmailPending from './pages/auth/VerifyEmailPending'
+import TechHub from './pages/TechHub'
+import JsonFormatter from './pages/tools/JsonFormatter'
 
 function App() {
   const location = useLocation()
@@ -62,13 +63,14 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tech-hub" element={<AILearning />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/signup-success" element={<SignUpSuccess />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
+        <Route path="/tech-hub" element={<TechHub />} />
+        <Route path="/tools/json-formatter" element={<JsonFormatter />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
