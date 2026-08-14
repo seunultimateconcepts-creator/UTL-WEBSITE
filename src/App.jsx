@@ -30,6 +30,9 @@ import TechHub from './pages/TechHub'
 import JsonFormatter from './pages/tools/JsonFormatter'
 import ScrollToTop from './components/ScrollToTop'
 import PasswordGenerator from './pages/tools/PasswordGenerator'
+import WordCounter from './pages/tools/WordCounter'
+import QRGenerator from './pages/tools/QRGenerator'
+import CVBuilder from './pages/tools/CVBuilder'
 
 function App() {
   const location = useLocation()
@@ -75,6 +78,9 @@ function App() {
         <Route path="/tech-hub" element={<TechHub />} />
         <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
         <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
+        <Route path="/tech-hub/word-counter" element={<WordCounter />} />
+        <Route path="/tech-hub/qr-generator" element={<QRGenerator />} />
+        <Route path="/tech-hub/cv-builder" element={<CVBuilder />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

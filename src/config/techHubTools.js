@@ -1,5 +1,5 @@
 import {
-  FileJson, KeyRound, Type, QrCode, ImageDown, Ruler,
+  FileJson, KeyRound, Type, QrCode, ImageDown, Ruler, FileText
 } from 'lucide-react'
 
 // ✅ Add a new tool here and it automatically shows up on the Tech Hub
@@ -20,7 +20,7 @@ export const techHubTools = [
     description: 'Create strong, random passwords in one click.',
     category: 'Security',
     icon: KeyRound,
-    live: false,
+    live: true,
   },
   {
     slug: 'word-counter',
@@ -28,7 +28,7 @@ export const techHubTools = [
     description: 'Count words, characters and reading time.',
     category: 'Student & Writing',
     icon: Type,
-    live: false,
+    live: true,
   },
   {
     slug: 'qr-generator',
@@ -54,6 +54,14 @@ export const techHubTools = [
     icon: Ruler,
     live: false,
   },
+  {
+  slug: 'cv-builder',
+  name: 'CV Builder',
+  description: 'Build a polished CV/resume and download as PDF.',
+  category: 'Student & Career',
+  icon: FileText,
+  live: true,
+},
 ]
 
 // ✅ Groups tools by category for the landing page grid
