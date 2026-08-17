@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from "../components/FacebookAuthButton";
 
 function Login() {
   const navigate = useNavigate()
@@ -212,7 +213,7 @@ return (
               </button>
               <button type="button"
                 className="flex items-center justify-center gap-2 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-medium rounded-xl transition-colors">
-                📘 Facebook
+                <FacebookAuthButton />
               </button>
             </div>
 

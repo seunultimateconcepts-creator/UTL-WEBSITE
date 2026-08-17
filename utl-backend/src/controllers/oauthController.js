@@ -75,6 +75,83 @@ const googleAuth = async (req, res) => {
   }
 }
 
+const facebookAuth = async (req, res) => {
+  try {
+    const { accessToken } = req.body
+
+    if (!accessToken) {
+      return res.status(400).json({ success: false, message: 'Missing Facebook access token' })
+    }
+
+    const fbResponse = await fetch(
+      `https://graph.facebook.com/me?fields=id,first_name,last_name,email,picture.type(large)&access_token=${accessToken}`
+    )
+    const fbData = await fbResponse.json()
+
+    if (fbData.error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Facebook token verification failed',
+        error: fbData.error.message,
+      })
+    }
+
+    const { id: facebookId, first_name, last_name, email, picture } = fbData
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your Facebook account has no email available. Please sign up with email/Google instead.',
+      })
+    }
+
+    let user = await User.findOne({ $or: [{ facebookId }, { email }] })
+
+    if (user) {
+      if (!user.facebookId) {
+        user.facebookId = facebookId
+        if (!user.avatar && picture?.data?.url) user.avatar = picture.data.url
+        await user.save()
+      }
+    } else {
+      user = await User.create({
+        firstName: first_name || 'Facebook',
+        lastName: last_name || 'User',
+        email,
+        facebookId,
+        avatar: picture?.data?.url || null,
+        isVerified: true,
+        accountTypeConfirmed: false,
+      })
+    }
+
+    const token = generateToken(user._id)
+
+    res.status(200).json({
+      success: true,
+      message: 'Signed in with Facebook',
+      token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        accountType: user.accountType,
+        accountTypeConfirmed: user.accountTypeConfirmed,
+        avatar: user.avatar,
+        isVerified: user.isVerified,
+      },
+    })
+  } catch (error) {
+    console.error('Facebook auth error:', error.message)
+    res.status(401).json({
+      success: false,
+      message: 'Facebook sign-in failed',
+      error: error.message,
+    })
+  }
+}
+
 const completeProfile = async (req, res) => {
   try {
     const { accountType } = req.body
@@ -118,4 +195,4 @@ const completeProfile = async (req, res) => {
   }
 }
 
-module.exports = { googleAuth, completeProfile }
+module.exports = { googleAuth, facebookAuth, completeProfile }

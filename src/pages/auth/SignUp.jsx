@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from "../components/FacebookAuthButton";
 
 function SignUp() {
   const navigate = useNavigate()
@@ -184,6 +185,7 @@ function SignUp() {
           {step === 1 && (
             <div className="mb-6">
               <GoogleAuthButton />
+              <FacebookAuthButton />
               <div className="flex items-center gap-3 mt-5">
                 <div className="flex-1 h-px bg-white/10" />
                 <span className="text-gray-500 text-xs">or sign up manually</span>
