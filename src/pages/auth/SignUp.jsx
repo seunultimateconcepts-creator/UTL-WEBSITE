@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 
 function SignUp() {
   const navigate = useNavigate()
@@ -20,7 +21,6 @@ function SignUp() {
     agreeTerms: false,
   })
 
-  // ✅ Account types users can register as
   const accountTypes = [
   {
     id: 'client',
@@ -44,7 +44,6 @@ function SignUp() {
     }))
   }
 
-  // ✅ Validate step 1
   const validateStep1 = () => {
     if (!formData.firstName || !formData.lastName) {
       setError('Please enter your full name')
@@ -62,7 +61,6 @@ function SignUp() {
     return true
   }
 
-  // ✅ Validate step 2
   const validateStep2 = () => {
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters')
@@ -84,7 +82,6 @@ function SignUp() {
     if (validateStep1()) setStep(2)
   }
 
-  // ✅ SIGNUP — calls the real backend signup endpoint
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -104,9 +101,6 @@ function SignUp() {
       })
 
       if (result.success) {
-        // ✅ Do NOT log the user in here — backend requires email
-        // verification before login is allowed. Send them to a
-        // "check your email" screen instead of the dashboard.
         navigate('/verify-email-pending', { state: { email: formData.email } })
       }
     } catch (err) {
@@ -120,14 +114,12 @@ function SignUp() {
     <div className="min-h-screen bg-[#0a0f2c] flex items-center justify-center p-4">
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 bg-[#111827] rounded-3xl overflow-hidden shadow-2xl border border-white/10">
 
-        {/* Left Side — Branding */}
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600/20 to-transparent relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-600/10 rounded-full blur-3xl" />
           </div>
 
-          {/* Logo */}
           <div className="relative flex items-center gap-3">
             <img src={logo} alt="UTL Logo" className="h-12 w-auto rounded-lg" />
             <div>
@@ -136,7 +128,6 @@ function SignUp() {
             </div>
           </div>
 
-          {/* Middle */}
           <div className="relative space-y-5">
             <h1 className="text-3xl font-black text-white leading-tight">
               Join thousands of clients on{' '}
@@ -159,7 +150,6 @@ function SignUp() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="relative grid grid-cols-3 gap-4">
             {[
               { value: '500+', label: 'Happy Clients' },
@@ -174,16 +164,13 @@ function SignUp() {
           </div>
         </div>
 
-        {/* Right Side — Form */}
         <div className="flex flex-col justify-center p-8 lg:p-10">
 
-          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-6">
             <img src={logo} alt="UTL Logo" className="h-10 w-auto rounded-lg" />
             <div className="text-white font-black text-sm">ULTIMATE TECH LAB</div>
           </div>
 
-          {/* Header */}
           <div className="mb-6">
             <h2 className="text-2xl font-black text-white mb-1">Create Account</h2>
             <p className="text-gray-400 text-sm">
@@ -194,7 +181,17 @@ function SignUp() {
             </p>
           </div>
 
-          {/* Step indicator */}
+          {step === 1 && (
+            <div className="mb-6">
+              <GoogleAuthButton />
+              <div className="flex items-center gap-3 mt-5">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-gray-500 text-xs">or sign up manually</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 mb-6">
             {[1, 2].map((s) => (
               <div key={s} className="flex items-center gap-2">
@@ -211,17 +208,14 @@ function SignUp() {
             ))}
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
               <p className="text-red-400 text-xs">{error}</p>
             </div>
           )}
 
-          {/* Step 1 */}
           {step === 1 && (
             <div className="space-y-4">
-              {/* Account type */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">
                   Join as
@@ -246,7 +240,6 @@ function SignUp() {
                 </div>
               </div>
 
-              {/* Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">First Name</label>
@@ -262,7 +255,6 @@ function SignUp() {
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Email Address</label>
                 <input type="email" name="email" value={formData.email} onChange={handleChange}
@@ -270,7 +262,6 @@ function SignUp() {
                   className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 transition-colors" />
               </div>
 
-              {/* Phone */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">WhatsApp / Phone</label>
                 <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
@@ -291,7 +282,6 @@ function SignUp() {
             </div>
           )}
 
-          {/* Step 2 */}
           {step === 2 && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -308,7 +298,6 @@ function SignUp() {
                   className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 transition-colors" />
               </div>
 
-              {/* Password strength */}
               <div className="space-y-1">
                 <p className="text-gray-400 text-xs">Password strength:</p>
                 <div className="flex gap-1">
@@ -325,7 +314,6 @@ function SignUp() {
                 </div>
               </div>
 
-              {/* Terms */}
               <div className="flex items-start gap-3">
                 <input type="checkbox" name="agreeTerms" id="agreeTerms"
                   checked={formData.agreeTerms} onChange={handleChange}

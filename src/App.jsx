@@ -42,7 +42,7 @@ import ColorConverter from './pages/tools/ColorConverter'
 import ImageCompressor from './pages/tools/ImageCompressor'
 import ImagePdfConverter from './pages/tools/ImagePdfConverter'
 import PdfToolkit from './pages/tools/PdfToolkit'
-
+import CompleteProfile from './pages/auth/CompleteProfile'
 function App() {
   const location = useLocation()
 
@@ -99,7 +99,7 @@ function App() {
         <Route path="/tech-hub/image-compressor" element={<ImageCompressor />} />
         <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
         <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
-      </Routes>
+        <Route path="/complete-profile" element={<CompleteProfile />} />      </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
     </div>
