@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileText, Plus, Trash2, Download } from 'lucide-react'
+import { ArrowLeft, FileText, Plus, Trash2, Download, Upload, Copy, Check, Loader2 } from 'lucide-react'
+import * as pdfjsLib from 'pdfjs-dist/build/pdf'
+import mammoth from 'mammoth'
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 function CVBuilder() {
   const [personal, setPersonal] = useState({
@@ -19,6 +23,12 @@ function CVBuilder() {
     { id: 1, degree: '', school: '', duration: '' },
   ])
   const [skills, setSkills] = useState('')
+  const [additionalSections, setAdditionalSections] = useState([])
+
+  const [extractedText, setExtractedText] = useState('')
+  const [extracting, setExtracting] = useState(false)
+  const [extractError, setExtractError] = useState('')
+  const [copiedExtracted, setCopiedExtracted] = useState(false)
 
   const updatePersonal = (field, value) => {
     setPersonal((prev) => ({ ...prev, [field]: value }))
@@ -44,10 +54,78 @@ function CVBuilder() {
     setEducation((prev) => prev.filter((ed) => ed.id !== id))
   }
 
+  const addSection = () => {
+    setAdditionalSections((prev) => [...prev, { id: Date.now(), title: '', content: '' }])
+  }
+  const updateSection = (id, field, value) => {
+    setAdditionalSections((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)))
+  }
+  const removeSection = (id) => {
+    setAdditionalSections((prev) => prev.filter((s) => s.id !== id))
+  }
+
   const skillsList = skills.split(',').map((s) => s.trim()).filter(Boolean)
 
   const handleDownload = () => {
     window.print()
+  }
+
+  const extractPdfText = async (file) => {
+    const arrayBuffer = await file.arrayBuffer()
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    let fullText = ''
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i)
+      const content = await page.getTextContent()
+      const pageText = content.items.map((item) => item.str).join(' ')
+      fullText += pageText + '\n\n'
+    }
+    return fullText.trim()
+  }
+
+  const extractDocxText = async (file) => {
+    const arrayBuffer = await file.arrayBuffer()
+    const result = await mammoth.extractRawText({ arrayBuffer })
+    return result.value.trim()
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setExtracting(true)
+    setExtractError('')
+    setExtractedText('')
+    setCopiedExtracted(false)
+
+    try {
+      let text = ''
+      if (file.type === 'application/pdf') {
+        text = await extractPdfText(file)
+      } else if (file.name.toLowerCase().endsWith('.docx')) {
+        text = await extractDocxText(file)
+      } else {
+        throw new Error('Please upload a PDF or DOCX file (.doc is not supported).')
+      }
+
+      if (!text) {
+        throw new Error('No readable text found — this might be a scanned/image-based CV.')
+      }
+
+      setExtractedText(text)
+    } catch (err) {
+      setExtractError(err.message || 'Could not read this file.')
+    } finally {
+      setExtracting(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleCopyExtracted = () => {
+    if (!extractedText) return
+    navigator.clipboard.writeText(extractedText)
+    setCopiedExtracted(true)
+    setTimeout(() => setCopiedExtracted(false), 2000)
   }
 
   return (
@@ -68,7 +146,6 @@ function CVBuilder() {
         }
       `}</style>
 
-      {/* Header */}
       <div className="bg-[#0a0f2c] py-10 px-4 sm:px-6 lg:px-8 print:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -97,11 +174,58 @@ function CVBuilder() {
         </div>
       </div>
 
-      {/* Tool */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid lg:grid-cols-2 gap-8">
 
-        {/* Form */}
         <div className="space-y-6 print:hidden">
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h3 className="font-bold text-gray-900 mb-1">Have an existing CV?</h3>
+            <p className="text-gray-500 text-xs mb-4">
+              Upload it to extract the text, then copy the parts you want into the fields below to rebuild a cleaner, corrected version.
+            </p>
+
+            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-amber-300 rounded-xl p-6 cursor-pointer transition-colors">
+              {extracting ? (
+                <Loader2 size={22} className="text-amber-500 animate-spin" />
+              ) : (
+                <Upload size={22} className="text-gray-400" />
+              )}
+              <span className="text-sm text-gray-500">
+                {extracting ? 'Reading your file...' : 'Click to upload a PDF or DOCX'}
+              </span>
+              <input
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleFileUpload}
+                disabled={extracting}
+                className="hidden"
+              />
+            </label>
+
+            {extractError && (
+              <p className="text-red-500 text-xs mt-3">{extractError}</p>
+            )}
+
+            {extractedText && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Extracted Text</span>
+                  <button
+                    onClick={handleCopyExtracted}
+                    className="flex items-center gap-1 text-amber-600 hover:text-amber-700 text-xs font-semibold"
+                  >
+                    {copiedExtracted ? <Check size={12} /> : <Copy size={12} />}
+                    {copiedExtracted ? 'Copied!' : 'Copy All'}
+                  </button>
+                </div>
+                <textarea
+                  value={extractedText}
+                  onChange={(e) => setExtractedText(e.target.value)}
+                  className="w-full h-48 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-mono resize-none focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            )}
+          </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h3 className="font-bold text-gray-900 mb-4">Personal Info</h3>
@@ -210,9 +334,43 @@ function CVBuilder() {
             />
           </div>
 
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-gray-900">Additional Sections</h3>
+                <p className="text-gray-400 text-xs mt-0.5">Certifications, Projects, Languages, References, etc.</p>
+              </div>
+              <button
+                onClick={addSection}
+                className="flex items-center gap-1 text-amber-600 hover:text-amber-700 text-xs font-semibold flex-shrink-0"
+              >
+                <Plus size={14} /> Add Section
+              </button>
+            </div>
+
+            {additionalSections.length === 0 && (
+              <p className="text-gray-300 text-sm italic">No additional sections yet — click "Add Section" to create one.</p>
+            )}
+
+            <div className="space-y-4">
+              {additionalSections.map((section) => (
+                <div key={section.id} className="border border-gray-100 rounded-xl p-4 relative">
+                  <button onClick={() => removeSection(section.id)} className="absolute top-3 right-3 text-gray-300 hover:text-red-500">
+                    <Trash2 size={14} />
+                  </button>
+                  <input placeholder="Section Title (e.g. Certifications)" value={section.title}
+                    onChange={(e) => updateSection(section.id, 'title', e.target.value)}
+                    className="w-full mb-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold focus:outline-none focus:border-amber-400" />
+                  <textarea placeholder="Content for this section..." value={section.content}
+                    onChange={(e) => updateSection(section.id, 'content', e.target.value)}
+                    className="w-full h-20 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:border-amber-400" />
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
-        {/* Live Preview */}
         <div>
           <div
             id="cv-preview"
@@ -272,7 +430,7 @@ function CVBuilder() {
             )}
 
             {skillsList.length > 0 && (
-              <div>
+              <div className="mb-4">
                 <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider mb-2">Skills</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {skillsList.map((skill) => (
@@ -283,6 +441,15 @@ function CVBuilder() {
                 </div>
               </div>
             )}
+
+            {additionalSections.filter(s => s.title || s.content).map((section) => (
+              <div key={section.id} className="mb-4">
+                <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider mb-1.5">
+                  {section.title || 'Section'}
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{section.content}</p>
+              </div>
+            ))}
           </div>
 
           <p className="text-gray-400 text-xs text-center mt-4 print:hidden">

@@ -33,6 +33,15 @@ import PasswordGenerator from './pages/tools/PasswordGenerator'
 import WordCounter from './pages/tools/WordCounter'
 import QRGenerator from './pages/tools/QRGenerator'
 import CVBuilder from './pages/tools/CVBuilder'
+import UnitConverter from './pages/tools/UnitConverter'
+import Base64Tool from './pages/tools/Base64Tool'
+import CurrencyConverter from './pages/tools/CurrencyConverter'
+import HashUuidGenerator from './pages/tools/HashUuidGenerator'
+import PercentageVatCalculator from './pages/tools/PercentageVatCalculator'
+import ColorConverter from './pages/tools/ColorConverter'
+import ImageCompressor from './pages/tools/ImageCompressor'
+import ImagePdfConverter from './pages/tools/ImagePdfConverter'
+import PdfToolkit from './pages/tools/PdfToolkit'
 
 function App() {
   const location = useLocation()
@@ -81,6 +90,15 @@ function App() {
         <Route path="/tech-hub/word-counter" element={<WordCounter />} />
         <Route path="/tech-hub/qr-generator" element={<QRGenerator />} />
         <Route path="/tech-hub/cv-builder" element={<CVBuilder />} />
+        <Route path="/tech-hub/unit-converter" element={<UnitConverter />} />
+        <Route path="/tech-hub/base64-tool" element={<Base64Tool />} />
+        <Route path="/tech-hub/currency-converter" element={<CurrencyConverter />} />
+        <Route path="/tech-hub/hash-uuid-generator" element={<HashUuidGenerator />} />
+        <Route path="/tech-hub/percentage-vat-calculator" element={<PercentageVatCalculator />} />
+        <Route path="/tech-hub/color-converter" element={<ColorConverter />} />
+        <Route path="/tech-hub/image-compressor" element={<ImageCompressor />} />
+        <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
+        <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
       </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

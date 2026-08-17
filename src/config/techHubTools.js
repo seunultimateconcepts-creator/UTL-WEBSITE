@@ -1,5 +1,6 @@
 import {
-  FileJson, KeyRound, Type, QrCode, ImageDown, Ruler, FileText
+  FileJson, KeyRound, Type, QrCode, ImageDown, Ruler, FileText, Binary, DollarSign, 
+  Hash, Percent, Palette, FileImage, FileStack
 } from 'lucide-react'
 
 // ✅ Add a new tool here and it automatically shows up on the Tech Hub
@@ -44,7 +45,7 @@ export const techHubTools = [
     description: 'Shrink image file size without losing quality.',
     category: 'Image & Media',
     icon: ImageDown,
-    live: false,
+    live: true,
   },
   {
     slug: 'unit-converter',
@@ -52,7 +53,7 @@ export const techHubTools = [
     description: 'Convert length, weight, temperature and more.',
     category: 'Calculators',
     icon: Ruler,
-    live: false,
+    live: true,
   },
   {
   slug: 'cv-builder',
@@ -60,6 +61,62 @@ export const techHubTools = [
   description: 'Build a polished CV/resume and download as PDF.',
   category: 'Student & Career',
   icon: FileText,
+  live: true,
+},
+{
+  slug: 'base64-tool',
+  name: 'Base64 Encoder / Decoder',
+  description: 'Convert text to and from Base64 instantly.',
+  category: 'Developer Tools',
+  icon: Binary,
+  live: true,
+},
+{
+  slug: 'currency-converter',
+  name: 'Currency Converter',
+  description: 'Convert between currencies with live exchange rates.',
+  category: 'Calculators',
+  icon: DollarSign,
+  live: true,
+},
+{
+  slug: 'hash-uuid-generator',
+  name: 'Hash & UUID Generator',
+  description: 'Generate UUIDs or hash text with SHA algorithms.',
+  category: 'Developer Tools',
+  icon: Hash,
+  live: true,
+},
+{
+  slug: 'percentage-vat-calculator',
+  name: 'Percentage & VAT Calculator',
+  description: 'Quick percentage math and VAT calculations.',
+  category: 'Calculators',
+  icon: Percent,
+  live: true,
+},
+{
+  slug: 'color-converter',
+  name: 'Color Converter',
+  description: 'Convert between HEX, RGB and HSL.',
+  category: 'Developer Tools',
+  icon: Palette,
+  live: true,
+},
+{
+  slug: 'image-pdf-converter',
+  name: 'Image ⇄ PDF Converter',
+  description: 'Convert images to PDF, or PDF pages to images.',
+  category: 'File Tools',
+  icon: FileImage,
+  live: true,
+},
+{
+  slug: 'pdf-toolkit',
+  name: 'PDF Toolkit',
+  description: 'Merge, split, or compress PDF files.',
+  category: 'File Tools',
+  icon: FileStack,
   live: true,
 },
 ]
