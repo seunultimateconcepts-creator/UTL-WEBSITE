@@ -28,6 +28,7 @@ app.use('/api/auth', require('./routes/authRoutes'))
 app.use('/api/orders', require('./routes/orderRoutes'))
 app.use('/api/contact', require('./routes/contactRoutes'))
 app.use('/api/news', require('./routes/newsRoutes'))
+app.use('/api/auth/oauth', require('./routes/oauthRoutes'))
 
 // ✅ Health check — visit this to confirm server is running
 app.get('/', (req, res) => {
