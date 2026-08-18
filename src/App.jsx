@@ -44,6 +44,7 @@ import ImagePdfConverter from './pages/tools/ImagePdfConverter'
 import PdfToolkit from './pages/tools/PdfToolkit'
 import CompleteProfile from './pages/auth/CompleteProfile'
 import GoogleOneTap from './components/GoogleOneTap'
+import UTLShopStore from './pages/UTLShopStore'
 
 
 function App() {
@@ -104,7 +105,7 @@ function App() {
         <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
         <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />      
-        
+        <Route path="/shop/ultimate" element={<UTLShopStore />} />
         
         </Routes>
       {!isAuthPage && <Footer />}
