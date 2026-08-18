@@ -43,6 +43,9 @@ import ImageCompressor from './pages/tools/ImageCompressor'
 import ImagePdfConverter from './pages/tools/ImagePdfConverter'
 import PdfToolkit from './pages/tools/PdfToolkit'
 import CompleteProfile from './pages/auth/CompleteProfile'
+import GoogleOneTap from './components/GoogleOneTap'
+
+
 function App() {
   const location = useLocation()
 
@@ -58,6 +61,7 @@ function App() {
   return (
     <div>
       <ScrollToTop />
+      <GoogleOneTap />
       {!isAuthPage && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -99,7 +103,10 @@ function App() {
         <Route path="/tech-hub/image-compressor" element={<ImageCompressor />} />
         <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
         <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
-        <Route path="/complete-profile" element={<CompleteProfile />} />      </Routes>
+        <Route path="/complete-profile" element={<CompleteProfile />} />      
+        
+        
+        </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
     </div>
