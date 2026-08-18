@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import useAuthGuard from '../hooks/useAuthGuard'
+import {
+  Star, PenLine, Calendar, Clock, Lock, Search, Mail, ArrowRight,
+} from 'lucide-react'
 
 function Blog() {
   const { requireAuth, isLoggedIn } = useAuthGuard()
@@ -97,7 +100,7 @@ function Blog() {
   // ✅ Featured posts
   const featuredPosts = posts.filter(p => p.featured)
 
-  // ✅ Category colors
+  // ✅ Category colors — kept distinct per category, these encode information
   const categoryColors = {
     'Web Development': 'bg-blue-100 text-blue-700',
     'Crypto': 'bg-green-100 text-green-700',
@@ -113,22 +116,22 @@ function Blog() {
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
             <Link to="/" className="hover:text-white">Home</Link>
             <span>›</span>
-            <span className="text-purple-400">Blog</span>
+            <span className="text-amber-400">Blog</span>
           </div>
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-purple-600/10 border border-purple-500/30 rounded-full px-4 py-1.5 mb-6">
-              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
-              <span className="text-purple-300 text-xs font-medium tracking-wide">UTL BLOG</span>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+              <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+              <span className="text-amber-300 text-xs font-medium tracking-wide">UTL BLOG</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-6">
               Insights on Tech,{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-amber-400">
                 Crypto & Business
               </span>
             </h1>
@@ -143,9 +146,9 @@ function Blog() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search articles..."
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-purple-400 transition-colors"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-amber-400 transition-colors"
               />
-              <button className="px-5 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition-colors">
+              <button className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors">
                 Search
               </button>
             </div>
@@ -157,7 +160,9 @@ function Blog() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black text-gray-900">⭐ Featured Articles</h2>
+            <h2 className="flex items-center gap-2 text-2xl font-black text-gray-900">
+              <Star size={22} className="text-amber-500" fill="currentColor" /> Featured Articles
+            </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             {featuredPosts.map((post) => (
@@ -173,20 +178,20 @@ function Blog() {
                     </span>
                   </div>
                   <div className="absolute top-4 right-4">
-                    <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                      ⭐ Featured
+                    <span className="inline-flex items-center gap-1 bg-amber-500 text-[#0a0f2c] text-[10px] font-bold px-2.5 py-1 rounded-full">
+                      <Star size={11} fill="currentColor" /> Featured
                     </span>
                   </div>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-3 text-gray-400 text-xs mb-3">
-                    <span>✍️ {post.author}</span>
+                    <span className="flex items-center gap-1"><PenLine size={12} /> {post.author}</span>
                     <span>•</span>
-                    <span>📅 {post.date}</span>
+                    <span className="flex items-center gap-1"><Calendar size={12} /> {post.date}</span>
                     <span>•</span>
-                    <span>⏱️ {post.readTime}</span>
+                    <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
                   </div>
-                  <h3 className="text-gray-900 font-black text-xl mb-3 group-hover:text-blue-600 transition-colors leading-snug">
+                  <h3 className="text-gray-900 font-black text-xl mb-3 group-hover:text-amber-600 transition-colors leading-snug">
                     {post.title}
                   </h3>
                   <p className="text-gray-500 text-sm leading-relaxed mb-4">{post.excerpt}</p>
@@ -199,19 +204,23 @@ function Blog() {
                       ))}
                     </div>
                     <button
-  onClick={() => {
-    const user = localStorage.getItem('utl_current_user')
-    if (!user) {
-      localStorage.setItem('utl_redirect_after_login', '/blog')
-      window.location.href = '/signup'
-    } else {
-      alert('Full blog coming soon! 📝')
-    }
-  }}
-  className="text-blue-600 text-xs font-bold hover:text-blue-700 cursor-pointer"
->
-  {localStorage.getItem('utl_current_user') ? 'Read More →' : '🔒 Sign up to Read'}
-</button>
+                      onClick={() => {
+                        const user = localStorage.getItem('utl_current_user')
+                        if (!user) {
+                          localStorage.setItem('utl_redirect_after_login', '/blog')
+                          window.location.href = '/signup'
+                        } else {
+                          alert('Full blog coming soon!')
+                        }
+                      }}
+                      className="flex items-center gap-1 text-amber-600 text-xs font-bold hover:text-amber-700 cursor-pointer"
+                    >
+                      {localStorage.getItem('utl_current_user') ? (
+                        <>Read More <ArrowRight size={12} /></>
+                      ) : (
+                        <><Lock size={12} /> Sign up to Read</>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -230,7 +239,7 @@ function Blog() {
               <button key={cat} onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                   activeCategory === cat
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                    ? 'bg-amber-500 text-[#0a0f2c] shadow-lg shadow-amber-500/20'
                     : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                 }`}>
                 {cat}
@@ -248,11 +257,11 @@ function Blog() {
           {/* No results */}
           {filteredPosts.length === 0 && (
             <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-              <p className="text-4xl mb-4">🔍</p>
+              <Search size={40} className="mx-auto mb-4 text-gray-300" />
               <p className="text-gray-900 font-bold mb-2">No articles found</p>
               <p className="text-gray-500 text-sm">Try a different search or category</p>
               <button onClick={() => { setActiveCategory('All'); setSearchQuery('') }}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl">
+                className="mt-4 px-4 py-2 bg-amber-500 text-[#0a0f2c] text-sm font-semibold rounded-xl">
                 Clear Filters
               </button>
             </div>
@@ -278,7 +287,7 @@ function Blog() {
                     <span>•</span>
                     <span>{post.readTime}</span>
                   </div>
-                  <h3 className="text-gray-900 font-bold text-base mb-2 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
+                  <h3 className="text-gray-900 font-bold text-base mb-2 group-hover:text-amber-600 transition-colors leading-snug line-clamp-2">
                     {post.title}
                   </h3>
                   <p className="text-gray-500 text-xs leading-relaxed mb-4 line-clamp-2">
@@ -286,17 +295,21 @@ function Blog() {
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                      <div className="w-6 h-6 bg-[#0a0f2c] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
                         O
                       </div>
                       <span className="text-gray-500 text-xs">{post.author}</span>
                     </div>
                     <button
-  onClick={() => requireAuth()}
-  className="text-blue-600 text-xs font-bold hover:text-blue-700"
->
-  {isLoggedIn() ? 'Read →' : '🔒 Sign up to Read'}
-</button>
+                      onClick={() => requireAuth()}
+                      className="flex items-center gap-1 text-amber-600 text-xs font-bold hover:text-amber-700"
+                    >
+                      {isLoggedIn() ? (
+                        <>Read <ArrowRight size={12} /></>
+                      ) : (
+                        <><Lock size={12} /> Sign up to Read</>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -312,11 +325,11 @@ function Blog() {
           <div className="bg-[#0a0f2c] rounded-3xl p-10 text-center relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl" />
             </div>
             <div className="relative">
-              <h2 className="text-2xl font-black text-white mb-2">
-                Never Miss an Article 📬
+              <h2 className="flex items-center justify-center gap-2 text-2xl font-black text-white mb-2">
+                <Mail size={22} className="text-amber-400" /> Never Miss an Article
               </h2>
               <p className="text-gray-400 text-sm mb-6">
                 Subscribe to get our latest articles on tech, crypto and business straight to your inbox.
@@ -325,9 +338,9 @@ function Blog() {
                 <input
                   type="email"
                   placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-purple-400 transition-colors"
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-amber-400 transition-colors"
                 />
-                <button className="px-5 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors text-sm">
+                <button className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm">
                   Subscribe
                 </button>
               </div>

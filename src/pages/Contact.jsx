@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import {
+  MessageCircle, Mail, MapPin, Clock, Instagram, Twitter, Linkedin,
+  Youtube, PartyPopper, Send,
+} from 'lucide-react'
 
 function Contact() {
 
@@ -33,6 +37,21 @@ function Contact() {
     '₦150,000 - ₦500,000',
     '₦500,000+',
     'Let\'s discuss',
+  ]
+
+  // ✅ Contact channels — icon + individual accent color encodes the channel type
+  const contactChannels = [
+    { icon: MessageCircle, title: 'WhatsApp', value: '+234 803 878 6037', link: 'https://wa.me/2348038786037', color: 'bg-green-50 border-green-100', iconColor: 'text-green-600' },
+    { icon: Mail, title: 'Email', value: 'seunultimateconcepts@gmail.com', link: 'mailto:seunultimateconcepts@gmail.com', color: 'bg-amber-50 border-amber-100', iconColor: 'text-amber-600' },
+    { icon: MapPin, title: 'Location', value: 'Edo, Nigeria', link: null, color: 'bg-orange-50 border-orange-100', iconColor: 'text-orange-600' },
+    { icon: Clock, title: 'Working Hours', value: 'Mon–Sat: 9AM–8PM', link: null, color: 'bg-purple-50 border-purple-100', iconColor: 'text-purple-600' },
+  ]
+
+  const socials = [
+    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: Instagram },
+    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: Twitter },
+    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: Linkedin },
+    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: Youtube },
   ]
 
   const handleChange = (e) => {
@@ -70,17 +89,17 @@ ${formData.message}
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-full px-4 py-1.5 mb-6">
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            <span className="text-blue-300 text-xs font-medium tracking-wide">GET IN TOUCH</span>
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+            <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+            <span className="text-amber-300 text-xs font-medium tracking-wide">GET IN TOUCH</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Let's Work{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-amber-400">
               Together
             </span>
           </h1>
@@ -103,19 +122,14 @@ ${formData.message}
               </div>
 
               {/* Contact cards */}
-              {[
-                { icon: '📱', title: 'WhatsApp', value: '+234 803 878 6037', link: 'https://wa.me/2348038786037', color: 'bg-green-50 border-green-100' },
-                { icon: '✉️', title: 'Email', value: 'seunultimateconcepts@gmail.com', link: 'mailto:seunultimateconcepts@gmail.com', color: 'bg-blue-50 border-blue-100' },
-                { icon: '📍', title: 'Location', value: 'Edo, Nigeria', link: null, color: 'bg-orange-50 border-orange-100' },
-                { icon: '🕐', title: 'Working Hours', value: 'Mon–Sat: 9AM–8PM', link: null, color: 'bg-purple-50 border-purple-100' },
-              ].map((item) => (
+              {contactChannels.map((item) => (
                 <div key={item.title} className={`flex items-start gap-4 p-4 rounded-2xl border ${item.color}`}>
-                  <span className="text-2xl">{item.icon}</span>
+                  <item.icon size={22} className={`${item.iconColor} flex-shrink-0 mt-0.5`} />
                   <div>
                     <p className="text-gray-500 text-xs font-semibold uppercase mb-1">{item.title}</p>
                     {item.link ? (
                       <a href={item.link} target="_blank" rel="noopener noreferrer"
-                        className="text-gray-900 font-semibold text-sm hover:text-blue-600 transition-colors">
+                        className="text-gray-900 font-semibold text-sm hover:text-amber-600 transition-colors">
                         {item.value}
                       </a>
                     ) : (
@@ -129,15 +143,11 @@ ${formData.message}
               <div>
                 <p className="text-gray-500 text-xs font-semibold uppercase mb-3">Follow Us</p>
                 <div className="flex gap-3">
-                  {[
-                    { name: 'Instagram', url: 'https://www.instagram.com/seun_ultimate', icon: '📸' },
-                    { name: 'Twitter', url: 'https://x.com/U_Tech_Lab', icon: '𝕏' },
-                    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/oluwaseun-olajide-594841228', icon: 'in' },
-                    { name: 'YouTube', url: 'https://youtube.com/@makanjuoladavid8349', icon: '▶' },
-                  ].map((social) => (
+                  {socials.map((social) => (
                     <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-xl bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all text-sm font-bold">
-                      {social.icon}
+                      title={social.name}
+                      className="w-10 h-10 rounded-xl bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50 flex items-center justify-center text-gray-500 hover:text-amber-600 transition-all">
+                      <social.icon size={17} />
                     </a>
                   ))}
                 </div>
@@ -151,14 +161,14 @@ ${formData.message}
                 {submitted ? (
                   // ✅ Success message after form submit
                   <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🎉</div>
+                    <PartyPopper size={56} className="mx-auto mb-4 text-amber-500" />
                     <h3 className="text-2xl font-black text-gray-900 mb-2">Message Sent!</h3>
                     <p className="text-gray-500 mb-6">
                       Your inquiry has been sent to our WhatsApp. We'll get back to you shortly!
                     </p>
                     <button
                       onClick={() => setSubmitted(false)}
-                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-500 transition-colors"
+                      className="px-6 py-3 bg-amber-500 text-[#0a0f2c] font-semibold rounded-xl hover:bg-amber-400 transition-colors"
                     >
                       Send Another Message
                     </button>
@@ -180,7 +190,7 @@ ${formData.message}
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="Your full name"
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         />
                       </div>
                       <div>
@@ -194,7 +204,7 @@ ${formData.message}
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="your@email.com"
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         />
                       </div>
                     </div>
@@ -211,7 +221,7 @@ ${formData.message}
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="+234 800 000 0000"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                       />
                     </div>
 
@@ -226,7 +236,7 @@ ${formData.message}
                           required
                           value={formData.service}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         >
                           <option value="">Select a service</option>
                           {services.map((s) => (
@@ -242,7 +252,7 @@ ${formData.message}
                           name="budget"
                           value={formData.budget}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         >
                           <option value="">Select budget</option>
                           {budgets.map((b) => (
@@ -264,16 +274,16 @@ ${formData.message}
                         value={formData.message}
                         onChange={handleChange}
                         placeholder="Describe your project, what you need and any other details..."
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-none"
                       />
                     </div>
 
                     {/* Submit */}
                     <button
                       type="submit"
-                      className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 text-sm"
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 text-sm"
                     >
-                      Send Message via WhatsApp 📱
+                      <Send size={16} /> Send Message via WhatsApp
                     </button>
 
                     <p className="text-gray-400 text-xs text-center">
