@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
 import logo from '../../assets/logo_utl.png'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
-import FacebookAuthButton from "../components/FacebookAuthButton";
+import FacebookAuthButton from "../../components/FacebookAuthButton";
 
 function Login() {
   const navigate = useNavigate()
