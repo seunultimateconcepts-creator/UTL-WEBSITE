@@ -205,15 +205,15 @@ return (
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            {/* Social login */}
+            {/* Social login — each component renders its OWN <button>, so wrap in
+                plain <div>s for layout only. Never nest a <button> around these. */}
             <div className="flex flex-col sm:flex-row gap-3 mt-4">
-              <button type="button"
-                className="flex-1 h-11">
+              <div className="flex-1">
                 <GoogleAuthButton />
-              </button>
-              <button type="button"
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-[#0a0f2c] hover:bg-gray-50 transition-colors whitespace-nowrap">                <FacebookAuthButton className="flex-1 h-11"/>
-              </button>
+              </div>
+              <div className="flex-1">
+                <FacebookAuthButton />
+              </div>
             </div>
 
           </form>

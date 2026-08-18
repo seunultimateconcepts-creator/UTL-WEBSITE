@@ -184,8 +184,16 @@ function SignUp() {
 
           {step === 1 && (
             <div className="mb-6">
-              <GoogleAuthButton />
-              <FacebookAuthButton />
+              {/* Each component renders its OWN <button>, so wrap in plain
+                  <div>s for layout only — never nest a <button> around these. */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <GoogleAuthButton />
+                </div>
+                <div className="flex-1">
+                  <FacebookAuthButton />
+                </div>
+              </div>
               <div className="flex items-center gap-3 mt-5">
                 <div className="flex-1 h-px bg-white/10" />
                 <span className="text-gray-500 text-xs">or sign up manually</span>

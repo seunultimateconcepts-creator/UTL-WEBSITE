@@ -13,6 +13,9 @@ function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const dropdownRef = useRef(null)
+  // ✅ Separate ref for the profile menu — it lives OUTSIDE dropdownRef's
+  //    wrapper, so click-outside detection needs its own boundary too.
+  const profileDropdownRef = useRef(null)
 
   // ✅ Get current logged in user
   const getCurrentUser = () => {
@@ -29,10 +32,15 @@ function Navbar() {
     window.location.reload()
   }
 
-  // ✅ Close dropdown when clicking outside
+  // ✅ Close dropdown when clicking outside — now checks BOTH the nav-links
+  //    dropdown container AND the profile dropdown container, since they're
+  //    separate DOM subtrees.
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      const outsideNavDropdown = !dropdownRef.current || !dropdownRef.current.contains(e.target)
+      const outsideProfileDropdown = !profileDropdownRef.current || !profileDropdownRef.current.contains(e.target)
+
+      if (outsideNavDropdown && outsideProfileDropdown) {
         setActiveDropdown(null)
       }
     }
@@ -175,7 +183,7 @@ function Navbar() {
           {/* ── Desktop Auth / Profile ── */}
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={profileDropdownRef}>
                 <button
                   onClick={() => toggleDropdown('profile')}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors border border-white/10"

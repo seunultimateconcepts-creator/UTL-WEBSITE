@@ -6,7 +6,11 @@ import { useNavigate } from "react-router-dom";
  *
  * Loads the Facebook JS SDK, triggers FB.login(), then sends the
  * resulting accessToken to the backend for verification.
- * Mirrors the flow used by GoogleAuthButton.jsx.
+ *
+ * Usage: <FacebookAuthButton /> — renders full width by default.
+ * Drop it inside a flex/grid wrapper (see Login.jsx / SignUp.jsx) to
+ * size it alongside GoogleAuthButton. Do NOT wrap it in another
+ * <button> — it already renders its own.
  *
  * Requires:
  *  - VITE_FACEBOOK_APP_ID set on the frontend (Vercel)
@@ -16,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-export default function FacebookAuthButton({ label = "Continue with Facebook" }) {
+export default function FacebookAuthButton({ label = "Continue with Facebook", className = "" }) {
   const navigate = useNavigate();
   const sdkLoaded = useRef(false);
 
@@ -33,7 +37,6 @@ export default function FacebookAuthButton({ label = "Continue with Facebook" })
       sdkLoaded.current = true;
     };
 
-    // Inject the SDK script once
     if (!document.getElementById("facebook-jssdk")) {
       const script = document.createElement("script");
       script.id = "facebook-jssdk";
@@ -77,7 +80,6 @@ export default function FacebookAuthButton({ label = "Continue with Facebook" })
         return;
       }
 
-      // Same pattern as Google flow: store token + user, then route
       localStorage.setItem("utl_token", data.token);
       localStorage.setItem("utl_current_user", JSON.stringify(data.user));
 
@@ -95,7 +97,7 @@ export default function FacebookAuthButton({ label = "Continue with Facebook" })
     <button
       type="button"
       onClick={handleFacebookLogin}
-      className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-[#0a0f2c] hover:bg-gray-50 transition-colors"
+      className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 bg-white text-[#0a0f2c] text-sm font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap ${className}`}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
         <path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56v1.89h2.78l-.44 2.91h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94Z" />
@@ -104,4 +106,3 @@ export default function FacebookAuthButton({ label = "Continue with Facebook" })
     </button>
   );
 }
-
