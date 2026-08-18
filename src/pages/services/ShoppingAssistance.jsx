@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  MessageCircle, Wallet, CreditCard, Truck, Globe, ShieldCheck,
+  MapPin, PackageCheck, Zap, Smartphone, Laptop, Shirt, Gamepad2,
+  Home, Palette, Camera, Music, Watch, BookOpen, Dumbbell, Baby,
+  Store, CheckCircle2, Clock, ArrowRight,
+} from 'lucide-react'
 
 function ShoppingAssistance() {
 
@@ -35,48 +41,48 @@ function ShoppingAssistance() {
 
   // ✅ How it works steps
   const steps = [
-    { icon: '💬', title: 'Tell Us What You Want', desc: 'Fill the order form or chat us on WhatsApp with the item name, store and your budget.' },
-    { icon: '💰', title: 'Get a Quote', desc: 'We send you the total cost including item price, delivery fee and our service charge.' },
-    { icon: '💳', title: 'Make Payment', desc: 'Pay securely via bank transfer or any trusted payment method.' },
-    { icon: '🚚', title: 'We Order & Deliver', desc: 'We place the order and deliver it to your doorstep anywhere in Nigeria.' },
+    { icon: MessageCircle, title: 'Tell Us What You Want', desc: 'Fill the order form or chat us on WhatsApp with the item name, store and your budget.' },
+    { icon: Wallet, title: 'Get a Quote', desc: 'We send you the total cost including item price, delivery fee and our service charge.' },
+    { icon: CreditCard, title: 'Make Payment', desc: 'Pay securely via bank transfer or any trusted payment method.' },
+    { icon: Truck, title: 'We Order & Deliver', desc: 'We place the order and deliver it to your doorstep anywhere in Nigeria.' },
   ]
 
-  // ✅ Stores we shop from
+  // ✅ Stores we shop from — dot color visually distinguishes each, matching the Shop page convention
   const stores = [
-    { name: 'Jumia', flag: '🟠', desc: 'Nigeria\'s largest online store' },
-    { name: 'Amazon', flag: '📦', desc: 'Global shipping available' },
-    { name: 'AliExpress', flag: '🔴', desc: 'Affordable Chinese products' },
-    { name: 'Konga', flag: '🟣', desc: 'Nigerian e-commerce' },
-    { name: 'Shein', flag: '🩷', desc: 'Fashion and clothing' },
-    { name: 'eBay', flag: '🔵', desc: 'New and used products' },
-    { name: 'Temu', flag: '🟢', desc: 'Budget friendly products' },
-    { name: 'Any Store', flag: '🌍', desc: 'We shop from anywhere!' },
+    { name: 'Jumia', dot: 'bg-orange-500', desc: 'Nigeria\'s largest online store' },
+    { name: 'Amazon', dot: 'bg-yellow-500', desc: 'Global shipping available' },
+    { name: 'AliExpress', dot: 'bg-red-500', desc: 'Affordable Chinese products' },
+    { name: 'Konga', dot: 'bg-purple-500', desc: 'Nigerian e-commerce' },
+    { name: 'Shein', dot: 'bg-pink-500', desc: 'Fashion and clothing' },
+    { name: 'eBay', dot: 'bg-blue-500', desc: 'New and used products' },
+    { name: 'Temu', dot: 'bg-green-500', desc: 'Budget friendly products' },
+    { name: 'Any Store', dot: 'bg-gray-400', desc: 'We shop from anywhere!' },
   ]
 
   // ✅ What we can order
   const categories = [
-    { icon: '📱', name: 'Phones & Tablets' },
-    { icon: '💻', name: 'Laptops & PCs' },
-    { icon: '👗', name: 'Fashion & Clothing' },
-    { icon: '🎮', name: 'Gaming & Consoles' },
-    { icon: '🏠', name: 'Home & Kitchen' },
-    { icon: '💄', name: 'Beauty & Skincare' },
-    { icon: '📷', name: 'Cameras & Gadgets' },
-    { icon: '🎵', name: 'Audio & Music' },
-    { icon: '⌚', name: 'Watches & Jewelry' },
-    { icon: '📚', name: 'Books & Education' },
-    { icon: '🏋️', name: 'Sports & Fitness' },
-    { icon: '🧸', name: 'Toys & Baby Items' },
+    { icon: Smartphone, name: 'Phones & Tablets' },
+    { icon: Laptop, name: 'Laptops & PCs' },
+    { icon: Shirt, name: 'Fashion & Clothing' },
+    { icon: Gamepad2, name: 'Gaming & Consoles' },
+    { icon: Home, name: 'Home & Kitchen' },
+    { icon: Palette, name: 'Beauty & Skincare' },
+    { icon: Camera, name: 'Cameras & Gadgets' },
+    { icon: Music, name: 'Audio & Music' },
+    { icon: Watch, name: 'Watches & Jewelry' },
+    { icon: BookOpen, name: 'Books & Education' },
+    { icon: Dumbbell, name: 'Sports & Fitness' },
+    { icon: Baby, name: 'Toys & Baby Items' },
   ]
 
   // ✅ Why choose us
   const benefits = [
-    { icon: '🌍', title: 'Shop Globally', desc: 'Order from any store in the world — we handle international shipping.' },
-    { icon: '💰', title: 'Best Prices', desc: 'We find the best deals and prices for your items.' },
-    { icon: '🔒', title: 'Secure Payment', desc: 'Your money is safe — we only pay stores after confirming your order.' },
-    { icon: '📍', title: 'Nationwide Delivery', desc: 'We deliver to any location in Nigeria.' },
-    { icon: '📦', title: 'Package Tracking', desc: 'We keep you updated every step of the delivery process.' },
-    { icon: '⚡', title: 'Fast Service', desc: 'Quick order processing and reliable delivery times.' },
+    { icon: Globe, title: 'Shop Globally', desc: 'Order from any store in the world — we handle international shipping.' },
+    { icon: Wallet, title: 'Best Prices', desc: 'We find the best deals and prices for your items.' },
+    { icon: ShieldCheck, title: 'Secure Payment', desc: 'Your money is safe — we only pay stores after confirming your order.' },
+    { icon: MapPin, title: 'Nationwide Delivery', desc: 'We deliver to any location in Nigeria.' },
+    { icon: PackageCheck, title: 'Package Tracking', desc: 'We keep you updated every step of the delivery process.' },
+    { icon: Zap, title: 'Fast Service', desc: 'Quick order processing and reliable delivery times.' },
   ]
 
   return (
@@ -86,7 +92,7 @@ function ShoppingAssistance() {
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
@@ -104,7 +110,7 @@ function ShoppingAssistance() {
               </div>
               <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
                 Shop From Anywhere,{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
                   Delivered to You
                 </span>
               </h1>
@@ -112,26 +118,23 @@ function ShoppingAssistance() {
                 We order from Jumia, Amazon, AliExpress and any online store worldwide and deliver straight to your doorstep anywhere in Nigeria!
               </p>
               <div className="flex flex-wrap gap-4">
-                <a href="#order"
-                  className="px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
-                  Place an Order →
-                </a>
-               <Link to="/signup" className="px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
-  Place an Order →
-</Link>
+                <Link to="/signup"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
+                  Place an Order <ArrowRight size={16} />
+                </Link>
               </div>
             </div>
 
             {/* Right — Quick stats */}
             <div className="grid grid-cols-2 gap-4">
               {[
-                { value: '8+', label: 'Stores We Shop From', icon: '🏪' },
-                { value: '100%', label: 'Delivery Success Rate', icon: '✅' },
-                { value: '36', label: 'States in Nigeria', icon: '📍' },
-                { value: '24hrs', label: 'Order Response Time', icon: '⚡' },
+                { value: '8+', label: 'Stores We Shop From', icon: Store },
+                { value: '100%', label: 'Delivery Success Rate', icon: CheckCircle2 },
+                { value: '36', label: 'States in Nigeria', icon: MapPin },
+                { value: '24hrs', label: 'Order Response Time', icon: Clock },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center hover:bg-white/10 transition-colors">
-                  <span className="text-3xl block mb-2">{stat.icon}</span>
+                  <stat.icon size={26} className="mx-auto mb-2 text-orange-400" />
                   <p className="text-white text-2xl font-black mb-1">{stat.value}</p>
                   <p className="text-gray-400 text-xs">{stat.label}</p>
                 </div>
@@ -153,7 +156,7 @@ function ShoppingAssistance() {
             {stores.map((store) => (
               <div key={store.name}
                 className="bg-gray-50 border border-gray-100 rounded-2xl p-5 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <span className="text-3xl block mb-2">{store.flag}</span>
+                <span className={`w-3 h-3 rounded-full ${store.dot} inline-block mb-2`} />
                 <p className="text-gray-900 font-bold text-sm mb-1">{store.name}</p>
                 <p className="text-gray-400 text-xs">{store.desc}</p>
               </div>
@@ -174,7 +177,7 @@ function ShoppingAssistance() {
             {categories.map((cat) => (
               <div key={cat.name}
                 className="bg-white border border-gray-100 rounded-2xl p-4 text-center hover:shadow-md hover:border-orange-200 hover:-translate-y-0.5 transition-all group">
-                <span className="text-3xl block mb-2">{cat.icon}</span>
+                <cat.icon size={26} className="mx-auto mb-2 text-gray-400 group-hover:text-orange-600 transition-colors" />
                 <p className="text-gray-700 text-xs font-semibold group-hover:text-orange-600 transition-colors">{cat.name}</p>
               </div>
             ))}
@@ -193,13 +196,13 @@ function ShoppingAssistance() {
             <div className="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-px border-t-2 border-dashed border-orange-200" />
             {steps.map((step, index) => (
               <div key={step.title} className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 w-20 h-20 rounded-2xl bg-orange-50 border-2 border-orange-100 flex items-center justify-center text-3xl mb-5 hover:border-orange-400 transition-all">
-                  {step.icon}
+                <div className="relative z-10 w-20 h-20 rounded-2xl bg-orange-50 border-2 border-orange-100 flex items-center justify-center mb-5 hover:border-orange-400 transition-all">
+                  <step.icon size={28} className="text-orange-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold mb-2">{step.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
                 {index < steps.length - 1 && (
-                  <div className="md:hidden text-orange-300 text-2xl mt-4">↓</div>
+                  <ArrowRight size={18} className="md:hidden text-orange-300 mt-4 rotate-90" />
                 )}
               </div>
             ))}
@@ -218,8 +221,8 @@ function ShoppingAssistance() {
             {benefits.map((benefit) => (
               <div key={benefit.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-orange-100 transition-colors">
-                  {benefit.icon}
+                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-100 transition-colors">
+                  <benefit.icon size={22} className="text-orange-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold mb-2">{benefit.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{benefit.desc}</p>
@@ -297,8 +300,8 @@ function ShoppingAssistance() {
               </div>
 
               <button type="submit"
-                className="w-full py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95">
-                Send Order via WhatsApp 📱
+                className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95">
+                <MessageCircle size={16} /> Send Order via WhatsApp
               </button>
 
               <p className="text-gray-400 text-xs text-center">

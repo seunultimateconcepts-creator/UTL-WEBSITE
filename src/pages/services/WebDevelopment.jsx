@@ -1,59 +1,40 @@
 import { Link } from 'react-router-dom'
+import {
+  Globe, Palette, Zap, Atom, Triangle, Server, Leaf, Wind,
+  Monitor, Settings, Link2, ShoppingCart, Smartphone, Plug,
+  Gem, Phone, Wallet, ArrowRight,
+} from 'lucide-react'
 
 function WebDevelopment() {
 
   // ✅ Tech stack you work with — add/remove as your skills grow
   const technologies = [
-    { name: 'HTML5', icon: '🌐' },
-    { name: 'CSS3', icon: '🎨' },
-    { name: 'JavaScript', icon: '⚡' },
-    { name: 'React', icon: '⚛️' },
-    { name: 'Next.js', icon: '▲' },
-    { name: 'Node.js', icon: '🟢' },
-    { name: 'MongoDB', icon: '🍃' },
-    { name: 'Tailwind CSS', icon: '💨' },
+    { name: 'HTML5', icon: Globe },
+    { name: 'CSS3', icon: Palette },
+    { name: 'JavaScript', icon: Zap },
+    { name: 'React', icon: Atom },
+    { name: 'Next.js', icon: Triangle },
+    { name: 'Node.js', icon: Server },
+    { name: 'MongoDB', icon: Leaf },
+    { name: 'Tailwind CSS', icon: Wind },
   ]
 
   // ✅ Services you offer under web development
   const services = [
-    {
-      icon: '🖥️',
-      title: 'Frontend Development',
-      desc: 'Beautiful, responsive and fast user interfaces built with React and modern CSS frameworks.',
-    },
-    {
-      icon: '⚙️',
-      title: 'Backend Development',
-      desc: 'Robust server-side applications, REST APIs and database architecture using Node.js.',
-    },
-    {
-      icon: '🔗',
-      title: 'Full Stack Solutions',
-      desc: 'End-to-end web applications from database to user interface, all handled by us.',
-    },
-    {
-      icon: '🛒',
-      title: 'E-Commerce Websites',
-      desc: 'Online stores with payment integration, product management and order tracking.',
-    },
-    {
-      icon: '📱',
-      title: 'Responsive Design',
-      desc: 'Websites that look and work perfectly on mobile, tablet and desktop screens.',
-    },
-    {
-      icon: '🔌',
-      title: 'API Integration',
-      desc: 'Connect your website to third party services like payment gateways, maps and more.',
-    },
+    { icon: Monitor, title: 'Frontend Development', desc: 'Beautiful, responsive and fast user interfaces built with React and modern CSS frameworks.' },
+    { icon: Settings, title: 'Backend Development', desc: 'Robust server-side applications, REST APIs and database architecture using Node.js.' },
+    { icon: Link2, title: 'Full Stack Solutions', desc: 'End-to-end web applications from database to user interface, all handled by us.' },
+    { icon: ShoppingCart, title: 'E-Commerce Websites', desc: 'Online stores with payment integration, product management and order tracking.' },
+    { icon: Smartphone, title: 'Responsive Design', desc: 'Websites that look and work perfectly on mobile, tablet and desktop screens.' },
+    { icon: Plug, title: 'API Integration', desc: 'Connect your website to third party services like payment gateways, maps and more.' },
   ]
 
   // ✅ Why choose UTL for web development
   const whyUs = [
-    { icon: '⚡', title: 'Fast Delivery', desc: 'We deliver projects on time without compromising quality.' },
-    { icon: '💎', title: 'Quality Code', desc: 'Clean, scalable and well documented code for easy maintenance.' },
-    { icon: '📞', title: '24/7 Support', desc: 'We are always available to support you after delivery.' },
-    { icon: '💰', title: 'Affordable Rates', desc: 'Premium quality at prices that work for your budget.' },
+    { icon: Zap, title: 'Fast Delivery', desc: 'We deliver projects on time without compromising quality.' },
+    { icon: Gem, title: 'Quality Code', desc: 'Clean, scalable and well documented code for easy maintenance.' },
+    { icon: Phone, title: '24/7 Support', desc: 'We are always available to support you after delivery.' },
+    { icon: Wallet, title: 'Affordable Rates', desc: 'Premium quality at prices that work for your budget.' },
   ]
 
   // ✅ Process steps
@@ -71,7 +52,6 @@ function WebDevelopment() {
 
       {/* ── Hero Banner ── */}
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
-        {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl" />
@@ -104,10 +84,9 @@ function WebDevelopment() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link to="/signup"
-                  
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5"
                 >
-                  Start a Project
+                  Start a Project <ArrowRight size={16} />
                 </Link>
                 <Link
                   to="/portfolio"
@@ -125,7 +104,7 @@ function WebDevelopment() {
                   key={tech.name}
                   className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center gap-2 hover:bg-white/10 hover:border-blue-500/30 transition-all"
                 >
-                  <span className="text-2xl">{tech.icon}</span>
+                  <tech.icon size={22} className="text-blue-300" />
                   <span className="text-gray-300 text-xs font-medium text-center">{tech.name}</span>
                 </div>
               ))}
@@ -149,8 +128,8 @@ function WebDevelopment() {
                 key={service.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-blue-100 transition-colors">
-                  {service.icon}
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                  <service.icon size={22} className="text-blue-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold text-lg mb-2">{service.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{service.desc}</p>
@@ -194,8 +173,8 @@ function WebDevelopment() {
           <div className="grid md:grid-cols-4 gap-8">
             {whyUs.map((item) => (
               <div key={item.title} className="text-center group">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
-                  {item.icon}
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                  <item.icon size={26} className="text-blue-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold mb-2">{item.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
@@ -216,10 +195,9 @@ function WebDevelopment() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/signup"
-              
-              className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
             >
-              Start a Project →
+              Start a Project <ArrowRight size={16} />
             </Link>
             <Link
               to="/signup"

@@ -36,10 +36,10 @@ function Services() {
       desc: 'Shop from any online store worldwide — Jumia, Amazon, AliExpress and more. We handle the order and deliver straight to your doorstep in Nigeria.',
       features: ['Jumia Orders', 'Amazon & AliExpress', 'International Shopping', 'Doorstep Delivery', 'Package Tracking', 'All 36 States'],
       path: '/services/shopping',
-      bg: 'bg-amber-50',
-      border: 'border-amber-100',
-      btn: 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]',
-      iconColor: 'text-amber-600',
+      bg: 'bg-orange-50',
+      border: 'border-orange-100',
+      btn: 'bg-orange-500 hover:bg-orange-400 text-white',
+      iconColor: 'text-orange-600',
     },
   ]
 

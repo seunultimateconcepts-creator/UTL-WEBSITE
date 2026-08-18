@@ -1,5 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Coins, Handshake, GraduationCap, Zap, ShieldCheck, Gem, Phone,
+  RefreshCw, TrendingUp, Wallet, AlertTriangle, Lightbulb, ArrowRight,
+} from 'lucide-react'
 
 // ✅ Outside the main function — React rule!
 const TradingViewChart = ({ symbol, title }) => (
@@ -30,31 +35,16 @@ function CryptoServices() {
   const [activeTab, setActiveTab]   = useState('prices')
 
   const services = [
-    {
-      icon: '💰',
-      title: 'Buy & Sell Crypto',
-      desc: 'Buy or sell Bitcoin, Ethereum, USDT and more at the best market rates. Fast, safe and reliable.',
-      features: ['Bitcoin (BTC)', 'Ethereum (ETH)', 'USDT', 'BNB', 'Solana (SOL)', 'Litecoin (LTC)'],
-    },
-    {
-      icon: '🤝',
-      title: 'P2P Trading',
-      desc: 'Trade directly with a trusted partner at better rates than any exchange. No hidden fees.',
-      features: ['Best rates guaranteed', 'Fast settlement', 'Secure transactions', 'Multiple payment methods'],
-    },
-    {
-      icon: '🎓',
-      title: 'Crypto Mentorship',
-      desc: 'New to crypto? We guide you from zero to confident trader with practical hands-on training.',
-      features: ['Chart reading', 'Trading strategies', 'Risk management', 'Market analysis'],
-    },
+    { icon: Coins, title: 'Buy & Sell Crypto', desc: 'Buy or sell Bitcoin, Ethereum, USDT and more at the best market rates. Fast, safe and reliable.', features: ['Bitcoin (BTC)', 'Ethereum (ETH)', 'USDT', 'BNB', 'Solana (SOL)', 'Litecoin (LTC)'] },
+    { icon: Handshake, title: 'P2P Trading', desc: 'Trade directly with a trusted partner at better rates than any exchange. No hidden fees.', features: ['Best rates guaranteed', 'Fast settlement', 'Secure transactions', 'Multiple payment methods'] },
+    { icon: GraduationCap, title: 'Crypto Mentorship', desc: 'New to crypto? We guide you from zero to confident trader with practical hands-on training.', features: ['Chart reading', 'Trading strategies', 'Risk management', 'Market analysis'] },
   ]
 
   const whyUs = [
-    { icon: '⚡', title: 'Fast Transactions', desc: 'We process all trades quickly.' },
-    { icon: '🔒', title: 'Secure & Safe',    desc: 'Your funds are always protected.' },
-    { icon: '💎', title: 'Best Rates',       desc: 'Competitive market rates always.' },
-    { icon: '📞', title: '24/7 Support',     desc: 'Always available to assist you.' },
+    { icon: Zap, title: 'Fast Transactions', desc: 'We process all trades quickly.' },
+    { icon: ShieldCheck, title: 'Secure & Safe', desc: 'Your funds are always protected.' },
+    { icon: Gem, title: 'Best Rates', desc: 'Competitive market rates always.' },
+    { icon: Phone, title: '24/7 Support', desc: 'Always available to assist you.' },
   ]
 
   const charts = [
@@ -65,9 +55,9 @@ function CryptoServices() {
   ]
 
   const tabs = [
-    { id: 'prices',    label: '🪙 Crypto Prices' },
-    { id: 'currencies', label: '💵 Currency Rates' },
-    { id: 'charts',    label: '📈 Live Charts' },
+    { id: 'prices', label: 'Crypto Prices', icon: Coins },
+    { id: 'currencies', label: 'Currency Rates', icon: Wallet },
+    { id: 'charts', label: 'Live Charts', icon: TrendingUp },
   ]
 
   const fetchAll = useCallback(async () => {
@@ -193,8 +183,8 @@ function CryptoServices() {
             {services.map((service) => (
               <div key={service.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-green-100 transition-colors">
-                  {service.icon}
+                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-100 transition-colors">
+                  <service.icon size={22} className="text-green-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold text-lg mb-2">{service.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed mb-4">{service.desc}</p>
@@ -224,8 +214,8 @@ function CryptoServices() {
             {lastUpdated && (
               <div className="flex items-center justify-center gap-3 mt-3">
                 <span className="text-gray-400 text-xs">Updated: {lastUpdated}</span>
-                <button onClick={fetchAll} className="text-green-600 text-xs font-semibold hover:text-green-700">
-                  🔄 Refresh
+                <button onClick={fetchAll} className="flex items-center gap-1 text-green-600 text-xs font-semibold hover:text-green-700">
+                  <RefreshCw size={12} /> Refresh
                 </button>
               </div>
             )}
@@ -235,12 +225,12 @@ function CryptoServices() {
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {tabs.map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                   activeTab === tab.id
                     ? 'bg-green-600 text-white shadow-lg shadow-green-500/20'
                     : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                 }`}>
-                {tab.label}
+                <tab.icon size={15} /> {tab.label}
               </button>
             ))}
           </div>
@@ -258,7 +248,7 @@ function CryptoServices() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🪙</span>
+                  <Coins size={18} className="text-green-600" />
                   <h3 className="text-gray-900 font-bold">Top 10 Crypto Prices</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -300,7 +290,7 @@ function CryptoServices() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl mx-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">💵</span>
+                  <Wallet size={18} className="text-green-600" />
                   <h3 className="text-gray-900 font-bold">Currency Rates to NGN</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -329,7 +319,9 @@ function CryptoServices() {
                 ))}
               </div>
               <div className="px-6 py-4 bg-green-50 border-t border-green-100">
-                <p className="text-green-600 text-xs">💡 Contact us on WhatsApp for best P2P rates</p>
+                <p className="flex items-center gap-1.5 text-green-600 text-xs">
+                  <Lightbulb size={13} /> Contact us on WhatsApp for best P2P rates
+                </p>
               </div>
             </div>
           )}
@@ -349,7 +341,9 @@ function CryptoServices() {
 
           {/* Disclaimer */}
           <div className="mt-8 bg-yellow-50 border border-yellow-100 rounded-2xl p-5 max-w-2xl mx-auto">
-            <p className="text-yellow-700 text-xs font-semibold mb-1">⚠️ Disclaimer</p>
+            <p className="flex items-center gap-1.5 text-yellow-700 text-xs font-semibold mb-1">
+              <AlertTriangle size={13} /> Disclaimer
+            </p>
             <p className="text-yellow-600 text-xs leading-relaxed">
               Crypto trading involves risk. Always do your own research (DYOR) before investing.
               Never invest more than you can afford to lose. UTL is not a licensed financial advisor.
@@ -369,8 +363,8 @@ function CryptoServices() {
           <div className="grid md:grid-cols-4 gap-8">
             {whyUs.map((item) => (
               <div key={item.title} className="text-center group">
-                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:bg-green-100 transition-colors">
-                  {item.icon}
+                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-100 transition-colors">
+                  <item.icon size={26} className="text-green-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold mb-2">{item.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
@@ -391,7 +385,7 @@ function CryptoServices() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="https://wa.me/2348038786037" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-8 py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                 <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.054 23.447a.5.5 0 0 0 .609.61l5.704-1.49A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.009-1.374l-.36-.213-3.726.973.997-3.634-.234-.374A9.818 9.818 0 1 1 12 21.818z"/>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronDown, SearchX, MessageCircleQuestion } from 'lucide-react'
 
 function FAQs() {
   const [openFaq, setOpenFaq] = useState(null)
@@ -99,7 +100,7 @@ function FAQs() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
@@ -107,16 +108,16 @@ function FAQs() {
             <span>›</span>
             <Link to="/about" className="hover:text-white">About</Link>
             <span>›</span>
-            <span className="text-blue-400">FAQs</span>
+            <span className="text-amber-400">FAQs</span>
           </div>
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-full px-4 py-1.5 mb-6">
-              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              <span className="text-blue-300 text-xs font-medium tracking-wide">FAQs</span>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+              <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+              <span className="text-amber-300 text-xs font-medium tracking-wide">FAQs</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-6">
               Frequently Asked{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-blue-500">
                 Questions
               </span>
             </h1>
@@ -137,7 +138,7 @@ function FAQs() {
               <button key={cat} onClick={() => setActiveCategory(cat)}
                 className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
                   activeCategory === cat
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                    ? 'bg-amber-500 text-[#0a0f2c] shadow-lg shadow-amber-500/20'
                     : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                 }`}>
                 {cat}
@@ -145,22 +146,28 @@ function FAQs() {
             ))}
           </div>
 
+          {/* No results (category has none — defensive, shouldn't normally trigger) */}
+          {filteredFaqs.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+              <SearchX size={40} className="mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-900 font-bold">No questions in this category yet</p>
+            </div>
+          )}
+
           {/* FAQ accordion */}
           <div className="space-y-4">
             {filteredFaqs.map((faq, index) => (
               <div key={index}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-blue-200 transition-colors">
+                className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-amber-200 transition-colors">
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   className="w-full flex items-center justify-between p-6 text-left"
                 >
                   <div className="flex items-start gap-3 flex-1 pr-4">
-                    <span className="text-blue-600 font-black text-sm mt-0.5 flex-shrink-0">Q.</span>
+                    <span className="text-amber-600 font-black text-sm mt-0.5 flex-shrink-0">Q.</span>
                     <span className="text-gray-900 font-semibold text-sm leading-relaxed">{faq.question}</span>
                   </div>
-                  <span className={`text-gray-400 transition-transform duration-200 flex-shrink-0 ${openFaq === index ? 'rotate-180' : ''}`}>
-                    ▾
-                  </span>
+                  <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 flex-shrink-0 ${openFaq === index ? 'rotate-180' : ''}`} />
                 </button>
 
                 {openFaq === index && (
@@ -177,7 +184,9 @@ function FAQs() {
 
           {/* Still have questions */}
           <div className="mt-12 bg-[#0a0f2c] rounded-2xl p-8 text-center">
-            <h3 className="text-white font-black text-xl mb-2">Still have questions? 🤔</h3>
+            <h3 className="flex items-center justify-center gap-2 text-white font-black text-xl mb-2">
+              <MessageCircleQuestion size={22} className="text-amber-400" /> Still have questions?
+            </h3>
             <p className="text-gray-400 text-sm mb-6">
               Can't find what you're looking for? Chat with us directly on WhatsApp!
             </p>
@@ -198,7 +207,7 @@ function FAQs() {
             ← Our Vision
           </Link>
           <Link to="/about"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors">
             Back to About
           </Link>
         </div>
