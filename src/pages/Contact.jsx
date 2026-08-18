@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import {
-  MessageCircle, Mail, MapPin, Clock, Instagram, Twitter, Linkedin,
-  Youtube, PartyPopper, Send,
+  MessageCircle, Mail, MapPin, Clock, PartyPopper, Send,
 } from 'lucide-react'
+import { Instagram, Twitter, Linkedin, Youtube } from '../components/SocialIcons'
 
 function Contact() {
 

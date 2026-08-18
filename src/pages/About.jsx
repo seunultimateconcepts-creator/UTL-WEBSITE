@@ -3,9 +3,9 @@ import founderImage from '../assets/newabout.jpeg'
 import { Link } from 'react-router-dom'
 import {
   Gem, ShieldCheck, Zap, Handshake, Globe, TrendingUp, UserRound,
-  Users, Target, HelpCircle, Lightbulb, Linkedin, Twitter, Instagram,
-  Youtube, ArrowRight,
+  Users, Target, HelpCircle, Lightbulb, ArrowRight,
 } from 'lucide-react'
+import { Linkedin, Twitter, Instagram, Youtube } from '../components/SocialIcons'
 
 function About() {
 

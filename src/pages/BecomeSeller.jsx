@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import {
+  Store, Globe, Wallet, ShieldCheck, MessageCircle, Zap, Gem,
+  PartyPopper, Send, Check, ArrowRight,
+} from 'lucide-react'
 
 function BecomeSeller() {
 
@@ -29,12 +33,12 @@ function BecomeSeller() {
   ]
 
   const benefits = [
-    { icon: '🌍', title: 'Wide Reach', desc: 'Access thousands of customers visiting Ultimate Tech Lab daily.' },
-    { icon: '💰', title: 'More Sales', desc: 'Our growing traffic means more eyes on your products.' },
-    { icon: '🔒', title: 'Trusted Platform', desc: 'Customers trust UTL — that trust extends to your products.' },
-    { icon: '📱', title: 'WhatsApp Orders', desc: 'Customers contact you directly — no middleman on orders.' },
-    { icon: '⚡', title: 'Quick Setup', desc: 'Get listed in less than 24 hours after approval.' },
-    { icon: '💎', title: 'Free to Start', desc: 'List your first 3 products completely free.' },
+    { icon: Globe, title: 'Wide Reach', desc: 'Access thousands of customers visiting Ultimate Tech Lab daily.' },
+    { icon: Wallet, title: 'More Sales', desc: 'Our growing traffic means more eyes on your products.' },
+    { icon: ShieldCheck, title: 'Trusted Platform', desc: 'Customers trust UTL — that trust extends to your products.' },
+    { icon: MessageCircle, title: 'WhatsApp Orders', desc: 'Customers contact you directly — no middleman on orders.' },
+    { icon: Zap, title: 'Quick Setup', desc: 'Get listed in less than 24 hours after approval.' },
+    { icon: Gem, title: 'Free to Start', desc: 'List your first 3 products completely free.' },
   ]
 
   const plans = [
@@ -43,7 +47,7 @@ function BecomeSeller() {
       price: 'Free',
       period: 'forever',
       borderColor: 'border-gray-200',
-      btnClass: 'bg-gray-800 hover:bg-gray-700',
+      btnClass: 'bg-gray-800 hover:bg-gray-700 text-white',
       featured: false,
       features: [
         'Up to 3 products',
@@ -56,8 +60,8 @@ function BecomeSeller() {
       name: 'Growth',
       price: '₦5,000',
       period: 'per month',
-      borderColor: 'border-blue-500',
-      btnClass: 'bg-blue-600 hover:bg-blue-500',
+      borderColor: 'border-amber-400',
+      btnClass: 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]',
       featured: true,
       features: [
         'Up to 20 products',
@@ -72,7 +76,7 @@ function BecomeSeller() {
       price: '₦15,000',
       period: 'per month',
       borderColor: 'border-orange-400',
-      btnClass: 'bg-orange-500 hover:bg-orange-400',
+      btnClass: 'bg-orange-500 hover:bg-orange-400 text-white',
       featured: false,
       features: [
         'Unlimited products',
@@ -103,17 +107,18 @@ function BecomeSeller() {
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
+            <Store size={13} className="text-orange-300" />
             <span className="text-orange-300 text-xs font-medium tracking-wide">
-              🏪 SELL ON UTL
+              SELL ON UTL
             </span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Grow Your Business{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
               With Us
             </span>
           </h1>
@@ -125,9 +130,9 @@ function BecomeSeller() {
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="#apply"
-              className="px-8 py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
             >
-              Apply Now — It's Free →
+              Apply Now — It's Free <ArrowRight size={16} />
             </a>
             <a
               href="https://wa.me/2348038786037?text=Hello! I want to sell on UTL Shop"
@@ -161,8 +166,8 @@ function BecomeSeller() {
                 key={benefit.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-orange-100 transition-colors">
-                  {benefit.icon}
+                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-100 transition-colors">
+                  <benefit.icon size={22} className="text-orange-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold text-lg mb-2">{benefit.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{benefit.desc}</p>
@@ -194,7 +199,7 @@ function BecomeSeller() {
               >
                 {plan.featured && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                    <span className="bg-amber-500 text-[#0a0f2c] text-xs font-bold px-4 py-1.5 rounded-full">
                       Most Popular
                     </span>
                   </div>
@@ -207,8 +212,8 @@ function BecomeSeller() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-[10px] flex-shrink-0">
-                        ✓
+                      <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
+                        <Check size={12} strokeWidth={3} />
                       </span>
                       {feature}
                     </li>
@@ -216,7 +221,7 @@ function BecomeSeller() {
                 </ul>
                 <a
                   href="#apply"
-                  className={`block w-full py-3 text-white font-bold rounded-xl text-center text-sm transition-all hover:-translate-y-0.5 ${plan.btnClass}`}
+                  className={`block w-full py-3 font-bold rounded-xl text-center text-sm transition-all hover:-translate-y-0.5 ${plan.btnClass}`}
                 >
                   Get Started
                 </a>
@@ -244,7 +249,7 @@ function BecomeSeller() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             {submitted ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">🎉</div>
+                <PartyPopper size={56} className="mx-auto mb-4 text-orange-500" />
                 <h3 className="text-2xl font-black text-gray-900 mb-2">Application Sent!</h3>
                 <p className="text-gray-500 mb-2">
                   Your seller application has been sent to our WhatsApp.
@@ -379,9 +384,9 @@ function BecomeSeller() {
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 text-sm"
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 text-sm"
                 >
-                  Submit Application via WhatsApp 📱
+                  <Send size={16} /> Submit Application via WhatsApp
                 </button>
 
                 <p className="text-gray-400 text-xs text-center">
@@ -409,7 +414,7 @@ function BecomeSeller() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
           >
-            Chat on WhatsApp
+            <MessageCircle size={18} /> Chat on WhatsApp
           </a>
         </div>
       </section>

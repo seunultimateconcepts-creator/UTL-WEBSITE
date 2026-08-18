@@ -2,6 +2,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import useAuthGuard from '../hooks/useAuthGuard'
+import {
+  ShoppingBag, Search, MessageCircle, CreditCard, Truck, Store,
+  SearchX, ExternalLink, ArrowRight,
+} from 'lucide-react'
 
 function Shop() {
 const { requireAuth } = useAuthGuard()
@@ -12,8 +16,14 @@ const { requireAuth } = useAuthGuard()
   // ✅ Categories — add more here anytime
   const categories = ['All', 'Phones', 'Laptops', 'Fashion', 'Electronics', 'Home & Kitchen', 'Gaming', 'Beauty']
 
-  // ✅ Store filters
-  const stores = ['All', 'Jumia', 'Amazon', 'AliExpress', 'Konga']
+  // ✅ Store filters — dot color visually distinguishes each store
+  const stores = [
+    { name: 'All', dot: 'bg-gray-400' },
+    { name: 'Jumia', dot: 'bg-orange-500' },
+    { name: 'Amazon', dot: 'bg-yellow-500' },
+    { name: 'AliExpress', dot: 'bg-red-500' },
+    { name: 'Konga', dot: 'bg-purple-500' },
+  ]
 
   // ✅ Products — add/remove products here
   // To add a new product just add a new object
@@ -193,54 +203,54 @@ Please process this order. Thank you!`.trim()
       <section className="bg-[#0a0f2c] py-16 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-orange-300 text-xs font-medium tracking-wide">🛒 UTL SHOP</span>
+            <ShoppingBag size={13} className="text-orange-300" />
+            <span className="text-orange-300 text-xs font-medium tracking-wide">UTL SHOP</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Order Anything,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
               Delivered to You
             </span>
           </h1>
           <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
             Browse our featured products and order via WhatsApp. We shop from Jumia, Amazon, AliExpress and more — delivered anywhere in Nigeria!
           </p>
-                    
 
           {/* Search Bar */}
-          <div className="flex max-w-xl mx-auto gap-3">
+          <div className="flex flex-wrap max-w-xl mx-auto gap-3 justify-center">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for phones, laptops, fashion..."
-              className="flex-1 px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-orange-400 transition-colors"
+              className="flex-1 min-w-[200px] px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-orange-400 transition-colors"
             />
             <button className="px-6 py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
               Search
             </button>
             <button
-  onClick={() => {
-    const user = localStorage.getItem('utl_current_user')
-    if (!user) {
-      window.location.href = '/signup?role=seller'
-    } else {
-      const parsed = JSON.parse(user)
-      if (parsed.accountType === 'seller') {
-        window.location.href = '/dashboard'
-      } else {
-        window.location.href = '/signup?role=seller'
-      }
-    }
-  }}
-  className="px-6 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
->
-  🏪 Become a Seller
-</button>
+              onClick={() => {
+                const user = localStorage.getItem('utl_current_user')
+                if (!user) {
+                  window.location.href = '/signup?role=seller'
+                } else {
+                  const parsed = JSON.parse(user)
+                  if (parsed.accountType === 'seller') {
+                    window.location.href = '/dashboard'
+                  } else {
+                    window.location.href = '/signup?role=seller'
+                  }
+                }
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+            >
+              <Store size={16} /> Become a Seller
+            </button>
           </div>
         </div>
       </section>
@@ -250,18 +260,20 @@ Please process this order. Thank you!`.trim()
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: '🔍', title: 'Browse', desc: 'Find what you want' },
-              { icon: '💬', title: 'Order', desc: 'Send via WhatsApp' },
-              { icon: '💳', title: 'Pay', desc: 'Secure payment' },
-              { icon: '🚚', title: 'Delivered', desc: 'To your doorstep' },
+              { icon: Search, title: 'Browse', desc: 'Find what you want' },
+              { icon: MessageCircle, title: 'Order', desc: 'Send via WhatsApp' },
+              { icon: CreditCard, title: 'Pay', desc: 'Secure payment' },
+              { icon: Truck, title: 'Delivered', desc: 'To your doorstep' },
             ].map((step, index) => (
               <div key={step.title} className="flex items-center gap-3">
-                <span className="text-2xl">{step.icon}</span>
+                <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <step.icon size={17} className="text-orange-600" />
+                </div>
                 <div>
                   <p className="text-gray-900 text-sm font-semibold">{step.title}</p>
                   <p className="text-gray-500 text-xs">{step.desc}</p>
                 </div>
-                {index < 3 && <span className="hidden md:block text-gray-300 ml-auto">→</span>}
+                {index < 3 && <ArrowRight size={16} className="hidden md:block text-gray-300 ml-auto" />}
               </div>
             ))}
           </div>
@@ -284,18 +296,16 @@ Please process this order. Thank you!`.trim()
                 <div className="space-y-2 mb-6">
                   {stores.map((store) => (
                     <button
-                      key={store}
-                      onClick={() => setActiveStore(store)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeStore === store
-                          ? 'bg-blue-600 text-white'
+                      key={store.name}
+                      onClick={() => setActiveStore(store.name)}
+                      className={`w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeStore === store.name
+                          ? 'bg-amber-500 text-[#0a0f2c]'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      {store === 'All' ? '🏪 All Stores' :
-                       store === 'Jumia' ? '🟠 Jumia' :
-                       store === 'Amazon' ? '📦 Amazon' :
-                       store === 'AliExpress' ? '🔴 AliExpress' : '🟣 Konga'}
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${store.dot}`} />
+                      {store.name === 'All' ? 'All Stores' : store.name}
                     </button>
                   ))}
                 </div>
@@ -328,18 +338,18 @@ Please process this order. Thank you!`.trim()
 
                 {/* Need help box */}
                 <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-                  <p className="text-green-800 text-xs font-bold mb-1">Can't find it? 🔍</p>
+                  <p className="text-green-800 text-xs font-bold mb-1">Can't find it?</p>
                   <p className="text-green-700 text-xs mb-3">
                     Tell us what you need and we'll find it for you!
                   </p>
-                  
+
                   <a
                     href="https://wa.me/2348038786037?text=Hello! I need help finding a product."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-semibold rounded-lg text-center transition-colors"
+                    className="flex items-center justify-center gap-1.5 w-full py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-semibold rounded-lg text-center transition-colors"
                   >
-                    Ask on WhatsApp
+                    <MessageCircle size={13} /> Ask on WhatsApp
                   </a>
                 </div>
 
@@ -363,7 +373,7 @@ Please process this order. Thank you!`.trim()
                       setActiveStore('All')
                       setSearchQuery('')
                     }}
-                    className="text-blue-600 text-xs font-semibold hover:text-blue-700"
+                    className="text-amber-600 text-xs font-semibold hover:text-amber-700"
                   >
                     Clear filters ✕
                   </button>
@@ -373,7 +383,7 @@ Please process this order. Thank you!`.trim()
               {/* No results */}
               {filteredProducts.length === 0 && (
                 <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                  <p className="text-4xl mb-4">🔍</p>
+                  <SearchX size={40} className="mx-auto mb-4 text-gray-300" />
                   <p className="text-gray-900 font-bold mb-2">No products found</p>
                   <p className="text-gray-500 text-sm mb-6">
                     Try a different search or contact us and we'll find it for you!
@@ -384,7 +394,7 @@ Please process this order. Thank you!`.trim()
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white font-semibold rounded-xl text-sm"
                   >
-                    Ask on WhatsApp
+                    <MessageCircle size={15} /> Ask on WhatsApp
                   </a>
                 </div>
               )}
@@ -397,14 +407,14 @@ Please process this order. Thank you!`.trim()
                     className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   >
                     {/* Product Image */}
-                <div className="h-44 overflow-hidden bg-gray-100">
+                <div className="h-44 overflow-hidden bg-gray-100 flex items-center justify-center">
                 <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                     e.target.style.display = 'none'
-                    e.target.parentElement.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:48px">🛒</div>'
+                    e.target.parentElement.innerHTML = '<span style="color:#9ca3af;font-size:13px;font-weight:600">Image unavailable</span>'
                     }}
                 />
                 </div>
@@ -423,33 +433,34 @@ Please process this order. Thank you!`.trim()
 
                       {/* Price */}
                       <div className="flex items-baseline gap-2 mb-4">
-                        <span className="text-blue-600 font-black text-lg">{product.price}</span>
+                        <span className="text-amber-600 font-black text-lg">{product.price}</span>
                         {product.oldPrice && (
                           <span className="text-gray-400 text-xs line-through">{product.oldPrice}</span>
                         )}
                       </div>
 
                       {/* Buttons */}
-                      <button
-  onClick={() => requireAuth(() => handleOrder(product))}
-  className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
->
-  Place Order
-</button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => requireAuth(() => handleOrder(product))}
+                          className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
+                        >
+                          Place Order
+                        </button>
 
                         {/* View on store */}
                         <a
                           href={product.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-xl transition-colors"
+                          className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl transition-colors flex items-center justify-center"
                           title={`View on ${product.store}`}
                         >
-                          🔗
+                          <ExternalLink size={14} />
                         </a>
                       </div>
                     </div>
-
+                  </div>
                 ))}
               </div>
 
@@ -486,4 +497,4 @@ Please process this order. Thank you!`.trim()
   )
 }
 
-export default Shop;
+export default Shop
