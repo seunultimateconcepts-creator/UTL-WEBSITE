@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Star, Lightbulb, Github, ArrowRight, Globe, Palette, Zap, Atom,
+  Star, Lightbulb, ArrowRight, Globe, Palette, Zap, Atom,
   Wind, Server, Leaf, Rocket, GitBranch, Plug, PenTool, Terminal,
 } from 'lucide-react'
+import { Github } from '../components/SocialIcons'
 
 function Portfolio() {
 
@@ -147,7 +148,7 @@ function Portfolio() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5">
                 Start a Project <ArrowRight size={16} />
               </Link>
-              <a href="https://github.com/seunultimateconcepts-creator" target="_blank" rel="noopener noreferrer"
+              <a href="https://github.com/seunultimate" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
                 <Github size={16} /> View GitHub
               </a>
