@@ -206,14 +206,13 @@ return (
             </div>
 
             {/* Social login */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
               <button type="button"
-                className="flex items-center justify-center gap-2 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-medium rounded-xl transition-colors">
+                className="flex-1 h-11">
                 <GoogleAuthButton />
               </button>
               <button type="button"
-                className="flex items-center justify-center gap-2 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-medium rounded-xl transition-colors">
-                <FacebookAuthButton />
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-[#0a0f2c] hover:bg-gray-50 transition-colors whitespace-nowrap">                <FacebookAuthButton className="flex-1 h-11"/>
               </button>
             </div>
 
