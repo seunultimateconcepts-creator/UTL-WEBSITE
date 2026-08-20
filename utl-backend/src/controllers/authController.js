@@ -17,7 +17,9 @@ const generateToken = (userId) => {
 // ✅ SIGNUP
 const signup = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, password, accountType } = req.body
+    // ✅ accountType removed — every signup is the same base type now.
+    // The schema default ('client') handles this, nothing to pass in.
+    const { firstName, lastName, email, phone, password } = req.body
 
     const existingUser = await User.findOne({ email })
     if (existingUser) {
@@ -32,7 +34,7 @@ const signup = async (req, res) => {
     const verificationExpire = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
 
     const user = await User.create({
-      firstName, lastName, email, phone, password, accountType,
+      firstName, lastName, email, phone, password,
       verificationToken,
       verificationExpire,
     })
@@ -66,6 +68,8 @@ const signup = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         accountType: user.accountType,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
         isVerified: user.isVerified,
       },
     })
@@ -113,6 +117,8 @@ const verifyEmail = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         accountType: user.accountType,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
         isVerified: user.isVerified,
       },
     })
@@ -167,6 +173,8 @@ const login = async (req, res) => {
         email: user.email,
         phone: user.phone,
         accountType: user.accountType,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
         isVerified: user.isVerified,
       },
     })
@@ -279,4 +287,35 @@ const getMe = async (req, res) => {
   }
 }
 
-module.exports = { signup, verifyEmail, login, forgotPassword, resetPassword, getMe }
+// ✅ UNLOCK DASHBOARD
+// Called once a logged-in user places their first order. This is the
+// ONE authoritative place dashboardUnlocked gets set — never trust a
+// frontend-only flag for this, since anyone could fake localStorage.
+// Route this behind your auth middleware: PATCH /api/auth/unlock-dashboard
+const unlockDashboard = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    if (!user.dashboardUnlocked) {
+      user.dashboardUnlocked = true
+      await user.save()
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Dashboard unlocked',
+      dashboardUnlocked: user.dashboardUnlocked,
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error unlocking dashboard',
+      error: error.message,
+    })
+  }
+}
+
+module.exports = { signup, verifyEmail, login, forgotPassword, resetPassword, getMe, unlockDashboard }

@@ -67,14 +67,33 @@ const userSchema = new mongoose.Schema({
     sparse: true,
   },
 
+  // ✅ Every signup is a single base type now. No more picking
+  // Client/Seller/Learner/Crypto at signup — those distinctions are now
+  // handled by the two fields below instead.
   accountType: {
     type: String,
-    enum: ['client', 'seller', 'learner', 'crypto'],
+    enum: ['client'],
     default: 'client',
   },
-  accountTypeConfirmed: {
+
+  // ✅ Selling is an UPGRADE, not an account type. Set to 'pending' when
+  // someone submits the Become a Seller application, flipped to
+  // 'approved'/'rejected' manually in Atlas (see handover note plan).
+  // Dashboard.jsx checks this — NOT accountType — to decide whether to
+  // show seller tabs.
+  sellerStatus: {
+    type: String,
+    enum: ['none', 'pending', 'approved', 'rejected'],
+    default: 'none',
+  },
+
+  // ✅ Gates access to /dashboard entirely. Starts false for every new
+  // signup. Flips to true the first time the user places an order
+  // (see orderController — TODO once a real Order model exists;
+  // interim version flips this from the frontend, see UTLShopStore.jsx).
+  dashboardUnlocked: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 
   avatar: {

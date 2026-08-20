@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
-  Search, ShoppingBag, Store, ArrowRight, Sparkles, Plus,
+  Search, ShoppingBag, Store, ArrowRight, Sparkles, Plus, Info,
 } from 'lucide-react'
 
 function Shop() {
   const [searchQuery, setSearchQuery] = useState('')
+  const location = useLocation()
+  const flashMessage = location.state?.message
 
   // ✅ Vendors — Ultimate Shop is live (UTL's own shopping-assistant service,
   // fills the marketplace while real sellers onboard). Everything after it
@@ -77,6 +79,16 @@ function Shop() {
           </div>
         </div>
       </section>
+
+      {/* Flash message (e.g. redirected here from a locked dashboard) */}
+      {flashMessage && (
+        <div className="bg-amber-50 border-b border-amber-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
+            <Info size={16} className="text-amber-600 flex-shrink-0" />
+            <p className="text-amber-800 text-sm font-medium">{flashMessage}</p>
+          </div>
+        </div>
+      )}
 
       {/* Vendor Grid */}
       <section className="py-16 bg-gray-50">

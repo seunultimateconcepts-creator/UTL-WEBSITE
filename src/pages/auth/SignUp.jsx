@@ -18,24 +18,8 @@ function SignUp() {
     phone: '',
     password: '',
     confirmPassword: '',
-    accountType: 'client',
     agreeTerms: false,
   })
-
-  const accountTypes = [
-  {
-    id: 'client',
-    label: 'Client',
-    desc: 'I want to hire services',
-    icon: '👤',
-  },
-  {
-    id: 'seller',
-    label: 'Seller',
-    desc: 'I want to sell products',
-    icon: '🏪',
-  },
-]
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -98,7 +82,6 @@ function SignUp() {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        accountType: formData.accountType,
       })
 
       if (result.success) {
@@ -226,30 +209,6 @@ function SignUp() {
 
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">
-                  Join as
-                </label>
-               <div className="grid grid-cols-2 gap-4">
-                  {accountTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, accountType: type.id }))}
-                      className={`p-3 rounded-xl border-2 text-left transition-all ${
-                        formData.accountType === type.id
-                          ? 'border-blue-500 bg-blue-600/10'
-                          : 'border-white/10 bg-white/5 hover:border-white/20'
-                      }`}
-                    >
-                      <span className="text-xl block mb-1">{type.icon}</span>
-                      <span className="text-white text-sm font-bold block">{type.label}</span>
-                      <span className="text-gray-400 text-xs">{type.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">First Name</label>
@@ -286,8 +245,8 @@ function SignUp() {
 
               <p className="text-center text-gray-500 text-xs">
                 By continuing you agree to our{' '}
-                <a href="#" className="text-blue-400 hover:underline">Terms</a> &{' '}
-                <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
+                <Link to="/terms" className="text-blue-400 hover:underline">Terms</Link> &{' '}
+                <Link to="/privacy" className="text-blue-400 hover:underline">Privacy Policy</Link>
               </p>
             </div>
           )}
@@ -330,8 +289,8 @@ function SignUp() {
                   className="mt-0.5 w-4 h-4 accent-blue-600" />
                 <label htmlFor="agreeTerms" className="text-gray-400 text-xs leading-relaxed">
                   I agree to Ultimate Tech Lab's{' '}
-                  <a href="#" className="text-blue-400 hover:underline">Terms</a> and{' '}
-                  <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
+                  <Link to="/terms" className="text-blue-400 hover:underline">Terms</Link> and{' '}
+                  <Link to="/privacy" className="text-blue-400 hover:underline">Privacy Policy</Link>
                 </label>
               </div>
 

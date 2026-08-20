@@ -3,17 +3,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo_utl.png'
 import { getDashboardConfig } from '../../config/dashboardConfig'
 import {
-  LayoutDashboard, Briefcase, ShoppingCart, Store, GraduationCap,
-  TrendingUp, MessageCircle, Settings, Bell, Plus, FileText, Palette,
-  Home, LogOut, User, Lock, Trash2, CheckCircle2, Bot,
+  LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
+  Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
+  Trash2, CheckCircle2, Clock,
 } from 'lucide-react'
+import ShareLink from '../../components/ShareLink'
 
 // ✅ Maps the icon-name strings from dashboardConfig.js to actual
 // lucide-react components. Add new icons here as needed.
 const ICONS = {
-  LayoutDashboard, Briefcase, ShoppingCart, Store, GraduationCap,
-  TrendingUp, MessageCircle, Settings, Bell, Plus, FileText, Palette,
-  Home, LogOut, User, Lock, Trash2, CheckCircle2, Bot,
+  LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
+  Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
+  Trash2, CheckCircle2, Clock,
 }
 
 // ✅ Small helper so we can write <Icon name="Briefcase" /> anywhere
@@ -28,7 +29,9 @@ function Dashboard() {
   const [user, setUser] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
 
-  // ✅ Check if user is logged in
+  // ✅ Check login AND dashboard-unlock status.
+  // Not logged in → /login. Logged in but hasn't placed an order yet →
+  // /shop, with a message explaining why they landed there.
   useEffect(() => {
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
@@ -36,6 +39,14 @@ function Dashboard() {
       return
     }
     const parsed = JSON.parse(currentUser)
+
+    if (!parsed.dashboardUnlocked) {
+      navigate('/shop', {
+        state: { message: 'Place your first order to unlock your dashboard!' },
+      })
+      return
+    }
+
     // eslint-disable-next-line
     setUser(parsed)
   }, [navigate])
@@ -52,9 +63,11 @@ function Dashboard() {
     </div>
   )
 
-  // ✅ Everything below depends on account type — pulled from config
-  const config = getDashboardConfig(user.accountType)
-  const { tabs, stats, quickActions, showMentorship } = config
+  // ✅ Seller is an UPGRADE, checked via sellerStatus — not a separate
+  // accountType. Only an approved seller sees the seller dashboard.
+  const isApprovedSeller = user.sellerStatus === 'approved'
+  const config = getDashboardConfig(isApprovedSeller ? 'seller' : 'client')
+  const { tabs, stats, quickActions } = config
 
   const validTabIds = tabs.map(t => t.id)
   const currentTab = validTabIds.includes(activeTab) ? activeTab : 'overview'
@@ -64,10 +77,16 @@ function Dashboard() {
     projects: 'My Projects',
     orders: 'My Orders',
     myshop: 'My Shop',
-    mentorship: showMentorship === 'crypto' ? 'Crypto Mentorship' : 'AI Mentorship',
     messages: 'Messages',
     settings: 'Account Settings',
   }
+
+  // ✅ Sidebar badge — shows seller status distinctly from plain client
+  const roleLabel = isApprovedSeller
+    ? 'Seller'
+    : user.sellerStatus === 'pending'
+      ? 'Seller application pending'
+      : 'Client'
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -81,7 +100,7 @@ function Dashboard() {
             <img src={logo} alt="UTL" className="h-10 w-auto rounded-lg" />
             <div>
               <div className="text-white font-black text-xs">ULTIMATE</div>
-              <div className="text-green-400 font-bold text-[10px] tracking-widest">TECH LAB</div>
+              <div className="text-amber-400 font-bold text-[10px] tracking-widest">TECH LAB</div>
             </div>
           </Link>
         </div>
@@ -89,12 +108,15 @@ function Dashboard() {
         {/* User info */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-[#0a0f2c] font-bold text-sm flex-shrink-0">
               {user.firstName?.[0]}{user.lastName?.[0]}
             </div>
-            <div>
-              <p className="text-white text-sm font-bold">{user.firstName} {user.lastName}</p>
-              <p className="text-gray-400 text-xs capitalize">{user.accountType}</p>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-bold truncate">{user.firstName} {user.lastName}</p>
+              <p className={`text-xs flex items-center gap-1 ${user.sellerStatus === 'pending' ? 'text-amber-400' : 'text-gray-400'}`}>
+                {user.sellerStatus === 'pending' && <Clock size={11} />}
+                {roleLabel}
+              </p>
             </div>
           </div>
         </div>
@@ -107,7 +129,7 @@ function Dashboard() {
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 currentTab === tab.id
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-amber-500 text-[#0a0f2c]'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -151,11 +173,40 @@ function Dashboard() {
             <button className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
               <Icon name="Bell" className="w-4 h-4" />
             </button>
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-[#0a0f2c] font-bold text-sm">
               {user.firstName?.[0]}{user.lastName?.[0]}
             </div>
           </div>
         </div>
+
+        {/* Seller application pending banner */}
+        {user.sellerStatus === 'pending' && (
+          <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <Clock size={20} className="text-amber-600 flex-shrink-0" />
+            <p className="text-amber-800 text-sm">
+              Your seller application is under review. We'll unlock your seller dashboard within 24 hours.
+            </p>
+          </div>
+        )}
+
+        {/* Your store link — approved sellers only. This IS their live,
+            shareable storefront the moment they've added at least one
+            product — surfacing it here is what makes that actually
+            useful instead of a URL only you know about. */}
+        {isApprovedSeller && (
+          <div className="mb-6 bg-white border border-orange-100 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-gray-900 font-bold text-sm mb-1">Your store is live</p>
+              <p className="text-gray-500 text-xs break-all">
+                {typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+              </p>
+            </div>
+            <ShareLink
+              url={typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+              title={`${user.firstName}'s store on Ultimate Tech Lab`}
+            />
+          </div>
+        )}
 
         {/* Overview Tab */}
         {currentTab === 'overview' && (
@@ -209,26 +260,34 @@ function Dashboard() {
                 {[
                   { label: 'Full Name', value: `${user.firstName} ${user.lastName}` },
                   { label: 'Email', value: user.email },
-                  { label: 'Phone', value: user.phone },
-                  { label: 'Account Type', value: user.accountType },
+                  { label: 'Phone', value: user.phone || '—' },
+                  { label: 'Seller Status', value: isApprovedSeller ? 'Approved' : user.sellerStatus === 'pending' ? 'Pending review' : 'Not a seller' },
                   { label: 'Member Since', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' },
                   { label: 'Account Status', value: 'Active' },
                 ].map((info) => (
                   <div key={info.label} className="bg-gray-50 rounded-xl p-4">
                     <p className="text-gray-400 text-xs font-semibold uppercase mb-1">{info.label}</p>
-                    <p className="text-gray-900 text-sm font-semibold capitalize flex items-center gap-1.5">
+                    <p className="text-gray-900 text-sm font-semibold flex items-center gap-1.5">
                       {info.label === 'Account Status' && <Icon name="CheckCircle2" className="w-4 h-4 text-green-500" />}
                       {info.value}
                     </p>
                   </div>
                 ))}
               </div>
+              {!isApprovedSeller && user.sellerStatus === 'none' && (
+                <div className="mt-4 flex items-center justify-between bg-orange-50 border border-orange-100 rounded-xl p-4">
+                  <p className="text-orange-700 text-sm">Want to sell on U Market too?</p>
+                  <Link to="/become-seller" className="text-orange-700 text-sm font-bold hover:text-orange-800">
+                    Apply now →
+                  </Link>
+                </div>
+              )}
             </div>
 
           </div>
         )}
 
-        {/* Projects Tab — client only */}
+        {/* Projects Tab — client */}
         {currentTab === 'projects' && (
           <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
             <Icon name="Briefcase" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -236,19 +295,19 @@ function Dashboard() {
             <p className="text-gray-500 mb-6">You haven't started any projects with us yet. Let's change that!</p>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-[#0a0f2c] font-bold rounded-xl hover:bg-amber-400 transition-colors"
             >
               Start a Project →
             </Link>
           </div>
         )}
 
-        {/* Orders Tab — client only */}
+        {/* Orders Tab */}
         {currentTab === 'orders' && (
           <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
             <Icon name="ShoppingCart" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-xl font-black text-gray-900 mb-2">No Orders Yet</h3>
-            <p className="text-gray-500 mb-6">You haven't placed any orders yet. Browse our shop!</p>
+            <p className="text-gray-500 mb-6">Your order history will appear here.</p>
             <Link
               to="/shop"
               className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
@@ -258,126 +317,18 @@ function Dashboard() {
           </div>
         )}
 
-        {/* My Shop Tab — seller only */}
+        {/* My Shop Tab — approved sellers only */}
         {currentTab === 'myshop' && (
           <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
             <Icon name="Store" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-xl font-black text-gray-900 mb-2">No Products Listed Yet</h3>
-            <p className="text-gray-500 mb-6">Start listing products to sell on Ultimate Tech Lab.</p>
-            <a
-              href="https://wa.me/2348038786037?text=Hello! I want to list a product to sell on UTL Shop."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors"
+            <p className="text-gray-500 mb-6">Start listing products to sell on U Market.</p>
+            <Link
+              to="/dashboard/add-product"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
             >
               List a Product →
-            </a>
-          </div>
-        )}
-
-        {/* Mentorship Tab */}
-        {currentTab === 'mentorship' && (
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-1 max-w-xl gap-6">
-
-              {/* Crypto Mentorship — crypto accounts only */}
-              {showMentorship === 'crypto' && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6">
-                    <Icon name="TrendingUp" className="w-10 h-10 text-white mb-3" />
-                    <h3 className="text-white font-black text-xl mb-1">Crypto Mentorship</h3>
-                    <p className="text-green-100 text-sm">Learn crypto trading from scratch</p>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      Get personalized crypto trading mentorship from Oluwaseun — covering chart reading, P2P trading, risk management and building a profitable trading strategy.
-                    </p>
-                    <ul className="space-y-2">
-                      {['Chart reading & analysis', 'P2P trading strategies', 'Risk management', 'Market psychology', 'Building a trading plan'].map((item) => (
-                        <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
-                          <Icon name="CheckCircle2" className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="pt-2 space-y-2">
-                      <a
-                        href={`https://wa.me/2348038786037?text=Hello! I want to enroll for Crypto Mentorship. My name is ${user.firstName} ${user.lastName} and my email is ${user.email}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all text-sm"
-                      >
-                        Enroll via WhatsApp
-                      </a>
-                      <a
-                        href={`mailto:seunultimateconcepts@gmail.com?subject=Crypto Mentorship Enrollment&body=Hello! I want to enroll for Crypto Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-sm"
-                      >
-                        Enroll via Email
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* AI Mentorship — learner accounts only */}
-              {showMentorship === 'ai' && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-purple-500 to-blue-600 p-6">
-                    <Icon name="GraduationCap" className="w-10 h-10 text-white mb-3" />
-                    <h3 className="text-white font-black text-xl mb-1">AI Mentorship</h3>
-                    <p className="text-purple-100 text-sm">Learn AI with Claude — the world's best AI</p>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      Learn AI from scratch with Claude as your personal tutor. Ask questions, build projects and master prompt engineering in a structured program designed by our expert team.
-                    </p>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center text-white">
-                          <Icon name="Bot" className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-gray-900 text-xs font-bold">Claude AI Tutor</p>
-                          <div className="flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                            <span className="text-green-500 text-[10px]">Online</span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-gray-500 text-xs bg-white rounded-lg p-3 border border-gray-100">
-                        Hi {user.firstName}! I'm Claude, your AI tutor. Ask me anything about AI, prompt engineering or building AI apps. I'm here to help you become an AI expert!
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <a
-                        href={`https://wa.me/2348038786037?text=Hello! I want to enroll for AI Mentorship. My name is ${user.firstName} ${user.lastName} and my email is ${user.email}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all text-sm"
-                      >
-                        Enroll via WhatsApp
-                      </a>
-                      <a
-                        href={`mailto:seunultimateconcepts@gmail.com?subject=AI Mentorship Enrollment&body=Hello! I want to enroll for AI Mentorship.%0D%0A%0D%0AName: ${user.firstName} ${user.lastName}%0D%0AEmail: ${user.email}%0D%0APhone: ${user.phone}`}
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-sm"
-                      >
-                        Enroll via Email
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-              <p className="text-blue-700 text-sm font-semibold mb-1">How Mentorship Works</p>
-              <p className="text-blue-600 text-sm leading-relaxed">
-                Click "Enroll via WhatsApp" or "Enroll via Email" — your details are automatically sent to our team.
-                We'll reach out within 24 hours to schedule your first session and share your learning materials!
-              </p>
-            </div>
+            </Link>
           </div>
         )}
 

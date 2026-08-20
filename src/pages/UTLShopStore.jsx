@@ -168,8 +168,11 @@ const { requireAuth } = useAuthGuard()
     return matchesSearch && matchesCategory && matchesStore
   })
 
-  // ✅ Generate WhatsApp order message
-  const handleOrder = (product) => {
+  // ✅ Generate WhatsApp order message + unlock the dashboard.
+  // This is the ONE place a user's dashboardUnlocked flag flips to true.
+  // The backend call is the source of truth; updating localStorage here
+  // just means they don't need to log out/in to see it take effect.
+  const handleOrder = async (product) => {
   const user = JSON.parse(localStorage.getItem('utl_current_user'))
   const message = `
 🛒 *New Order from UTL Shop!*
@@ -186,6 +189,29 @@ Please process this order. Thank you!`.trim()
 
   // Open WhatsApp
   window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
+
+  // Unlock dashboard access server-side (fire-and-forget — the order
+  // itself already went through via WhatsApp, so a failed unlock call
+  // shouldn't block or alarm the user; it'll just retry next order)
+  if (!user.dashboardUnlocked) {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      await fetch(`${BASE_URL}/auth/unlock-dashboard`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      localStorage.setItem(
+        'utl_current_user',
+        JSON.stringify({ ...user, dashboardUnlocked: true })
+      )
+    } catch (err) {
+      console.error('Dashboard unlock failed (order still placed):', err)
+    }
+  }
 }
 
   // ✅ Store badge colors

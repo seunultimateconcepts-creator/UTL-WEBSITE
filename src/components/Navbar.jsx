@@ -4,7 +4,7 @@ import logo from '../assets/logo_utl.png'
 import {
   ChevronDown, Menu, X, LayoutGrid, Monitor, TrendingUp, ShoppingCart,
   Users, Gem, Target, HelpCircle, LayoutDashboard, ShoppingBag,
-  GraduationCap, Settings, LogOut, User, Store,
+  Settings, LogOut, User, Store,
 } from 'lucide-react'
 
 function Navbar() {
@@ -80,20 +80,25 @@ function Navbar() {
       ]
     },
     { name: 'Portfolio', path: '/portfolio' },
-    { name: 'Shop', path: '/shop' },
+    { name: 'U Market', path: '/shop' },
     { name: 'Blog', path: '/blog' },
-    { name: 'U Tech Hub', path: '/tech-hub' },
+    { name: 'UTech Hub', path: '/tech-hub' },
     { name: 'Contact', path: '/contact' },
   ]
 
-  // ✅ Account type badge — icon + label + color, matches dashboard config
-  const accountBadges = {
-    client:  { icon: User,          label: 'Client',         color: 'bg-blue-100 text-blue-700' },
-    seller:  { icon: Store,         label: 'Seller',         color: 'bg-orange-100 text-orange-700' },
-    learner: { icon: GraduationCap, label: 'AI Learner',     color: 'bg-purple-100 text-purple-700' },
-    crypto:  { icon: TrendingUp,    label: 'Crypto Student', color: 'bg-green-100 text-green-700' },
+  // ✅ Account badge — driven by sellerStatus now, not accountType
+  // (accountType is always 'client' — selling is an upgrade, not a type)
+  const getBadge = () => {
+    if (!user) return null
+    if (user.sellerStatus === 'approved') {
+      return { icon: Store, label: 'Seller', color: 'bg-orange-100 text-orange-700' }
+    }
+    if (user.sellerStatus === 'pending') {
+      return { icon: Store, label: 'Seller (pending)', color: 'bg-amber-100 text-amber-700' }
+    }
+    return { icon: User, label: 'Client', color: 'bg-blue-100 text-blue-700' }
   }
-  const badge = user ? (accountBadges[user.accountType] || accountBadges.client) : null
+  const badge = getBadge()
 
   const toggleDropdown = (name) => {
     setActiveDropdown(activeDropdown === name ? null : name)
@@ -195,7 +200,7 @@ function Navbar() {
                     <p className="text-white text-xs font-semibold leading-tight">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-gray-400 text-[10px] capitalize">{user.accountType}</p>
+                    <p className="text-gray-400 text-[10px]">{badge?.label}</p>
                   </div>
                   <ChevronDown
                     size={12}
@@ -233,10 +238,6 @@ function Navbar() {
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
                       <ShoppingBag size={16} /> My Orders
-                    </Link>
-                    <Link to="/dashboard"
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      <GraduationCap size={16} /> Mentorship
                     </Link>
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
@@ -286,7 +287,7 @@ function Navbar() {
               </div>
               <div>
                 <p className="text-white text-sm font-bold">{user.firstName} {user.lastName}</p>
-                <p className="text-gray-400 text-xs capitalize">{user.accountType}</p>
+                <p className="text-gray-400 text-xs">{badge?.label}</p>
               </div>
             </div>
           )}
