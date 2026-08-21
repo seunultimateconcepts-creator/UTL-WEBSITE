@@ -4,23 +4,33 @@ const mongoose = require('mongoose')
 /**
  * Order
  *
- * Two order sources currently exist on the Platform:
- *  1. Ultimate Shop — hardcoded catalog in UTLShopStore.jsx, NOT backed
- *     by real Product documents.
- *  2. U Market vendor products — real Product documents with a real
- *     vendorId.
+ * ✅ Now supports MULTIPLE items per order (a real cart checkout),
+ * not just one product per order. This matters most for Ultimate
+ * Shop, where a customer might order a phone AND a laptop in one
+ * checkout — previously that would have needed two separate orders.
  *
- * Rather than forcing Ultimate Shop's catalog into the Product model
- * right now (a bigger migration than this needs), productSnapshot
- * stores the product's name/price/currency directly on the order. This
- * means the order stays accurate forever even if the underlying
- * product/price changes or is deleted later — standard e-commerce
- * practice (you never want an old order to silently change because
- * someone edited the product).
+ * Each item keeps its own denormalized snapshot (name/price/store) for
+ * the same reason as before: an order should never silently change if
+ * the underlying product/price is edited or deleted later.
  *
- * vendorId is null for Ultimate Shop orders (it's UTL's own service,
- * not a real seller account) and set for real U Market vendor orders.
+ * vendorId stays at the ORDER level, not per-item — a single order is
+ * still tied to one vendor (or null for Ultimate Shop). Cross-vendor
+ * carts aren't supported; each vendor's items would need a separate
+ * order, same as most real marketplaces (Amazon, Jumia) handle it.
  */
+const orderItemSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    default: null,
+  },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  currency: { type: String, default: 'NGN' },
+  store: { type: String, default: '' }, // e.g. 'Jumia' for Ultimate Shop items
+  quantity: { type: Number, default: 1 },
+}, { _id: false })
+
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
@@ -38,21 +48,14 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     default: null,
   },
-  // ✅ null for Ultimate Shop items (not real Product documents yet)
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    default: null,
+  items: {
+    type: [orderItemSchema],
+    required: true,
+    validate: v => Array.isArray(v) && v.length > 0,
   },
-  productSnapshot: {
-    name: { type: String, required: true },
-    price: { type: Number, required: true },
-    currency: { type: String, default: 'NGN' },
-    store: { type: String, default: '' }, // e.g. 'Jumia' for Ultimate Shop items
-  },
-  quantity: {
+  totalAmount: {
     type: Number,
-    default: 1,
+    required: true,
   },
   status: {
     type: String,

@@ -12,18 +12,25 @@ const generateOrderNumber = async () => {
 }
 
 // ✅ CREATE ORDER — the ONE place an order is actually recorded.
-// This is what UTLShopStore.jsx and ProductDetail.jsx's "Place Order"
-// buttons should call BEFORE opening the WhatsApp confirmation message,
-// not after — the order should exist in the database regardless of
-// whether the buyer actually sends the WhatsApp message.
+// This is what a cart checkout should call BEFORE opening the
+// WhatsApp confirmation message, not after — the order should exist
+// in the database regardless of whether the buyer actually sends the
+// WhatsApp message.
 const createOrder = async (req, res) => {
   try {
     const buyerId = req.user.id
-    const { productId, vendorId, productSnapshot, quantity, notes } = req.body
+    const { vendorId, items, notes } = req.body
 
-    if (!productSnapshot?.name || !productSnapshot?.price) {
-      return res.status(400).json({ success: false, message: 'Product details are required' })
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one item is required' })
     }
+    for (const item of items) {
+      if (!item.name || !item.price) {
+        return res.status(400).json({ success: false, message: 'Each item needs a name and price' })
+      }
+    }
+
+    const totalAmount = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0)
 
     const orderNumber = await generateOrderNumber()
 
@@ -31,16 +38,14 @@ const createOrder = async (req, res) => {
       orderNumber,
       buyerId,
       vendorId: vendorId || null,
-      productId: productId || null,
-      productSnapshot,
-      quantity: quantity || 1,
+      items,
+      totalAmount,
       notes: notes || '',
     })
 
-    // ✅ THIS replaces the interim unlock-dashboard call. Placing a real
-    // order is the actual trigger — not a side-channel call the frontend
-    // has to remember to make separately. If the user already has
-    // dashboardUnlocked, this is a no-op.
+    // ✅ Placing a real order is the actual dashboardUnlocked trigger —
+    // not a side-channel call the frontend has to remember to make
+    // separately. No-op if the user already has it.
     const buyer = await User.findById(buyerId)
     if (buyer && !buyer.dashboardUnlocked) {
       buyer.dashboardUnlocked = true
