@@ -52,6 +52,7 @@ import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
+import { CartProvider } from './context/CartContext'
 
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
   )
 
   return (
+    <CartProvider>
     <div>
       <ScrollToTop />
       <GoogleOneTap />
@@ -124,6 +126,7 @@ function App() {
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
     </div>
+    </CartProvider>
   )
 }
 
