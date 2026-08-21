@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-const Inquiry = require('../models/Inquiry')
-const Product = require('../models/Product')
+const Inquiry = require('../models/inquiry')
+const Product = require('../models/product')
 const User = require('../models/user')
 const { filterMessage } = require('../utils/contactFilter')
 
