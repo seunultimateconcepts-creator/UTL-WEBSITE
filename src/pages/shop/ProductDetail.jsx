@@ -5,9 +5,9 @@ import {
   ShoppingBag, Search, MessageCircle, CreditCard, Truck,
   SearchX, ExternalLink, ArrowRight, ShoppingCart, Check,
 } from 'lucide-react'
-import ShareLink from '../components/ShareLink'
-import CartDrawer from '../components/CartDrawer'
-import { useCart } from '../context/CartContext'
+import ShareLink from '../../components/ShareLink'
+import CartDrawer from '../../components/CartDrawer'
+import { useCart } from '../../context/CartContext'
 
 function UTLShopStore() {
   const { addItem, cartCount } = useCart()
