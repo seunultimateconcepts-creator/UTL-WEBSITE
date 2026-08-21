@@ -194,9 +194,19 @@ function Footer() {
         {/* Bottom Section */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          <p className="text-gray-500 text-sm">
-            © {currentYear} Ultimate Tech Lab. All rights reserved.
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <p className="text-gray-500 text-sm">
+              © {currentYear} Ultimate Tech Lab. All rights reserved.
+            </p>
+            <span className="text-gray-700 text-sm hidden md:inline">·</span>
+            <Link to="/terms" className="text-gray-500 hover:text-amber-400 text-sm transition-colors">
+              Terms
+            </Link>
+            <span className="text-gray-700 text-sm">·</span>
+            <Link to="/privacy" className="text-gray-500 hover:text-amber-400 text-sm transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => {

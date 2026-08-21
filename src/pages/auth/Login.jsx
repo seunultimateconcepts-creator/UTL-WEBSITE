@@ -220,8 +220,8 @@ return (
 
           <p className="text-gray-500 text-xs text-center mt-5">
             By signing in you agree to our{' '}
-            <a href="#" className="text-blue-400 hover:underline">Terms</a> and{' '}
-            <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
+            <Link to="/terms" className="text-blue-400 hover:underline">Terms</Link> and{' '}
+            <Link to="/privacy" className="text-blue-400 hover:underline">Privacy Policy</Link>
           </p>
 
         </div>

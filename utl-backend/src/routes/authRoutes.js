@@ -7,7 +7,8 @@ const {
   login,
   forgotPassword,
   resetPassword,
-  getMe
+  getMe,
+  unlockDashboard
 } = require('../controllers/authController')
 const { protect } = require('../middleware/authMiddleware')
 
@@ -20,5 +21,6 @@ router.post('/reset-password/:token', resetPassword)
 
 // ✅ Protected routes
 router.get('/me', protect, getMe)
+router.patch('/unlock-dashboard', protect, unlockDashboard)
 
 module.exports = router

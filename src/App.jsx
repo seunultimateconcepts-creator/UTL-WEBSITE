@@ -45,6 +45,13 @@ import PdfToolkit from './pages/tools/PdfToolkit'
 import CompleteProfile from './pages/auth/CompleteProfile'
 import GoogleOneTap from './components/GoogleOneTap'
 import UTLShopStore from './pages/UTLShopStore'
+import VendorStore from './pages/shop/VendorStore'
+import ProductDetail from './pages/shop/ProductDetail'
+import AddProduct from './pages/AddProduct'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 
 
 function App() {
@@ -106,7 +113,13 @@ function App() {
         <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />      
         <Route path="/shop/ultimate" element={<UTLShopStore />} />
-        
+        <Route path="/shop/vendor/:vendorId" element={<VendorStore />} />
+        <Route path="/shop/vendor/:vendorId/product/:productId" element={<ProductDetail />} />
+        <Route path="/dashboard/add-product" element={<AddProduct />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
