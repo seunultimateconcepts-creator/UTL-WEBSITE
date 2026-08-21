@@ -1,228 +1,489 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send } from 'lucide-react'
-import ProductChat from '../../components/ProductChat'
+import { Link, useNavigate } from 'react-router-dom'
+import logo from '../../assets/logo_utl.png'
+import { getDashboardConfig } from '../../config/dashboardConfig'
+import {
+  LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
+  Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
+  Trash2, CheckCircle2, Clock, Menu, X,
+} from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+// ✅ Maps the icon-name strings from dashboardConfig.js to actual
+// lucide-react components. Add new icons here as needed.
+const ICONS = {
+  LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
+  Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
+  Trash2, CheckCircle2, Clock,
+}
 
-function ProductDetail() {
-  const { vendorId, productId } = useParams()
+// ✅ Small helper so we can write <Icon name="Briefcase" /> anywhere
+function Icon({ name, className = 'w-5 h-5' }) {
+  const Component = ICONS[name]
+  if (!Component) return null
+  return <Component className={className} />
+}
+
+function Dashboard() {
   const navigate = useNavigate()
-  const [product, setProduct] = useState(null)
-  const [vendor, setVendor] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [activeImage, setActiveImage] = useState(0)
+  const [user, setUser] = useState(null)
+  const [activeTab, setActiveTab] = useState('overview')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(false)
 
+  // ✅ Check login AND dashboard-unlock status.
+  // Not logged in → /login. Logged in but hasn't placed an order yet →
+  // /shop, with a message explaining why they landed there.
   useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch(`${BASE_URL}/products/${productId}`)
-        const data = await res.json()
-        if (data.success) {
-          setProduct(data.product)
-          setVendor(data.vendor)
-        }
-      } catch (err) {
-        console.error('Failed to load product:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProduct()
-  }, [productId])
-
-  const handleOrder = async () => {
-    // ✅ Interim order path — WhatsApp still confirms, but now a real
-    // Order record is created first, with productId/vendorId set since
-    // this IS a real U Market vendor product (unlike Ultimate Shop's
-    // hardcoded catalog).
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
-      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${vendorId}/product/${productId}`)
       navigate('/login')
       return
     }
+    const parsed = JSON.parse(currentUser)
 
-    const user = JSON.parse(currentUser)
-
-    let orderNumber = null
-    try {
-      const token = localStorage.getItem('utl_token')
-      const res = await fetch(`${BASE_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productId,
-          vendorId,
-          productSnapshot: {
-            name: product.name,
-            price: product.price,
-            currency: product.currency,
-            store: vendor ? `${vendor.firstName} ${vendor.lastName}` : '',
-          },
-        }),
+    if (!parsed.dashboardUnlocked) {
+      navigate('/shop', {
+        state: { message: 'Place your first order to unlock your dashboard!' },
       })
-      const data = await res.json()
-      if (data.success) {
-        orderNumber = data.order.orderNumber
-        localStorage.setItem(
-          'utl_current_user',
-          JSON.stringify({ ...user, dashboardUnlocked: true })
-        )
-      }
-    } catch (err) {
-      console.error('Order creation failed (continuing to WhatsApp anyway):', err)
+      return
     }
 
-    const message = `
-🛒 *New Order from U Market!*
-${orderNumber ? `\n*Order Number:* ${orderNumber}` : ''}
+    // eslint-disable-next-line
+    setUser(parsed)
+  }, [navigate])
 
-*Customer:* ${user.firstName} ${user.lastName}
-*Email:* ${user.email}
-
-*Product:* ${product.name}
-*Price:* ${product.currency} ${product.price.toLocaleString()}
-
-Please confirm availability and next steps. Thank you!`.trim()
-
-    window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
+  const handleLogout = () => {
+    localStorage.removeItem('utl_token')
+    localStorage.removeItem('utl_current_user')
+    navigate('/')
   }
 
-  if (loading) {
-    return (
-      <div className="pt-16 min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
+  // ✅ Fetch real order history when the Orders tab is opened — replaces
+  // the old static "No Orders Yet" placeholder that never checked anything
+  useEffect(() => {
+    if (activeTab !== 'orders' || !user) return
+
+    const fetchOrders = async () => {
+      setOrdersLoading(true)
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const isApprovedSellerNow = user.sellerStatus === 'approved'
+        const endpoint = isApprovedSellerNow ? 'vendor-orders' : 'my-orders'
+
+        const res = await fetch(`${BASE_URL}/orders/${endpoint}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setOrders(data.orders)
+      } catch (err) {
+        console.error('Failed to fetch orders:', err)
+      } finally {
+        setOrdersLoading(false)
+      }
+    }
+    fetchOrders()
+  }, [activeTab, user])
+
+  if (!user) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  // ✅ Seller is an UPGRADE, checked via sellerStatus — not a separate
+  // accountType. Only an approved seller sees the seller dashboard.
+  const isApprovedSeller = user.sellerStatus === 'approved'
+  const config = getDashboardConfig(isApprovedSeller ? 'seller' : 'client')
+  const { tabs, stats, quickActions } = config
+
+  const validTabIds = tabs.map(t => t.id)
+  const currentTab = validTabIds.includes(activeTab) ? activeTab : 'overview'
+
+  const selectTab = (tabId) => {
+    setActiveTab(tabId)
+    setSidebarOpen(false) // close the drawer on mobile after picking a tab
   }
 
-  if (!product) {
-    return (
-      <div className="pt-16 min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-        <ShoppingBag size={40} className="text-gray-300 mb-4" />
-        <h2 className="text-xl font-black text-gray-900 mb-2">Product not found</h2>
-        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to U Market</Link>
-      </div>
-    )
+  const tabTitles = {
+    overview: `Welcome back, ${user.firstName}!`,
+    projects: 'My Projects',
+    orders: 'My Orders',
+    myshop: 'My Shop',
+    messages: 'Messages',
+    settings: 'Account Settings',
   }
+
+  // ✅ Sidebar badge — shows seller status distinctly from plain client
+  const roleLabel = isApprovedSeller
+    ? 'Seller'
+    : user.sellerStatus === 'pending'
+      ? 'Seller application pending'
+      : 'Client'
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 flex">
 
-        <Link
-          to={`/shop/vendor/${vendorId}`}
-          className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-900 text-sm mb-6 transition-colors"
-        >
-          <ArrowLeft size={14} /> Back to store
-        </Link>
+      {/* Mobile overlay — tap to close the drawer */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        />
+      )}
 
-        <div className="grid lg:grid-cols-2 gap-10">
+      {/* Sidebar — fixed drawer on mobile (slides in), static column on desktop */}
+      <div className={`w-64 bg-[#0a0f2c] flex flex-col fixed h-full z-50 transition-transform duration-300 lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
 
-          {/* Left — Images */}
-          <div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden h-80 flex items-center justify-center mb-3">
-              {product.images?.length > 0 ? (
-                <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <ShoppingBag size={48} className="text-gray-300" />
-              )}
+        {/* Logo + mobile close button */}
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="UTL" className="h-10 w-auto rounded-lg" />
+            <div>
+              <div className="text-white font-black text-xs">ULTIMATE</div>
+              <div className="text-amber-400 font-bold text-[10px] tracking-widest">TECH LAB</div>
             </div>
-            {product.images?.length > 1 && (
-              <div className="flex gap-2">
-                {product.images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImage(i)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
-                      activeImage === i ? 'border-orange-500' : 'border-transparent'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </button>
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* User info */}
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-[#0a0f2c] font-bold text-sm flex-shrink-0">
+              {user.firstName?.[0]}{user.lastName?.[0]}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-bold truncate">{user.firstName} {user.lastName}</p>
+              <p className={`text-xs flex items-center gap-1 ${user.sellerStatus === 'pending' ? 'text-amber-400' : 'text-gray-400'}`}>
+                {user.sellerStatus === 'pending' && <Clock size={11} />}
+                {roleLabel}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => selectTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                currentTab === tab.id
+                  ? 'bg-amber-500 text-[#0a0f2c]'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Icon name={tab.icon} className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Bottom actions */}
+        <div className="p-4 border-t border-white/10 space-y-2">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm font-medium transition-all"
+          >
+            <Icon name="Home" className="w-4 h-4" /> Back to Website
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:text-white hover:bg-red-600 text-sm font-medium transition-all"
+          >
+            <Icon name="LogOut" className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content — no left margin on mobile (sidebar is an overlay drawer, not in the flow) */}
+      <div className="flex-1 lg:ml-64 p-4 sm:p-8">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden flex-shrink-0 text-gray-500 hover:text-gray-900">
+              <Menu size={22} />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-black text-gray-900 truncate">
+                {tabTitles[currentTab]}
+              </h1>
+              <p className="text-gray-500 text-xs sm:text-sm mt-1 hidden sm:block">
+                {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
+              <Icon name="Bell" className="w-4 h-4" />
+            </button>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-amber-500 rounded-xl flex items-center justify-center text-[#0a0f2c] font-bold text-sm flex-shrink-0">
+              {user.firstName?.[0]}{user.lastName?.[0]}
+            </div>
+          </div>
+        </div>
+
+        {/* Seller application pending banner */}
+        {user.sellerStatus === 'pending' && (
+          <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <Clock size={20} className="text-amber-600 flex-shrink-0" />
+            <p className="text-amber-800 text-sm">
+              Your seller application is under review. We'll unlock your seller dashboard within 24 hours.
+            </p>
+          </div>
+        )}
+
+        {/* Your store link — approved sellers only. This IS their live,
+            shareable storefront the moment they've added at least one
+            product — surfacing it here is what makes that actually
+            useful instead of a URL only you know about. */}
+        {isApprovedSeller && (
+          <div className="mb-6 bg-white border border-orange-100 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-gray-900 font-bold text-sm mb-1">Your store is live</p>
+              <p className="text-gray-500 text-xs break-all">
+                {typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+              </p>
+            </div>
+            <ShareLink
+              url={typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+              title={`${user.firstName}'s store on Ultimate Tech Lab`}
+            />
+          </div>
+        )}
+
+        {/* Overview Tab */}
+        {currentTab === 'overview' && (
+          <div className="space-y-8">
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {stats.map((stat) => (
+                <div key={stat.label} className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 ${stat.color}`}>
+                    <Icon name={stat.icon} className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">{stat.value}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-gray-900 font-bold mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {quickActions.map((action) => (
+                  action.isTab ? (
+                    <button
+                      key={action.label}
+                      onClick={() => setActiveTab(action.isTab)}
+                      className={`flex items-center gap-3 p-4 rounded-xl transition-colors text-left ${action.color}`}
+                    >
+                      <Icon name={action.icon} className="w-5 h-5" />
+                      <span className="text-sm font-semibold">{action.label}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      key={action.label}
+                      to={action.link}
+                      className={`flex items-center gap-3 p-4 rounded-xl transition-colors ${action.color}`}
+                    >
+                      <Icon name={action.icon} className="w-5 h-5" />
+                      <span className="text-sm font-semibold">{action.label}</span>
+                    </Link>
+                  )
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* Right — Details */}
-          <div>
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-orange-100 text-orange-700">
-                {product.category}
-              </span>
-              <ShareLink
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-                title={product.name}
-              />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">{product.name}</h1>
-            {vendor && (
-              <Link to={`/shop/vendor/${vendorId}`} className="text-gray-500 text-sm hover:text-orange-600 transition-colors">
-                Sold by {vendor.firstName} {vendor.lastName}
-              </Link>
-            )}
 
-            <p className="text-3xl font-black text-amber-600 my-4">
-              {product.currency} {product.price.toLocaleString()}
-            </p>
+            {/* Account info */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-gray-900 font-bold mb-4">Account Information</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { label: 'Full Name', value: `${user.firstName} ${user.lastName}` },
+                  { label: 'Email', value: user.email },
+                  { label: 'Phone', value: user.phone || '—' },
+                  { label: 'Seller Status', value: isApprovedSeller ? 'Approved' : user.sellerStatus === 'pending' ? 'Pending review' : 'Not a seller' },
+                  { label: 'Member Since', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' },
+                  { label: 'Account Status', value: 'Active' },
+                ].map((info) => (
+                  <div key={info.label} className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-gray-400 text-xs font-semibold uppercase mb-1">{info.label}</p>
+                    <p className="text-gray-900 text-sm font-semibold flex items-center gap-1.5">
+                      {info.label === 'Account Status' && <Icon name="CheckCircle2" className="w-4 h-4 text-green-500" />}
+                      {info.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {!isApprovedSeller && user.sellerStatus === 'none' && (
+                <div className="mt-4 flex items-center justify-between bg-orange-50 border border-orange-100 rounded-xl p-4">
+                  <p className="text-orange-700 text-sm">Want to sell on U Market too?</p>
+                  <Link to="/become-seller" className="text-orange-700 text-sm font-bold hover:text-orange-800">
+                    Apply now →
+                  </Link>
+                </div>
+              )}
+            </div>
 
-            {product.stock === 0 ? (
-              <span className="inline-block text-sm font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mb-4">Out of stock</span>
-            ) : (
-              <span className="inline-block text-sm font-semibold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg mb-4">In stock</span>
-            )}
+          </div>
+        )}
 
-            <p className="text-gray-600 text-sm leading-relaxed mb-6">{product.description}</p>
-
-            <button
-              onClick={handleOrder}
-              disabled={product.stock === 0}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 mb-6"
+        {/* Projects Tab — client */}
+        {currentTab === 'projects' && (
+          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+            <Icon name="Briefcase" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-xl font-black text-gray-900 mb-2">No Projects Yet</h3>
+            <p className="text-gray-500 mb-6">You haven't started any projects with us yet. Let's change that!</p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-[#0a0f2c] font-bold rounded-xl hover:bg-amber-400 transition-colors"
             >
-              <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Place Order'}
-            </button>
+              Start a Project →
+            </Link>
+          </div>
+        )}
 
-            {(product.policies?.delivery || product.policies?.returns) && (
-              <div className="space-y-3 mb-6">
-                {product.policies.delivery && (
-                  <div className="flex items-start gap-3 bg-white border border-gray-100 rounded-xl p-4">
-                    <Truck size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-gray-900 text-sm font-semibold">Delivery</p>
-                      <p className="text-gray-500 text-xs">{product.policies.delivery}</p>
-                    </div>
-                  </div>
-                )}
-                {product.policies.returns && (
-                  <div className="flex items-start gap-3 bg-white border border-gray-100 rounded-xl p-4">
-                    <RotateCcw size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-gray-900 text-sm font-semibold">Returns</p>
-                      <p className="text-gray-500 text-xs">{product.policies.returns}</p>
-                    </div>
-                  </div>
+        {/* Orders Tab */}
+        {currentTab === 'orders' && (
+          <div className="space-y-3">
+            {ordersLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!ordersLoading && orders.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                <Icon name="ShoppingCart" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-black text-gray-900 mb-2">No Orders Yet</h3>
+                <p className="text-gray-500 mb-6">
+                  {isApprovedSeller ? 'Orders from customers will appear here.' : 'Your order history will appear here.'}
+                </p>
+                {!isApprovedSeller && (
+                  <Link
+                    to="/shop"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
+                  >
+                    Browse Shop →
+                  </Link>
                 )}
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Chat — full width below the fold */}
-        <div className="mt-10 max-w-2xl">
-          <h2 className="text-gray-900 font-bold text-lg mb-3">Have a question?</h2>
-          <ProductChat productId={productId} />
-        </div>
+            {!ordersLoading && orders.map((order) => (
+              <div key={order._id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+                  <p className="text-gray-400 text-xs">
+                    {order.orderNumber} · {new Date(order.createdAt).toLocaleDateString()}
+                    {isApprovedSeller && order.buyerId && ` · ${order.buyerId.firstName} ${order.buyerId.lastName}`}
+                  </p>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                    order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                    order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+                <div className="space-y-1.5 mb-3">
+                  {order.items?.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">{item.name} {item.quantity > 1 && `× ${item.quantity}`}</span>
+                      <span className="text-gray-500">{item.currency} {(item.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                  <span className="text-gray-500 text-xs font-semibold uppercase">Total</span>
+                  <span className="text-amber-600 font-bold text-sm">
+                    {order.items?.[0]?.currency || 'NGN'} {order.totalAmount?.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* My Shop Tab — approved sellers only */}
+        {currentTab === 'myshop' && (
+          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+            <Icon name="Store" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-xl font-black text-gray-900 mb-2">No Products Listed Yet</h3>
+            <p className="text-gray-500 mb-6">Start listing products to sell on U Market.</p>
+            <Link
+              to="/dashboard/add-product"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
+            >
+              List a Product →
+            </Link>
+          </div>
+        )}
+
+        {/* Messages Tab */}
+        {currentTab === 'messages' && (
+          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+            <Icon name="MessageCircle" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-xl font-black text-gray-900 mb-2">No Messages Yet</h3>
+            <p className="text-gray-500 mb-6">Your messages with our team will appear here.</p>
+            <a
+              href="https://wa.me/2348038786037"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-400 transition-colors"
+            >
+              Chat on WhatsApp →
+            </a>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {currentTab === 'settings' && (
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 className="text-gray-900 font-bold mb-6">Account Settings</h3>
+            <div className="space-y-4">
+              {[
+                { label: 'Edit Profile', desc: 'Update your name, email and phone', icon: 'User' },
+                { label: 'Change Password', desc: 'Update your account password', icon: 'Lock' },
+                { label: 'Notifications', desc: 'Manage your notification preferences', icon: 'Bell' },
+                { label: 'Delete Account', desc: 'Permanently delete your account', icon: 'Trash2', danger: true },
+              ].map((setting) => (
+                <button
+                  key={setting.label}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    setting.danger
+                      ? 'border-red-100 hover:bg-red-50 text-red-600'
+                      : 'border-gray-100 hover:bg-gray-50 text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon name={setting.icon} className="w-5 h-5" />
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">{setting.label}</p>
+                      <p className="text-gray-400 text-xs">{setting.desc}</p>
+                    </div>
+                  </div>
+                  <span className="text-gray-300">→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
   )
 }
 
-export default ProductDetail
+export default Dashboard

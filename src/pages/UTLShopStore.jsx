@@ -1,14 +1,18 @@
 /* eslint-disable no-unused-vars */
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import useAuthGuard from '../hooks/useAuthGuard'
 import {
   ShoppingBag, Search, MessageCircle, CreditCard, Truck,
-  SearchX, ExternalLink, ArrowRight,
+  SearchX, ExternalLink, ArrowRight, ShoppingCart, Check,
 } from 'lucide-react'
+import ShareLink from '../components/ShareLink'
+import CartDrawer from '../components/CartDrawer'
+import { useCart } from '../context/CartContext'
 
 function UTLShopStore() {
-const { requireAuth } = useAuthGuard()
+  const { addItem, cartCount } = useCart()
+  const [cartOpen, setCartOpen] = useState(false)
+  const [justAdded, setJustAdded] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeStore, setActiveStore] = useState('All')
@@ -168,65 +172,20 @@ const { requireAuth } = useAuthGuard()
     return matchesSearch && matchesCategory && matchesStore
   })
 
-  // ✅ Generate order + WhatsApp message.
-  // Order is created FIRST — it exists in the database regardless of
-  // whether the buyer actually sends the WhatsApp message afterward.
-  // This also replaces the old separate unlock-dashboard call — order
-  // creation itself is what flips dashboardUnlocked now (see
-  // orderController.js), not a side-channel call.
-  const handleOrder = async (product) => {
-  const user = JSON.parse(localStorage.getItem('utl_current_user'))
-
-  let orderNumber = null
-  try {
-    const token = localStorage.getItem('utl_token')
-    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-    const res = await fetch(`${BASE_URL}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        // vendorId/productId omitted — Ultimate Shop items aren't real
-        // Product documents, this becomes a vendorId: null order
-        productSnapshot: {
-          name: product.name,
-          price: parseFloat(product.price.replace(/[^\d.]/g, '')), // "₦189,000" → 189000
-          currency: 'NGN',
-          store: product.store,
-        },
-      }),
+  // ✅ Add to cart — no login required to browse and add, same as any
+  // normal e-commerce site. Login is only required at checkout
+  // (handled inside CartDrawer), not before someone can even build a cart.
+  const handleAddToCart = (product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: parseFloat(product.price.replace(/[^\d.]/g, '')), // "₦189,000" → 189000
+      store: product.store,
+      image: product.image,
     })
-    const data = await res.json()
-    if (data.success) {
-      orderNumber = data.order.orderNumber
-      localStorage.setItem(
-        'utl_current_user',
-        JSON.stringify({ ...user, dashboardUnlocked: true })
-      )
-    }
-  } catch (err) {
-    console.error('Order creation failed (continuing to WhatsApp anyway):', err)
+    setJustAdded(product.id)
+    setTimeout(() => setJustAdded(null), 1500)
   }
-
-  const message = `
-🛒 *New Order from UTL Shop!*
-${orderNumber ? `\n*Order Number:* ${orderNumber}` : ''}
-
-*Customer:* ${user.firstName} ${user.lastName}
-*Email:* ${user.email}
-*Phone:* ${user.phone}
-
-*Product:* ${product.name}
-*Price:* ${product.price}
-*Store:* ${product.store}
-
-Please process this order. Thank you!`.trim()
-
-  // Open WhatsApp
-  window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
-}
 
   // ✅ Store badge colors
   const storeColors = {
@@ -247,10 +206,30 @@ Please process this order. Thank you!`.trim()
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400 mb-6">
-            <Link to="/shop" className="hover:text-white transition-colors">U Market</Link>
-            <span>›</span>
-            <span className="text-orange-400">Ultimate Shop</span>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Link to="/shop" className="hover:text-white transition-colors">U Market</Link>
+              <span>›</span>
+              <span className="text-orange-400">Ultimate Shop</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShareLink
+                url={typeof window !== 'undefined' ? window.location.href : ''}
+                title="Ultimate Shop on Ultimate Tech Lab"
+                className="!bg-white/5 !border-white/10 !text-white hover:!bg-white/10"
+              />
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-white transition-colors"
+              >
+                <ShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center bg-orange-500 text-white text-[10px] font-bold rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
           <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
             <ShoppingBag size={13} className="text-orange-300" />
@@ -469,10 +448,18 @@ Please process this order. Thank you!`.trim()
                       {/* Buttons */}
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => requireAuth(() => handleOrder(product))}
-                          className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-all active:scale-95"
+                          onClick={() => handleAddToCart(product)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+                            justAdded === product.id
+                              ? 'bg-green-500 text-white'
+                              : 'bg-orange-500 hover:bg-orange-400 text-white'
+                          }`}
                         >
-                          Place Order
+                          {justAdded === product.id ? (
+                            <><Check size={14} /> Added</>
+                          ) : (
+                            <><ShoppingCart size={14} /> Add to Cart</>
+                          )}
                         </button>
 
                         {/* View on store */}
@@ -519,6 +506,8 @@ Please process this order. Thank you!`.trim()
           </a>
         </div>
       </section>
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
     </div>
   )
