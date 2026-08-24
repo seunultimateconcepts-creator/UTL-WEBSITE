@@ -13,7 +13,7 @@ const sellerApprovedEmail = (firstName, storeLink) => `
   <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0a0f2c; padding: 32px; border-radius: 16px;">
     <h1 style="color: #ffffff; font-size: 22px; margin-bottom: 8px;">Congratulations, ${firstName}! 🎉</h1>
     <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
-      Your seller application on Ultimate Tech Lab has been approved. You're now a verified vendor on U Market.
+      Your seller application on Ultimate Tech Lab has been approved. You're now a verified vendor on UTL Market.
     </p>
     <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
       <p style="color: #f5a623; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Your store link</p>

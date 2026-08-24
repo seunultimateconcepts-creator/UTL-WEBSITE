@@ -44,7 +44,7 @@ const approveSeller = async (req, res) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: "You're approved! Welcome to U Market 🎉",
+        subject: "You're approved! Welcome to UTL Market 🎉",
         html: sellerApprovedEmail(user.firstName, storeLink),
       })
     } catch (emailError) {

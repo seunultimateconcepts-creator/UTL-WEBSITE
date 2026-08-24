@@ -8,6 +8,13 @@ const { protect } = require('../middleware/authMiddleware')
 // ✅ Public — anyone can browse products, no login required
 router.get('/', productController.listByVendor)      // GET /api/products?vendorId=xxx
 router.get('/all', productController.listAll)         // GET /api/products/all (admin key, not auth)
+
+// ✅ Seller's own products — MUST come before /:productId, or Express
+// would try to treat "my-products" as a productId value
+router.get('/my-products', protect, productController.getMyProducts)          // GET /api/products/my-products
+router.put('/my-products/:productId', protect, productController.updateMyProduct)   // PUT /api/products/my-products/:productId
+router.delete('/my-products/:productId', protect, productController.deleteMyProduct) // DELETE /api/products/my-products/:productId
+
 router.get('/:productId', productController.getById)  // GET /api/products/:productId
 
 // ✅ Authenticated — must be logged in
@@ -15,6 +22,6 @@ router.post('/', protect, productController.create) // POST /api/products (appro
 router.post('/:productId/ask', protect, inquiryController.ask) // POST /api/products/:productId/ask
 
 // ✅ Admin key — not user auth, checked inside the controller via x-admin-key header
-router.delete('/:productId', productController.deleteProduct) // DELETE /api/products/:productId
+router.delete('/:productId', productController.deleteProduct) // DELETE /api/products/:productId (admin — different from /my-products/:productId above)
 
 module.exports = router

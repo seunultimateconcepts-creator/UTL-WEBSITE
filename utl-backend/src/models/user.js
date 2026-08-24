@@ -96,9 +96,33 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
 
+  // ✅ Prefills the checkout address form on future orders — NOT a
+  // multi-address book (that's more than this needs right now), just
+  // "remember what they typed last time" convenience. Overwritten
+  // every time they complete checkout with a new address.
+  lastDeliveryAddress: {
+    fullName: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    coverageZone: { type: String, default: '' },
+    address: { type: String, default: '' },
+    landmark: { type: String, default: '' },
+  },
+
   avatar: {
     type: String,
     default: null,
+  },
+
+  // ✅ Zero-knowledge notepad vault. salt + verifyCiphertext/verifyIv are
+  // the ONLY things stored here — never the passphrase, never the
+  // derived encryption key. See notesCrypto.js on the frontend for how
+  // these get used. If a user forgets this passphrase, their notes are
+  // permanently unreadable by design — there is no recovery mechanism,
+  // and there deliberately cannot be one.
+  notesVault: {
+    salt: { type: String, default: null },
+    verifyCiphertext: { type: String, default: null },
+    verifyIv: { type: String, default: null },
   },
 }, {
   timestamps: true,

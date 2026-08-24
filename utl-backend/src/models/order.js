@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  // ✅ null = Ultimate Shop (UTL itself), set = a real U Market vendor
+  // ✅ null = Ultimate Shop (UTL itself), set = a real UTL Market vendor
   vendorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -57,17 +57,34 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  // ✅ Structured now, not a free-text string — this is what actually
+  // makes delivery fee/time calculation possible, and what the vendor/
+  // admin needs to actually ship the order.
+  deliveryAddress: {
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    coverageZone: { type: String, required: true },
+    address: { type: String, required: true },
+    landmark: { type: String, default: '' },
+  },
+  deliveryFee: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  estimatedDeliveryDays: {
+    type: String,
+    default: '',
+  },
+  // ✅ items total + deliveryFee — what the customer actually pays
+  grandTotal: {
+    type: Number,
+    required: true,
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'processing', 'delivered', 'cancelled'],
     default: 'pending',
-  },
-  // ✅ Optional for now — the checkout/address flow isn't built yet,
-  // orders are still coordinated via WhatsApp. Fill this in once the
-  // real checkout flow (Address model + delivery form) exists.
-  deliveryAddress: {
-    type: String,
-    default: '',
   },
   notes: {
     type: String,

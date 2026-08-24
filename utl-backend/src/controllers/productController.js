@@ -118,4 +118,77 @@ const deleteProduct = async (req, res) => {
   }
 }
 
-module.exports = { listByVendor, getById, create, listAll, deleteProduct }
+// ✅ GET MY PRODUCTS — powers the seller's "My Shop" management view.
+// Unlike listByVendor (public storefront, active only), this returns
+// EVERY status including drafts/out-of-stock, since the seller needs
+// to see and manage all of it, not just what customers see.
+const getMyProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ vendorId: req.user.id }).sort({ createdAt: -1 })
+    res.status(200).json({ success: true, products })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching your products', error: error.message })
+  }
+}
+
+// ✅ UPDATE MY PRODUCT — the real ownership check happens HERE
+// server-side (vendorId must match req.user.id), not just in the
+// frontend UI. Anyone could hit this endpoint directly with someone
+// else's productId; this is what actually stops them.
+const updateMyProduct = async (req, res) => {
+  try {
+    const { productId } = req.params
+    const product = await Product.findById(productId)
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' })
+    }
+    if (product.vendorId.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You can only edit your own products' })
+    }
+
+    const { name, description, price, category, stock, images, faqs, policies, status } = req.body
+
+    if (name !== undefined) product.name = name
+    if (description !== undefined) product.description = description
+    if (price !== undefined) product.price = price
+    if (category !== undefined) product.category = category
+    if (stock !== undefined) product.stock = stock
+    if (images !== undefined) product.images = images
+    if (faqs !== undefined) product.faqs = faqs
+    if (policies !== undefined) product.policies = policies
+    if (status !== undefined) product.status = status
+
+    await product.save()
+
+    res.status(200).json({ success: true, product })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error updating product', error: error.message })
+  }
+}
+
+// ✅ DELETE MY PRODUCT — same ownership check, seller's own auth
+// token instead of the admin key. Deliberately a DIFFERENT route
+// (/my-products/:id) from the admin delete (/:id) so the two never
+// collide or get confused with each other.
+const deleteMyProduct = async (req, res) => {
+  try {
+    const { productId } = req.params
+    const product = await Product.findById(productId)
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' })
+    }
+    if (product.vendorId.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own products' })
+    }
+
+    await Product.findByIdAndDelete(productId)
+
+    res.status(200).json({ success: true, message: 'Product deleted' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error deleting product', error: error.message })
+  }
+}
+
+module.exports = { listByVendor, getById, create, listAll, deleteProduct, getMyProducts, updateMyProduct, deleteMyProduct }
