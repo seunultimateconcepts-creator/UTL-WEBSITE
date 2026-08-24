@@ -34,7 +34,7 @@ function PrivacyPolicy() {
           <div>
             <p>
               Ultimate Tech Lab ("UTL," "we," "us," or "our") operates ultechlab.com and its related
-              services, including U Market, U Tech Hub, and our web development, crypto information,
+              services, including UTL Market, U Tech Hub, and our web development, crypto information,
               and shopping assistance services (collectively, the "Platform"). This Privacy Policy
               explains what personal data we collect, why we collect it, how we use it, and the rights
               you have over it, in accordance with the Nigeria Data Protection Act 2023 (NDPA) and
@@ -54,7 +54,7 @@ function PrivacyPolicy() {
               <li><strong>Social sign-in information:</strong> if you sign up or log in with Google or Facebook, we receive your name, email address, and profile photo from that provider. We do not receive or store your Google/Facebook password.</li>
               <li><strong>Order and transaction information:</strong> details of products or services you order, including delivery information you provide, so vendors and our team can fulfill your order.</li>
               <li><strong>Product inquiry and chat data:</strong> questions you ask our AI shopping assistant, and any messages exchanged with a vendor through the Platform's escalation chat.</li>
-              <li><strong>Seller/vendor information:</strong> if you apply to sell on U Market, we collect your business name, product category, and business description in addition to your account information.</li>
+              <li><strong>Seller/vendor information:</strong> if you apply to sell on UTL Market, we collect your business name, product category, and business description in addition to your account information.</li>
               <li><strong>Technical information:</strong> IP address, browser type, device information, and basic usage data collected automatically when you use the Platform.</li>
             </ul>
           </div>
@@ -65,7 +65,7 @@ function PrivacyPolicy() {
             <ul className="list-disc pl-5 space-y-2">
               <li>Create and manage your account, and verify your identity.</li>
               <li>Process and fulfill orders, and communicate with you about them.</li>
-              <li>Connect buyers and vendors on U Market, including through our AI-assisted product chat.</li>
+              <li>Connect buyers and vendors on UTL Market, including through our AI-assisted product chat.</li>
               <li>Review and process seller applications.</li>
               <li>Send transactional emails (verification, password reset, order updates, seller approval notices) and, where you have not opted out, occasional service updates.</li>
               <li>Maintain the security of the Platform, including detecting attempts to circumvent our vendor-communication safeguards (see Section 6).</li>

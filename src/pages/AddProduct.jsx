@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Plus, X, Package, PartyPopper } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Plus, X, Package, PartyPopper, Trash2 } from 'lucide-react'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -12,7 +12,12 @@ const CATEGORIES = [
 
 function AddProduct() {
   const navigate = useNavigate()
+  const { productId } = useParams() // ✅ present only on /dashboard/edit-product/:productId
+  const isEditMode = !!productId
+
   const [loading, setLoading] = useState(false)
+  const [loadingProduct, setLoadingProduct] = useState(isEditMode)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(null)
 
@@ -27,6 +32,40 @@ function AddProduct() {
   })
   const [images, setImages] = useState([''])
   const [faqs, setFaqs] = useState([{ question: '', answer: '' }])
+
+  // ✅ Prefill everything when editing an existing product
+  useEffect(() => {
+    if (!isEditMode) return
+
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/products/${productId}`)
+        const data = await res.json()
+        if (!data.success) {
+          setError('Could not load this product')
+          return
+        }
+        const p = data.product
+        setFormData({
+          name: p.name || '',
+          description: p.description || '',
+          price: p.price?.toString() || '',
+          category: p.category || '',
+          stock: p.stock?.toString() || '',
+          deliveryPolicy: p.policies?.delivery || '',
+          returnsPolicy: p.policies?.returns || '',
+        })
+        setImages(p.images?.length ? p.images : [''])
+        setFaqs(p.faqs?.length ? p.faqs : [{ question: '', answer: '' }])
+      } catch (err) {
+        console.error('Failed to load product:', err)
+        setError('Network error loading this product')
+      } finally {
+        setLoadingProduct(false)
+      }
+    }
+    fetchProduct()
+  }, [productId, isEditMode])
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -56,25 +95,28 @@ function AddProduct() {
     setLoading(true)
     try {
       const token = localStorage.getItem('utl_token')
-      const res = await fetch(`${BASE_URL}/products`, {
-        method: 'POST',
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: Number(formData.price),
+        category: formData.category,
+        stock: Number(formData.stock) || 0,
+        images: images.filter(img => img.trim()),
+        faqs: faqs.filter(f => f.question.trim() && f.answer.trim()),
+        policies: {
+          delivery: formData.deliveryPolicy,
+          returns: formData.returnsPolicy,
+        },
+      }
+
+      const url = isEditMode ? `${BASE_URL}/products/my-products/${productId}` : `${BASE_URL}/products`
+      const res = await fetch(url, {
+        method: isEditMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          price: Number(formData.price),
-          category: formData.category,
-          stock: Number(formData.stock) || 0,
-          images: images.filter(img => img.trim()),
-          faqs: faqs.filter(f => f.question.trim() && f.answer.trim()),
-          policies: {
-            delivery: formData.deliveryPolicy,
-            returns: formData.returnsPolicy,
-          },
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
 
@@ -92,14 +134,45 @@ function AddProduct() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete "${formData.name}"? This can't be undone.`)) return
+    setDeleting(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/products/my-products/${productId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setError(data.message || 'Failed to delete product')
+        return
+      }
+      navigate('/dashboard')
+    } catch (err) {
+      console.error('Delete failed:', err)
+      setError('Network error — please try again')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (loadingProduct) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 max-w-md w-full text-center">
           <PartyPopper size={48} className="mx-auto mb-4 text-orange-500" />
-          <h2 className="text-xl font-black text-gray-900 mb-2">Product Listed!</h2>
+          <h2 className="text-xl font-black text-gray-900 mb-2">{isEditMode ? 'Product Updated!' : 'Product Listed!'}</h2>
           <p className="text-gray-500 text-sm mb-6">
-            "{success.name}" is now live on your store.
+            "{success.name}" {isEditMode ? 'has been updated.' : 'is now live on your store.'}
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -108,12 +181,14 @@ function AddProduct() {
             >
               Back to Dashboard
             </button>
-            <button
-              onClick={() => { setSuccess(null); setFormData({ name: '', description: '', price: '', category: '', stock: '', deliveryPolicy: '', returnsPolicy: '' }); setImages(['']); setFaqs([{ question: '', answer: '' }]) }}
-              className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-sm"
-            >
-              Add Another Product
-            </button>
+            {!isEditMode && (
+              <button
+                onClick={() => { setSuccess(null); setFormData({ name: '', description: '', price: '', category: '', stock: '', deliveryPolicy: '', returnsPolicy: '' }); setImages(['']); setFaqs([{ question: '', answer: '' }]) }}
+                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-sm"
+              >
+                Add Another Product
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -124,14 +199,27 @@ function AddProduct() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
-            <Package size={20} className="text-orange-600" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
+              <Package size={20} className="text-orange-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-gray-900">{isEditMode ? 'Edit Product' : 'List a New Product'}</h1>
+              <p className="text-gray-500 text-sm">
+                {isEditMode ? 'Update your listing below.' : "Fill in the details below — the more you add, the fewer questions you'll have to answer yourself."}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-black text-gray-900">List a New Product</h1>
-            <p className="text-gray-500 text-sm">Fill in the details below — the more you add, the fewer questions you'll have to answer yourself.</p>
-          </div>
+          {isEditMode && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors"
+            >
+              <Trash2 size={13} /> {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
         </div>
 
         {error && (
@@ -255,7 +343,7 @@ function AddProduct() {
 
           <button type="submit" disabled={loading}
             className="w-full py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-all">
-            {loading ? 'Listing Product...' : 'List Product'}
+            {loading ? (isEditMode ? 'Saving Changes...' : 'Listing Product...') : (isEditMode ? 'Save Changes' : 'List Product')}
           </button>
 
         </form>

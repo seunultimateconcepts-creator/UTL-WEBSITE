@@ -31,6 +31,10 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [bookings, setBookings] = useState([])
+  const [bookingsLoading, setBookingsLoading] = useState(false)
+  const [myProducts, setMyProducts] = useState([])
+  const [myProductsLoading, setMyProductsLoading] = useState(false)
 
   // ✅ Check login AND dashboard-unlock status.
   // Not logged in → /login. Logged in but hasn't placed an order yet →
@@ -85,6 +89,53 @@ function Dashboard() {
       }
     }
     fetchOrders()
+  }, [activeTab, user])
+
+  // ✅ Fetch bookings when the Projects tab opens (client-only tab —
+  // sellers don't see a Projects tab, so no vendor-side branch needed)
+  useEffect(() => {
+    if (activeTab !== 'projects' || !user) return
+
+    const fetchBookings = async () => {
+      setBookingsLoading(true)
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${BASE_URL}/bookings/my-bookings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setBookings(data.bookings)
+      } catch (err) {
+        console.error('Failed to fetch bookings:', err)
+      } finally {
+        setBookingsLoading(false)
+      }
+    }
+    fetchBookings()
+  }, [activeTab, user])
+
+  // ✅ Fetch the seller's own products (all statuses) when My Shop opens
+  useEffect(() => {
+    if (activeTab !== 'myshop' || !user) return
+
+    const fetchMyProducts = async () => {
+      setMyProductsLoading(true)
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${BASE_URL}/products/my-products`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setMyProducts(data.products)
+      } catch (err) {
+        console.error('Failed to fetch my products:', err)
+      } finally {
+        setMyProductsLoading(false)
+      }
+    }
+    fetchMyProducts()
   }, [activeTab, user])
 
   if (!user) return (
@@ -329,7 +380,7 @@ function Dashboard() {
               </div>
               {!isApprovedSeller && user.sellerStatus === 'none' && (
                 <div className="mt-4 flex items-center justify-between bg-orange-50 border border-orange-100 rounded-xl p-4">
-                  <p className="text-orange-700 text-sm">Want to sell on U Market too?</p>
+                  <p className="text-orange-700 text-sm">Want to sell on UTL Market too?</p>
                   <Link to="/become-seller" className="text-orange-700 text-sm font-bold hover:text-orange-800">
                     Apply now →
                   </Link>
@@ -340,18 +391,50 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Projects Tab — client */}
+        {/* Projects Tab — client (shows real bookings now) */}
         {currentTab === 'projects' && (
-          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
-            <Icon name="Briefcase" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-black text-gray-900 mb-2">No Projects Yet</h3>
-            <p className="text-gray-500 mb-6">You haven't started any projects with us yet. Let's change that!</p>
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-[#0a0f2c] font-bold rounded-xl hover:bg-amber-400 transition-colors"
-            >
-              Start a Project →
-            </Link>
+          <div className="space-y-3">
+            {bookingsLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!bookingsLoading && bookings.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                <Icon name="Briefcase" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-black text-gray-900 mb-2">No Bookings Yet</h3>
+                <p className="text-gray-500 mb-6">You haven't booked any services with us yet. Let's change that!</p>
+                <Link
+                  to="/book-service"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-[#0a0f2c] font-bold rounded-xl hover:bg-amber-400 transition-colors"
+                >
+                  Book a Service →
+                </Link>
+              </div>
+            )}
+
+            {!bookingsLoading && bookings.map((booking) => (
+              <div key={booking._id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
+                  <div>
+                    <p className="text-gray-900 font-bold text-sm">{booking.serviceType}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">
+                      {booking.bookingNumber} · {new Date(booking.scheduledDate).toLocaleString()} · {booking.duration}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                    booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                    booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                    booking.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {booking.status}
+                  </span>
+                </div>
+                {booking.notes && <p className="text-gray-500 text-xs mt-2 border-t border-gray-50 pt-2">{booking.notes}</p>}
+              </div>
+            ))}
           </div>
         )}
 
@@ -406,28 +489,89 @@ function Dashboard() {
                   ))}
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                  <span className="text-gray-500 text-xs font-semibold uppercase">Total</span>
+                  <span className="text-gray-500 text-xs font-semibold uppercase">
+                    Total {order.deliveryFee != null && '(incl. delivery)'}
+                  </span>
                   <span className="text-amber-600 font-bold text-sm">
-                    {order.items?.[0]?.currency || 'NGN'} {order.totalAmount?.toLocaleString()}
+                    {order.items?.[0]?.currency || 'NGN'} {(order.grandTotal ?? order.totalAmount)?.toLocaleString()}
                   </span>
                 </div>
+                {order.deliveryAddress && (
+                  <p className="text-gray-400 text-[10px] mt-1.5">
+                    Delivering to {order.deliveryAddress.address}
+                    {order.estimatedDeliveryDays && ` · Est. ${order.estimatedDeliveryDays}`}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         )}
 
-        {/* My Shop Tab — approved sellers only */}
+        {/* My Shop Tab — approved sellers only, real product management now */}
         {currentTab === 'myshop' && (
-          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
-            <Icon name="Store" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-black text-gray-900 mb-2">No Products Listed Yet</h3>
-            <p className="text-gray-500 mb-6">Start listing products to sell on U Market.</p>
-            <Link
-              to="/dashboard/add-product"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
-            >
-              List a Product →
-            </Link>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-gray-500 text-sm">{myProducts.length} product{myProducts.length !== 1 ? 's' : ''}</p>
+              <Link
+                to="/dashboard/add-product"
+                className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-lg transition-colors"
+              >
+                <Icon name="Plus" className="w-3.5 h-3.5" /> Add Product
+              </Link>
+            </div>
+
+            {myProductsLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!myProductsLoading && myProducts.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                <Icon name="Store" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-black text-gray-900 mb-2">No Products Listed Yet</h3>
+                <p className="text-gray-500 mb-6">Start listing products to sell on UTL Market.</p>
+                <Link
+                  to="/dashboard/add-product"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"
+                >
+                  List a Product →
+                </Link>
+              </div>
+            )}
+
+            {!myProductsLoading && myProducts.map((product) => (
+              <Link
+                key={product._id}
+                to={`/dashboard/edit-product/${product._id}`}
+                className="flex items-center justify-between gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                    {product.images?.[0] ? (
+                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Icon name="Store" className="w-5 h-5 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-gray-900 font-bold text-sm truncate">{product.name}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">
+                      {product.currency} {product.price?.toLocaleString()} · Stock: {product.stock}
+                    </p>
+                  </div>
+                </div>
+                <span className={`flex-shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                  product.status === 'active' ? 'bg-green-100 text-green-700' :
+                  product.status === 'out_of_stock' ? 'bg-red-100 text-red-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  {product.status.replace('_', ' ')}
+                </span>
+              </Link>
+            ))}
           </div>
         )}
 

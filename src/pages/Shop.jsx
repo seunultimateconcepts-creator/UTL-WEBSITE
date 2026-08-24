@@ -46,7 +46,7 @@ function Shop() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
             <Store size={13} className="text-orange-300" />
-            <span className="text-orange-300 text-xs font-medium tracking-wide">U MARKET</span>
+            <span className="text-orange-300 text-xs font-medium tracking-wide">UTL MARKET</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             One Marketplace,{' '}
@@ -151,7 +151,7 @@ function Shop() {
       <section className="py-16 bg-[#0a0f2c]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-black text-white mb-4">
-            Have a business? Sell on U Market.
+            Have a business? Sell on UTL Market.
           </h2>
           <p className="text-gray-400 mb-8">
             Get one of these vendor slots before they're gone. Setup takes less than 24 hours.

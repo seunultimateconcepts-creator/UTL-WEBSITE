@@ -53,6 +53,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import { CartProvider } from './context/CartContext'
+import BookService from './pages/BookService'
 
 
 function App() {
@@ -122,6 +123,8 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/book-service" element={<BookService />} />
+        <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

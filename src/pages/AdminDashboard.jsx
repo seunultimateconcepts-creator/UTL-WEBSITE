@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar } from 'lucide-react'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -12,6 +12,8 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('sellers')
   const [pendingSellers, setPendingSellers] = useState([])
   const [products, setProducts] = useState([])
+  const [orders, setOrders] = useState([])
+  const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionMessage, setActionMessage] = useState('')
 
@@ -32,15 +34,19 @@ function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [sellersRes, productsRes] = await Promise.all([
+      const [sellersRes, productsRes, ordersRes, bookingsRes] = await Promise.all([
         fetch(`${BASE_URL}/sellers/pending`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/products/all`, { headers: { 'x-admin-key': adminKey } }),
+        fetch(`${BASE_URL}/orders/all`, { headers: { 'x-admin-key': adminKey } }),
+        fetch(`${BASE_URL}/bookings/all`, { headers: { 'x-admin-key': adminKey } }),
       ])
       const sellersData = await sellersRes.json()
       const productsData = await productsRes.json()
+      const ordersData = await ordersRes.json()
+      const bookingsData = await bookingsRes.json()
 
       // ✅ A 403 here means the stored key is wrong — bounce back to login
-      if (sellersRes.status === 403 || productsRes.status === 403) {
+      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403) {
         sessionStorage.removeItem('utl_admin_key')
         navigate('/admin-login')
         return
@@ -48,6 +54,8 @@ function AdminDashboard() {
 
       if (sellersData.success) setPendingSellers(sellersData.sellers)
       if (productsData.success) setProducts(productsData.products)
+      if (ordersData.success) setOrders(ordersData.orders)
+      if (bookingsData.success) setBookings(bookingsData.bookings)
     } catch (err) {
       console.error('Admin data fetch failed:', err)
     } finally {
@@ -110,6 +118,26 @@ function AdminDashboard() {
     }
   }
 
+  const handleUpdateBookingStatus = async (bookingId, status) => {
+    try {
+      const res = await fetch(`${BASE_URL}/bookings/${bookingId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage(`Booking marked ${status}`)
+        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status } : b))
+      }
+    } catch (err) {
+      console.error('Status update failed:', err)
+    }
+  }
+
   const handleLogout = () => {
     sessionStorage.removeItem('utl_admin_key')
     navigate('/admin-login')
@@ -143,6 +171,8 @@ function AdminDashboard() {
         {[
           { id: 'sellers', label: `Pending Sellers (${pendingSellers.length})`, icon: Store },
           { id: 'products', label: `All Products (${products.length})`, icon: Package },
+          { id: 'orders', label: `All Orders (${orders.length})`, icon: ClipboardList },
+          { id: 'bookings', label: `All Bookings (${bookings.length})`, icon: Calendar },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
@@ -210,6 +240,100 @@ function AdminDashboard() {
                   className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-bold rounded-lg transition-colors">
                   <Trash2 size={14} /> Delete
                 </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* All Orders — gives whoever holds the admin key (you today,
+            a hire tomorrow) full order visibility for confident answers,
+            per the "centralized support" principle discussed */}
+        {!loading && activeTab === 'orders' && (
+          <div className="space-y-3">
+            {orders.length === 0 && (
+              <p className="text-gray-400 text-sm text-center py-12">No orders placed yet.</p>
+            )}
+            {orders.map(order => (
+              <div key={order._id} className="bg-white border border-gray-100 rounded-2xl p-5">
+                <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+                  <div>
+                    <p className="text-gray-900 font-bold text-sm">{order.orderNumber}</p>
+                    <p className="text-gray-500 text-xs">
+                      {order.buyerId?.firstName} {order.buyerId?.lastName} ({order.buyerId?.email})
+                      {order.vendorId ? ` → sold by ${order.vendorId.firstName} ${order.vendorId.lastName}` : ' → Ultimate Shop'}
+                    </p>
+                    <p className="text-gray-400 text-[10px] mt-1">{new Date(order.createdAt).toLocaleString()}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize flex-shrink-0 ${
+                    order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                    order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+                <div className="space-y-1 pl-3 border-l-2 border-gray-100">
+                  {order.items?.map((item, i) => (
+                    <p key={i} className="text-gray-600 text-xs">
+                      {item.name} {item.quantity > 1 && `× ${item.quantity}`} — {item.currency} {(item.price * item.quantity).toLocaleString()}
+                    </p>
+                  ))}
+                </div>
+                {order.deliveryAddress && (
+                  <p className="text-gray-500 text-xs mb-2">
+                    <span className="font-semibold">Delivering to:</span> {order.deliveryAddress.fullName}, {order.deliveryAddress.address}
+                    {order.deliveryAddress.landmark && ` (near ${order.deliveryAddress.landmark})`} · {order.deliveryAddress.phone}
+                  </p>
+                )}
+                <div className="flex items-center justify-end mt-2 pt-2 border-t border-gray-50">
+                  <span className="text-amber-600 font-bold text-sm">
+                    Total: {order.items?.[0]?.currency || 'NGN'} {(order.grandTotal ?? order.totalAmount)?.toLocaleString()}
+                    {order.deliveryFee != null && (
+                      <span className="text-gray-400 font-normal text-xs ml-1">
+                        (incl. ₦{order.deliveryFee.toLocaleString()} delivery)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* All Bookings — same admin-visibility principle as Orders,
+            plus inline status control since bookings need active
+            management (confirm/complete/cancel) more than orders do */}
+        {!loading && activeTab === 'bookings' && (
+          <div className="space-y-3">
+            {bookings.length === 0 && (
+              <p className="text-gray-400 text-sm text-center py-12">No bookings yet.</p>
+            )}
+            {bookings.map(booking => (
+              <div key={booking._id} className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-gray-900 font-bold text-sm">{booking.bookingNumber} · {booking.serviceType}</p>
+                  <p className="text-gray-500 text-xs">
+                    {booking.customerId?.firstName} {booking.customerId?.lastName} ({booking.customerId?.email}) · {booking.contactPhone}
+                  </p>
+                  <p className="text-gray-400 text-[10px] mt-1">
+                    {new Date(booking.scheduledDate).toLocaleString()} · {booking.duration}
+                  </p>
+                  {booking.notes && <p className="text-gray-500 text-xs mt-1 italic">"{booking.notes}"</p>}
+                </div>
+                <select
+                  value={booking.status}
+                  onChange={(e) => handleUpdateBookingStatus(booking._id, e.target.value)}
+                  className={`text-xs font-bold px-3 py-2 rounded-lg border-0 capitalize cursor-pointer ${
+                    booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                    booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                    booking.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}
+                >
+                  {['requested', 'confirmed', 'in-progress', 'completed', 'cancelled'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </div>
             ))}
           </div>

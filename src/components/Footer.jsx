@@ -56,7 +56,7 @@ function Footer() {
     { name: 'Services', path: '/services' },
     { name: 'About', path: '/about' },
     { name: 'Portfolio', path: '/portfolio' },
-    { name: 'Shop', path: '/shop' },
+    { name: 'UTL Market', path: '/shop' },
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ]

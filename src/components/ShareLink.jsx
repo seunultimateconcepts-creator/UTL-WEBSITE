@@ -5,7 +5,7 @@ import { Share2, Copy, Check } from 'lucide-react'
  * ShareLink
  *
  * Drop this on any page that should be shareable — vendor stores,
- * product pages, U Market itself. Uses the native share sheet where
+ * product pages, UTL Market itself. Uses the native share sheet where
  * available (mobile), falls back to copy-to-clipboard + a WhatsApp
  * shortcut everywhere else.
  *
