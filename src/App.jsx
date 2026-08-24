@@ -54,6 +54,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import { CartProvider } from './context/CartContext'
 import BookService from './pages/BookService'
+import Notepad from './pages/tools/Notepad'
 
 
 function App() {
@@ -125,6 +126,7 @@ function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/book-service" element={<BookService />} />
         <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
+        <Route path="/tech-hub/notepad" element={<Notepad />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
