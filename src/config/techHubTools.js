@@ -1,6 +1,6 @@
 import {
   FileJson, KeyRound, Type, QrCode, ImageDown, Ruler, FileText, Binary, DollarSign, 
-  Hash, Percent, Palette, FileImage, FileStack
+  Hash, Percent, Palette, FileImage, FileStack, StickyNote
 } from 'lucide-react'
 
 // ✅ Add a new tool here and it automatically shows up on the Tech Hub
@@ -120,10 +120,11 @@ export const techHubTools = [
   live: true,
 },
 {
-  icon: 'StickyNote',
+  slug: 'notepad',
   name: 'Notepad',
   description: 'Encrypted notes and documents that stay yours forever — not even we can read them.',
-  path: '/tech-hub/notepad',
+  category: 'Security',
+  icon: StickyNote,
   live: true,
 },
 ]
