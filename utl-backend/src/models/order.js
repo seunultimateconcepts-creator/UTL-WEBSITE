@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  // ✅ null = Ultimate Shop (UTL itself), set = a real UTL Market vendor
+  // ✅ null = Ultimate Shop (UTL itself), set = a real U-Come vendor
   vendorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

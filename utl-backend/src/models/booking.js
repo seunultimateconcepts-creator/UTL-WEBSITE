@@ -12,7 +12,7 @@ const mongoose = require('mongoose')
  * 'booking' key and BK- prefix so the two never collide.
  *
  * No vendorId here on purpose — these are all UTL's own direct
- * services (not something UTL Market vendors offer), same category as
+ * services (not something U-Come vendors offer), same category as
  * Ultimate Shop being UTL's own catalog. assignedTo defaults to null,
  * meaning "you" — only becomes meaningful once there's actual staff.
  */

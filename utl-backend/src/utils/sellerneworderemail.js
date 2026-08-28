@@ -27,7 +27,7 @@ const sellerNewOrderEmail = (vendorFirstName, order) => {
   <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0a0f2c; padding: 32px; border-radius: 16px;">
     <h1 style="color: #ffffff; font-size: 22px; margin-bottom: 8px;">New Order! 📦</h1>
     <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
-      Hi ${vendorFirstName}, a customer just placed an order on your UTL Market store. Please confirm and prepare it for delivery.
+      Hi ${vendorFirstName}, a customer just placed an order on your U-Come store. Please confirm and prepare it for delivery.
     </p>
     <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
       <p style="color: #f5a623; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">${order.orderNumber}</p>
