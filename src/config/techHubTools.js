@@ -119,6 +119,13 @@ export const techHubTools = [
   icon: FileStack,
   live: true,
 },
+{
+  icon: 'StickyNote',
+  name: 'Notepad',
+  description: 'Encrypted notes and documents that stay yours forever — not even we can read them.',
+  path: '/tech-hub/notepad',
+  live: true,
+},
 ]
 
 // ✅ Groups tools by category for the landing page grid

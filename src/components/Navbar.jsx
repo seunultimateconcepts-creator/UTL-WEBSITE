@@ -82,7 +82,7 @@ function Navbar() {
     { name: 'Portfolio', path: '/portfolio' },
     { name: 'U-Come', path: '/shop' },
     { name: 'Blog', path: '/blog' },
-    { name: 'U Tech Hub', path: '/tech-hub' },
+    { name: 'UTech Hub', path: '/tech-hub' },
     { name: 'Contact', path: '/contact' },
   ]
 
