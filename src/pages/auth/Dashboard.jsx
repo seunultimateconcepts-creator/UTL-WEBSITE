@@ -380,7 +380,7 @@ function Dashboard() {
               </div>
               {!isApprovedSeller && user.sellerStatus === 'none' && (
                 <div className="mt-4 flex items-center justify-between bg-orange-50 border border-orange-100 rounded-xl p-4">
-                  <p className="text-orange-700 text-sm">Want to sell on UTL Market too?</p>
+                  <p className="text-orange-700 text-sm">Want to sell on U-Come too?</p>
                   <Link to="/become-seller" className="text-orange-700 text-sm font-bold hover:text-orange-800">
                     Apply now →
                   </Link>
@@ -530,7 +530,7 @@ function Dashboard() {
               <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
                 <Icon name="Store" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-xl font-black text-gray-900 mb-2">No Products Listed Yet</h3>
-                <p className="text-gray-500 mb-6">Start listing products to sell on UTL Market.</p>
+                <p className="text-gray-500 mb-6">Start listing products to sell on U-Come.</p>
                 <Link
                   to="/dashboard/add-product"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-400 transition-colors"

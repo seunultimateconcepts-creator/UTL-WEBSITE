@@ -34,7 +34,7 @@ function TermsOfService() {
           <div>
             <p>
               These Terms of Service ("Terms") govern your access to and use of ultechlab.com and its
-              related services, including UTL Market, U Tech Hub, and our web development, crypto
+              related services, including U-Come, U Tech Hub, and our web development, crypto
               information, and shopping assistance services (collectively, the "Platform"), operated by
               Ultimate Tech Lab ("UTL," "we," "us," or "our"). By creating an account or using the
               Platform, you agree to be bound by these Terms. If you do not agree, please do not use
@@ -57,7 +57,7 @@ function TermsOfService() {
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Web development services,</strong> provided directly by UTL under separate arrangement following an initial consultation.</li>
               <li><strong>Shopping assistance,</strong> where UTL sources and facilitates delivery of products from third-party retailers on your behalf.</li>
-              <li><strong>UTL Market,</strong> a marketplace where independent, verified vendors list and sell their own products. UTL acts as an intermediary platform for these listings — see Section 5 for details on our role.</li>
+              <li><strong>U-Come,</strong> a marketplace where independent, verified vendors list and sell their own products. UTL acts as an intermediary platform for these listings — see Section 5 for details on our role.</li>
               <li><strong>U Tech Hub,</strong> a set of free productivity tools available to all visitors.</li>
               <li><strong>Crypto information and mentorship services,</strong> arranged and conducted directly between you and UTL outside the Platform's own payment infrastructure — see Section 8.</li>
             </ul>
@@ -85,9 +85,9 @@ function TermsOfService() {
           </div>
 
           <div>
-            <h2 className="text-gray-900 font-black text-xl mb-3">5. UTL Market — Marketplace Terms</h2>
+            <h2 className="text-gray-900 font-black text-xl mb-3">5. U-Come — Marketplace Terms</h2>
             <p className="mb-3">
-              UTL Market allows independent vendors ("Vendors") to list and sell products to buyers
+              U-Come allows independent vendors ("Vendors") to list and sell products to buyers
               ("Buyers"). UTL is not the seller of Vendor products and is not a party to the contract
               of sale between a Buyer and a Vendor. UTL's role is limited to:
             </p>
@@ -108,7 +108,7 @@ function TermsOfService() {
           <div>
             <h2 className="text-gray-900 font-black text-xl mb-3">6. AI-Assisted Product Chat</h2>
             <p>
-              Product questions on UTL Market are answered first by an AI assistant, grounded in the
+              Product questions on U-Come are answered first by an AI assistant, grounded in the
               information provided by the Vendor for that product. While we take care to keep these
               answers accurate, the AI assistant may occasionally be incomplete or mistaken, and its
               responses do not constitute a binding representation by UTL or the Vendor. Where the AI
@@ -139,7 +139,7 @@ function TermsOfService() {
               Any cryptocurrency-related trading, buying, or selling facilitated through UTL is
               arranged and conducted directly between you and UTL via direct communication (e.g.
               WhatsApp), outside of the Platform's own payment processing infrastructure, and is not
-              part of the UTL Market marketplace or subject to Section 5 above. Cryptocurrency trading
+              part of the U-Come marketplace or subject to Section 5 above. Cryptocurrency trading
               carries significant financial risk, including the risk of total loss. Nothing on the
               Platform constitutes financial or investment advice, and UTL is not a licensed financial
               advisor or broker-dealer.
@@ -162,7 +162,7 @@ function TermsOfService() {
               The Platform, including its design, branding, logos, and original content, is owned by
               UTL and protected by applicable intellectual property laws. Vendors retain ownership of
               the content and images they upload for their own product listings, and grant UTL a
-              license to display that content on the Platform for the purpose of operating UTL Market.
+              license to display that content on the Platform for the purpose of operating U-Come.
             </p>
           </div>
 

@@ -45,7 +45,7 @@ function VendorStore() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to="/shop" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-4 transition-colors">
-            <ArrowLeft size={14} /> Back to UTL Market
+            <ArrowLeft size={14} /> Back to U-Come
           </Link>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">

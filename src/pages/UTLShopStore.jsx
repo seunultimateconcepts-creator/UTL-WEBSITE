@@ -208,7 +208,7 @@ function UTLShopStore() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Link to="/shop" className="hover:text-white transition-colors">UTL Market</Link>
+              <Link to="/shop" className="hover:text-white transition-colors">U-Come</Link>
               <span>›</span>
               <span className="text-orange-400">Ultimate Shop</span>
             </div>

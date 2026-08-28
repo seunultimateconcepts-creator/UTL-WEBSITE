@@ -80,7 +80,7 @@ function Navbar() {
       ]
     },
     { name: 'Portfolio', path: '/portfolio' },
-    { name: 'UTL Market', path: '/shop' },
+    { name: 'U-Come', path: '/shop' },
     { name: 'Blog', path: '/blog' },
     { name: 'U Tech Hub', path: '/tech-hub' },
     { name: 'Contact', path: '/contact' },

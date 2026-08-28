@@ -112,7 +112,7 @@ function ProductDetail() {
       <div className="pt-16 min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
         <ShoppingBag size={40} className="text-gray-300 mb-4" />
         <h2 className="text-xl font-black text-gray-900 mb-2">Product not found</h2>
-        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to UTL Market</Link>
+        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to U-Come</Link>
       </div>
     )
   }
