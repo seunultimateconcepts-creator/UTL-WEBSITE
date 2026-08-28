@@ -33,6 +33,7 @@ app.use('/api/products', require('./routes/productRoutes'))
 app.use('/api/inquiries', require('./routes/inquiryroutes'))
 app.use('/api/sellers', require('./routes/sellerRoutes'))
 app.use('/api/bookings', require('./routes/bookingRoutes'))
+app.use('/api/notes', require('./routes/noteRoutes'))
 
 // ✅ Health check — visit this to confirm server is running
 app.get('/', (req, res) => {
