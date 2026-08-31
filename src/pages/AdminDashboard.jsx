@@ -1,8 +1,10 @@
-/* eslint-disable react-hooks/immutability */
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Image as ImageIcon } from 'lucide-react'
+import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -14,6 +16,7 @@ function AdminDashboard() {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [bookings, setBookings] = useState([])
+  const [sourcingRequests, setSourcingRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionMessage, setActionMessage] = useState('')
 
@@ -34,19 +37,21 @@ function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [sellersRes, productsRes, ordersRes, bookingsRes] = await Promise.all([
+      const [sellersRes, productsRes, ordersRes, bookingsRes, requestsRes] = await Promise.all([
         fetch(`${BASE_URL}/sellers/pending`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/products/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/orders/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/bookings/all`, { headers: { 'x-admin-key': adminKey } }),
+        fetch(`${BASE_URL}/sourcing-requests/all`, { headers: { 'x-admin-key': adminKey } }),
       ])
       const sellersData = await sellersRes.json()
       const productsData = await productsRes.json()
       const ordersData = await ordersRes.json()
       const bookingsData = await bookingsRes.json()
+      const requestsData = await requestsRes.json()
 
       // ✅ A 403 here means the stored key is wrong — bounce back to login
-      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403) {
+      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403 || requestsRes.status === 403) {
         sessionStorage.removeItem('utl_admin_key')
         navigate('/admin-login')
         return
@@ -56,6 +61,7 @@ function AdminDashboard() {
       if (productsData.success) setProducts(productsData.products)
       if (ordersData.success) setOrders(ordersData.orders)
       if (bookingsData.success) setBookings(bookingsData.bookings)
+      if (requestsData.success) setSourcingRequests(requestsData.requests)
     } catch (err) {
       console.error('Admin data fetch failed:', err)
     } finally {
@@ -173,6 +179,7 @@ function AdminDashboard() {
           { id: 'products', label: `All Products (${products.length})`, icon: Package },
           { id: 'orders', label: `All Orders (${orders.length})`, icon: ClipboardList },
           { id: 'bookings', label: `All Bookings (${bookings.length})`, icon: Calendar },
+          { id: 'requests', label: `Sourcing Requests (${sourcingRequests.length})`, icon: Truck },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
@@ -335,6 +342,26 @@ function AdminDashboard() {
                   ))}
                 </select>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Sourcing Requests — Ultimate Concepts. Each card handles its
+            own per-item proof upload and fulfillment, since that's
+            meaningfully more complex than a simple status dropdown. */}
+        {!loading && activeTab === 'requests' && (
+          <div className="space-y-4">
+            {sourcingRequests.length === 0 && (
+              <p className="text-gray-400 text-sm text-center py-12">No sourcing requests yet.</p>
+            )}
+            {sourcingRequests.map(request => (
+              <AdminSourcingRequestCard
+                key={request._id}
+                request={request}
+                adminKey={adminKey}
+                flashMessage={flashMessage}
+                onUpdated={(updated) => setSourcingRequests(prev => prev.map(r => r._id === updated._id ? updated : r))}
+              />
             ))}
           </div>
         )}

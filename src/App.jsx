@@ -44,7 +44,6 @@ import ImagePdfConverter from './pages/tools/ImagePdfConverter'
 import PdfToolkit from './pages/tools/PdfToolkit'
 import CompleteProfile from './pages/auth/CompleteProfile'
 import GoogleOneTap from './components/GoogleOneTap'
-import UTLShopStore from './pages/UTLShopStore'
 import VendorStore from './pages/shop/VendorStore'
 import ProductDetail from './pages/shop/ProductDetail'
 import AddProduct from './pages/AddProduct'
@@ -55,6 +54,10 @@ import TermsOfService from './pages/TermsOfService'
 import { CartProvider } from './context/CartContext'
 import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
+import UltimateConcepts from './pages/UltimateConcepts'
+// remove the old UTLShopStore import
+
+
 
 
 function App() {
@@ -116,7 +119,6 @@ function App() {
         <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
         <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />      
-        <Route path="/shop/ultimate" element={<UTLShopStore />} />
         <Route path="/shop/vendor/:vendorId" element={<VendorStore />} />
         <Route path="/shop/vendor/:vendorId/product/:productId" element={<ProductDetail />} />
         <Route path="/dashboard/add-product" element={<AddProduct />} />
@@ -127,6 +129,7 @@ function App() {
         <Route path="/book-service" element={<BookService />} />
         <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
         <Route path="/tech-hub/notepad" element={<Notepad />} />
+        <Route path="/shop/ultimate" element={<UltimateConcepts />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
