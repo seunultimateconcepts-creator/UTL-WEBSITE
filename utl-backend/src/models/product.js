@@ -52,6 +52,23 @@ const productSchema = new mongoose.Schema({
     enum: ['active', 'draft', 'out_of_stock'],
     default: 'active',
   },
+  // ✅ Platinum-only, enforced in the controller against
+  // subscriptionTiers.js — not a schema-level restriction, since the
+  // tier a vendor's ON can change over time independent of the schema.
+  videoUrl: {
+    type: String,
+    default: '',
+  },
+  // ✅ Soft delete, deliberately NOT a real deletion. A manually
+  // deleted product still counts against the vendor's tier limit for
+  // DELETE_COOLDOWN_DAYS (see subscriptionTiers.js) — this is what
+  // stops delete-and-relist from being a way to dodge the cap. A
+  // product that sells out (stock hits 0) is NOT touched by this field
+  // at all — that's legitimate turnover and frees its slot immediately.
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true,
 })

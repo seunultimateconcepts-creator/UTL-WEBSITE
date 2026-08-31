@@ -1,7 +1,9 @@
 /* eslint-disable no-undef */
 const User = require('../models/user')
+const Product = require('../models/product')
 const sendEmail = require('../utils/sendEmail')
 const { sellerApprovedEmail } = require('../utils/emailTemplates')
+const { SUBSCRIPTION_TIERS, DELETE_COOLDOWN_DAYS } = require('../config/subscriptionTiers')
 
 /**
  * sellerController.js
@@ -122,4 +124,86 @@ const listPendingSellers = async (req, res) => {
   }
 }
 
-module.exports = { approveSeller, rejectSeller, listPendingSellers }
+// ✅ LIST APPROVED VENDORS — powers a "manage subscriptions" admin
+// view. Includes current slot usage so you can see at a glance who's
+// close to their limit, worth an upsell nudge.
+const listApprovedVendors = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const vendors = await User.find({ sellerStatus: 'approved' }).select('firstName lastName email subscription')
+
+    const cooldownCutoff = new Date(Date.now() - DELETE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000)
+    const vendorsWithUsage = await Promise.all(
+      vendors.map(async (v) => {
+        const slotsUsed = await Product.countDocuments({
+          vendorId: v._id,
+          $or: [
+            { deletedAt: null, stock: { $gt: 0 } },
+            { deletedAt: { $gte: cooldownCutoff } },
+          ],
+        })
+        const tier = v.subscription?.tier || 'free'
+        return {
+          _id: v._id,
+          firstName: v.firstName,
+          lastName: v.lastName,
+          email: v.email,
+          subscription: v.subscription,
+          slotsUsed,
+          slotsLimit: SUBSCRIPTION_TIERS[tier].maxListings,
+        }
+      })
+    )
+
+    res.status(200).json({ success: true, vendors: vendorsWithUsage })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching vendors', error: error.message })
+  }
+}
+
+// ✅ SET VENDOR TIER — manual for now, until Paystack collection is
+// built. You're the one confirming payment happened (bank transfer,
+// whatever) and applying the tier yourself here — same "manual now,
+// automate once it's proven" pattern as everything else in this build.
+// Sets a full year from today, matching the anniversary-billing model.
+const updateVendorTier = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const { vendorId } = req.params
+    const { tier } = req.body
+
+    if (!SUBSCRIPTION_TIERS[tier]) {
+      return res.status(400).json({ success: false, message: 'Invalid tier' })
+    }
+
+    const vendor = await User.findById(vendorId)
+    if (!vendor) {
+      return res.status(404).json({ success: false, message: 'Vendor not found' })
+    }
+
+    const now = new Date()
+    const oneYearFromNow = new Date(now)
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+
+    vendor.subscription = {
+      tier,
+      startedAt: now,
+      expiresAt: tier === 'free' ? null : oneYearFromNow,
+    }
+    await vendor.save()
+
+    res.status(200).json({ success: true, subscription: vendor.subscription })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error updating vendor tier', error: error.message })
+  }
+}
+
+module.exports = { approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier }

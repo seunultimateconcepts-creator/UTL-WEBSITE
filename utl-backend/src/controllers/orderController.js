@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 const Order = require('../models/order')
+const Product = require('../models/product')
 const User = require('../models/user')
 const { getNextSequence } = require('../models/counter')
 const { getZoneInfo, DELIVERY_ZONES } = require('../config/deliveryZones')
@@ -60,6 +61,28 @@ const createOrder = async (req, res) => {
       grandTotal,
       notes: notes || '',
     })
+
+    // ✅ Decrement stock for real vendor products (Ultimate Concepts'
+    // sourcing-request items won't have a productId, so this only ever
+    // touches actual Product documents). This is what makes a sold-out
+    // product automatically stop counting against the vendor's tier
+    // limit — see countActiveSlots in productController.js. Non-blocking
+    // per item: a stock-update failure shouldn't undo an already-placed
+    // order, same principle as the email sends below.
+    for (const item of items) {
+      if (item.productId) {
+        try {
+          const product = await Product.findById(item.productId)
+          if (product) {
+            product.stock = Math.max(0, product.stock - (item.quantity || 1))
+            if (product.stock === 0) product.status = 'out_of_stock'
+            await product.save()
+          }
+        } catch (stockError) {
+          console.error('Stock update failed for product', item.productId, stockError.message)
+        }
+      }
+    }
 
     // ✅ Placing a real order is the actual dashboardUnlocked trigger —
     // not a side-channel call the frontend has to remember to make
