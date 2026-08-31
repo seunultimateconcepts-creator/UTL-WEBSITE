@@ -17,7 +17,7 @@ function Shop() {
   const vendors = [
     {
       id: 'utl-shop',
-      name: 'Ultimate Shop',
+      name: 'Ultimate Concepts',
       tagline: 'Where all shopping becomes easy — order from Jumia, Amazon, AliExpress and more, delivered to you.',
       path: '/shop/ultimate',
       status: 'live',
