@@ -107,10 +107,14 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
                 <p className="text-gray-700 text-sm">{item.description}</p>
                 {item.budget && <p className="text-gray-400 text-xs">Customer budget: ₦{item.budget.toLocaleString()}</p>}
               </div>
-              {item.referenceImageUrl && (
-                <a href={item.referenceImageUrl} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-                  <img src={item.referenceImageUrl} alt="reference" className="w-12 h-12 rounded-lg object-cover" />
-                </a>
+              {item.referenceImageUrls?.length > 0 && (
+                <div className="flex gap-1.5 flex-shrink-0">
+                  {item.referenceImageUrls.map((url, imgI) => (
+                    <a key={imgI} href={url} target="_blank" rel="noopener noreferrer">
+                      <img src={url} alt="reference" className="w-12 h-12 rounded-lg object-cover" />
+                    </a>
+                  ))}
+                </div>
               )}
             </div>
 

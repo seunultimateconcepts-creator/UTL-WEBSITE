@@ -39,7 +39,7 @@ export default function CartDrawer({ open, onClose }) {
           items: items.map((i) => ({
             platform: i.platform,
             description: i.description,
-            referenceImageUrl: i.referenceImageUrl || '',
+            referenceImageUrls: i.referenceImageUrls || [],
             budget: i.budget || null,
           })),
           contactPhone,
@@ -110,9 +110,14 @@ export default function CartDrawer({ open, onClose }) {
 
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3 border border-gray-100 rounded-xl p-3">
-                  {item.referenceImageUrl && (
-                    <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <img src={item.referenceImageUrl} alt="" className="w-full h-full object-cover" />
+                  {item.referenceImageUrls?.length > 0 && (
+                    <div className="relative w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={item.referenceImageUrls[0]} alt="" className="w-full h-full object-cover" />
+                      {item.referenceImageUrls.length > 1 && (
+                        <span className="absolute bottom-0 right-0 bg-black/60 text-white text-[9px] font-bold px-1 rounded-tl">
+                          +{item.referenceImageUrls.length - 1}
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

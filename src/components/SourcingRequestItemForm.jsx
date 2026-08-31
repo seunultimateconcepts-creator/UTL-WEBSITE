@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import ImageUpload from './ImageUpload'
+
+const MAX_IMAGES = 3
 
 /**
  * SourcingRequestItemForm
@@ -8,7 +11,7 @@ import ImageUpload from './ImageUpload'
  */
 export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
   const [description, setDescription] = useState('')
-  const [referenceImageUrl, setReferenceImageUrl] = useState('')
+  const [referenceImageUrls, setReferenceImageUrls] = useState([])
   const [budget, setBudget] = useState('')
   const [error, setError] = useState('')
 
@@ -21,9 +24,18 @@ export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
     onAdd({
       platform,
       description: description.trim(),
-      referenceImageUrl,
+      referenceImageUrls,
       budget: budget ? Number(budget) : null,
     })
+  }
+
+  const addImage = (url) => {
+    if (!url) return
+    setReferenceImageUrls((prev) => [...prev, url])
+  }
+
+  const removeImage = (index) => {
+    setReferenceImageUrls((prev) => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -43,9 +55,33 @@ export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
 
       <div>
         <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-          Reference image (optional)
+          Reference images (optional, up to {MAX_IMAGES})
         </label>
-        <ImageUpload value={referenceImageUrl} onChange={setReferenceImageUrl} label="Upload a screenshot" />
+
+        {referenceImageUrls.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            {referenceImageUrls.map((url, i) => (
+              <div key={i} className="relative w-full h-20 rounded-xl overflow-hidden border border-gray-200">
+                <img src={url} alt="" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removeImage(i)}
+                  className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white"
+                >
+                  <X size={11} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {referenceImageUrls.length < MAX_IMAGES && (
+          <ImageUpload
+            value=""
+            onChange={addImage}
+            label={`Add image (${referenceImageUrls.length}/${MAX_IMAGES})`}
+          />
+        )}
       </div>
 
       <div>

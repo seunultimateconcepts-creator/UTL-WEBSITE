@@ -162,8 +162,10 @@ function UltimateConcepts() {
         </div>
       </section>
 
-      {/* Sticky cart + share — always visible, doesn't scroll away */}
-      <div className="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3">
+      {/* Sticky cart + share — bottom-LEFT specifically, since the
+          site's global chat widget already occupies bottom-right and
+          was silently swallowing the cart button underneath it */}
+      <div className="fixed bottom-6 left-6 z-30 flex flex-col items-start gap-3">
         <ShareLink
           url={typeof window !== 'undefined' ? window.location.href : ''}
           title="Ultimate Concepts on U-Come"

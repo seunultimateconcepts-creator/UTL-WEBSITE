@@ -17,7 +17,7 @@ const mongoose = require('mongoose')
 const requestItemSchema = new mongoose.Schema({
   platform: { type: String, required: true }, // 'Jumia', 'Jiji', 'Temu', 'AliExpress', 'CDCare', 'Amazon', 'eBay', etc.
   description: { type: String, required: true },
-  referenceImageUrl: { type: String, default: '' }, // Cloudinary URL, optional
+  referenceImageUrls: { type: [String], default: [] }, // Cloudinary URLs, up to 3, optional
   budget: { type: Number, default: null }, // customer's stated budget — NOT a price, just a hint
 
   // ✅ Filled in by admin once actually sourced — this is the proof/
