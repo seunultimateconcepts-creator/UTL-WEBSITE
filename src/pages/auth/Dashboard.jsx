@@ -8,6 +8,7 @@ import {
   Trash2, CheckCircle2, Clock, Menu, X,
 } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
+import ChatWindow from '../../components/ChatWindow'
 
 // ✅ Maps the icon-name strings from dashboardConfig.js to actual
 // lucide-react components. Add new icons here as needed.
@@ -34,6 +35,9 @@ function Dashboard() {
   const [bookings, setBookings] = useState([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
   const [sourcingRequests, setSourcingRequests] = useState([])
+  const [conversations, setConversations] = useState([])
+  const [conversationsLoading, setConversationsLoading] = useState(false)
+  const [activeConversation, setActiveConversation] = useState(null)
   const [myProducts, setMyProducts] = useState([])
   const [myProductsLoading, setMyProductsLoading] = useState(false)
 
@@ -135,6 +139,29 @@ function Dashboard() {
     fetchBookings()
   }, [activeTab, user])
 
+  // ✅ Fetch conversations when Messages tab opens
+  useEffect(() => {
+    if (activeTab !== 'messages' || !user) return
+
+    const fetchConversations = async () => {
+      setConversationsLoading(true)
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${BASE_URL}/messages/conversations`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setConversations(data.conversations)
+      } catch (err) {
+        console.error('Failed to fetch conversations:', err)
+      } finally {
+        setConversationsLoading(false)
+      }
+    }
+    fetchConversations()
+  }, [activeTab, user])
+
   // ✅ Fetch the seller's own products (all statuses) when My Shop opens
   useEffect(() => {
     if (activeTab !== 'myshop' || !user) return
@@ -208,6 +235,7 @@ function Dashboard() {
       : 'Client'
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 flex">
 
       {/* Mobile overlay — tap to close the drawer */}
@@ -651,18 +679,49 @@ function Dashboard() {
 
         {/* Messages Tab */}
         {currentTab === 'messages' && (
-          <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
-            <Icon name="MessageCircle" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-black text-gray-900 mb-2">No Messages Yet</h3>
-            <p className="text-gray-500 mb-6">Your messages with our team will appear here.</p>
-            <a
-              href="https://wa.me/2348038786037"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-400 transition-colors"
-            >
-              Chat on WhatsApp →
-            </a>
+          <div className="space-y-3">
+            {conversationsLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!conversationsLoading && conversations.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                <Icon name="MessageCircle" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-black text-gray-900 mb-2">No Messages Yet</h3>
+                <p className="text-gray-500 mb-6">
+                  {isApprovedSeller ? 'Conversations with buyers will appear here.' : 'Message a seller from any product page to start a conversation.'}
+                </p>
+                <a
+                  href="tel:+2348038786037"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  Call Support →
+                </a>
+              </div>
+            )}
+
+            {!conversationsLoading && conversations.map((conv) => {
+              const otherParty = user?.id === conv.buyerId?._id ? conv.vendorId : conv.buyerId
+              return (
+                <button
+                  key={conv._id}
+                  onClick={() => setActiveConversation(conv)}
+                  className="w-full flex items-center gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon name="MessageCircle" className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 font-bold text-sm truncate">{otherParty?.firstName} {otherParty?.lastName}</p>
+                    <p className="text-gray-400 text-xs truncate">Re: {conv.productId?.name}</p>
+                    {conv.lastMessagePreview && <p className="text-gray-500 text-xs truncate mt-0.5">{conv.lastMessagePreview}</p>}
+                  </div>
+                  <p className="text-gray-300 text-[10px] flex-shrink-0">{new Date(conv.lastMessageAt).toLocaleDateString()}</p>
+                </button>
+              )
+            })}
           </div>
         )}
 
@@ -701,6 +760,15 @@ function Dashboard() {
 
       </div>
     </div>
+
+    {activeConversation && (
+      <ChatWindow
+        conversation={activeConversation}
+        currentUserId={user?.id}
+        onClose={() => setActiveConversation(null)}
+      />
+    )}
+    </>
   )
 }
 

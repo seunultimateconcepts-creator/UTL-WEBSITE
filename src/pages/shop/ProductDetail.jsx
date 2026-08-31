@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle } from 'lucide-react'
 import ProductChat from '../../components/ProductChat'
 import ShareLink from '../../components/ShareLink'
 import OrderConfirmation from '../../components/OrderConfirmation'
 import AddressForm from '../../components/AddressForm'
+import ChatWindow from '../../components/ChatWindow'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -19,6 +20,8 @@ function ProductDetail() {
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [orderError, setOrderError] = useState('')
   const [showAddressForm, setShowAddressForm] = useState(false)
+  const [activeConversation, setActiveConversation] = useState(null)
+  const [startingChat, setStartingChat] = useState(false)
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,6 +44,33 @@ function ProductDetail() {
 
   // ✅ Clicking "Place Order" opens the address step first — actual
   // order creation happens in handlePlaceOrder once address is submitted
+  // ✅ Opens (or creates) the direct conversation for this product.
+  // Login-gated same as ordering — no anonymous messaging.
+  const handleStartChat = async () => {
+    const currentUser = localStorage.getItem('utl_current_user')
+    if (!currentUser) {
+      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${vendorId}/product/${productId}`)
+      navigate('/login')
+      return
+    }
+
+    setStartingChat(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/messages/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId }),
+      })
+      const data = await res.json()
+      if (data.success) setActiveConversation(data.conversation)
+    } catch (err) {
+      console.error('Failed to start conversation:', err)
+    } finally {
+      setStartingChat(false)
+    }
+  }
+
   const handleOrderClick = () => {
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
@@ -225,13 +255,34 @@ function ProductDetail() {
           </div>
         </div>
 
-        {/* Chat — full width below the fold */}
+        {/* Direct message — open, not AI-gated, now that off-platform
+            trade handling is the accepted model */}
         <div className="mt-10 max-w-2xl">
+          <button
+            onClick={handleStartChat}
+            disabled={startingChat}
+            className="flex items-center gap-2 px-5 py-3 bg-[#0a0f2c] hover:bg-[#0a0f2c]/90 text-white font-bold rounded-xl transition-colors text-sm mb-6"
+          >
+            <MessageCircle size={16} /> {startingChat ? 'Opening chat...' : 'Message Seller Directly'}
+          </button>
+
           <h2 className="text-gray-900 font-bold text-lg mb-3">Have a question?</h2>
           <ProductChat productId={productId} />
         </div>
 
       </div>
+
+      {/* Direct chat window */}
+      {activeConversation && (() => {
+        const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
+        return (
+          <ChatWindow
+            conversation={activeConversation}
+            currentUserId={cachedUser.id || cachedUser._id}
+            onClose={() => setActiveConversation(null)}
+          />
+        )
+      })()}
 
       {/* Address modal — shown before order creation */}
       {showAddressForm && !confirmedOrder && (
