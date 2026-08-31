@@ -33,6 +33,7 @@ function Dashboard() {
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [bookings, setBookings] = useState([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
+  const [sourcingRequests, setSourcingRequests] = useState([])
   const [myProducts, setMyProducts] = useState([])
   const [myProductsLoading, setMyProductsLoading] = useState(false)
 
@@ -64,10 +65,13 @@ function Dashboard() {
     navigate('/')
   }
 
-  // ✅ Fetch real order history when the Orders tab is opened — replaces
-  // the old static "No Orders Yet" placeholder that never checked anything
+  // ✅ Fetch real order + sourcing-request history on MOUNT, not gated
+  // by which tab is open — this is what actually fixes the Overview
+  // stat cards. Previously those cards showed static config placeholder
+  // zeros because nothing loaded until you visited the Orders tab
+  // specifically; Overview itself never triggered a fetch at all.
   useEffect(() => {
-    if (activeTab !== 'orders' || !user) return
+    if (!user) return
 
     const fetchOrders = async () => {
       setOrdersLoading(true)
@@ -88,8 +92,24 @@ function Dashboard() {
         setOrdersLoading(false)
       }
     }
+
+    const fetchSourcingRequests = async () => {
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${BASE_URL}/sourcing-requests/my-requests`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setSourcingRequests(data.requests)
+      } catch (err) {
+        console.error('Failed to fetch sourcing requests:', err)
+      }
+    }
+
     fetchOrders()
-  }, [activeTab, user])
+    fetchSourcingRequests()
+  }, [user])
 
   // ✅ Fetch bookings when the Projects tab opens (client-only tab —
   // sellers don't see a Projects tab, so no vendor-side branch needed)
@@ -148,7 +168,20 @@ function Dashboard() {
   // accountType. Only an approved seller sees the seller dashboard.
   const isApprovedSeller = user.sellerStatus === 'approved'
   const config = getDashboardConfig(isApprovedSeller ? 'seller' : 'client')
-  const { tabs, stats, quickActions } = config
+  const { tabs, quickActions } = config
+  // ✅ Real computed values, not the static config placeholders.
+  // Matched by label since dashboardConfig.js still owns icon/color/
+  // which stats exist per role — this only swaps in the actual number.
+  const pendingOrdersCount =
+    orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length +
+    sourcingRequests.filter(r => !['completed', 'cancelled'].includes(r.status)).length
+  const activeProjectsCount = bookings.filter(b => !['completed', 'cancelled'].includes(b.status)).length
+
+  const stats = config.stats.map((stat) => {
+    if (stat.label === 'Pending Orders') return { ...stat, value: pendingOrdersCount }
+    if (stat.label === 'Active Projects') return { ...stat, value: activeProjectsCount }
+    return stat
+  })
 
   const validTabIds = tabs.map(t => t.id)
   const currentTab = validTabIds.includes(activeTab) ? activeTab : 'overview'
@@ -447,7 +480,7 @@ function Dashboard() {
               </div>
             )}
 
-            {!ordersLoading && orders.length === 0 && (
+            {!ordersLoading && orders.length === 0 && (isApprovedSeller || sourcingRequests.length === 0) && (
               <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
                 <Icon name="ShoppingCart" className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-xl font-black text-gray-900 mb-2">No Orders Yet</h3>
@@ -504,6 +537,47 @@ function Dashboard() {
                 )}
               </div>
             ))}
+
+            {/* Sourcing requests — Ultimate Concepts. Client-only, kept
+                visually separate from vendor Product orders above since
+                they're a genuinely different thing (no fixed price,
+                fulfilled by admin, not a vendor). */}
+            {!isApprovedSeller && sourcingRequests.length > 0 && (
+              <>
+                <h3 className="text-gray-900 font-bold text-sm pt-4 pb-1">Sourcing Requests (Ultimate Concepts)</h3>
+                {sourcingRequests.map((request) => (
+                  <div key={request._id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+                      <p className="text-gray-400 text-xs">
+                        {request.requestNumber} · {new Date(request.createdAt).toLocaleDateString()}
+                      </p>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                        request.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        request.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                        request.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {request.status}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {request.items?.map((item, i) => (
+                        <p key={i} className="text-sm">
+                          <span className="text-orange-600 font-semibold">{item.platform}:</span>{' '}
+                          <span className="text-gray-700">{item.description}</span>
+                        </p>
+                      ))}
+                    </div>
+                    {request.status === 'ready' && request.fulfillment?.details && (
+                      <div className="mt-3 pt-3 border-t border-gray-50 bg-orange-50 -mx-5 -mb-5 px-5 py-3 rounded-b-2xl">
+                        <p className="text-orange-700 text-xs font-semibold uppercase mb-0.5">How to get it</p>
+                        <p className="text-orange-900 text-sm">{request.fulfillment.details}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         )}
 

@@ -1,9 +1,9 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/immutability */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Image as ImageIcon } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Image as ImageIcon, Users } from 'lucide-react'
 import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -17,6 +17,7 @@ function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [bookings, setBookings] = useState([])
   const [sourcingRequests, setSourcingRequests] = useState([])
+  const [vendors, setVendors] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionMessage, setActionMessage] = useState('')
 
@@ -37,21 +38,23 @@ function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [sellersRes, productsRes, ordersRes, bookingsRes, requestsRes] = await Promise.all([
+      const [sellersRes, productsRes, ordersRes, bookingsRes, requestsRes, vendorsRes] = await Promise.all([
         fetch(`${BASE_URL}/sellers/pending`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/products/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/orders/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/bookings/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/sourcing-requests/all`, { headers: { 'x-admin-key': adminKey } }),
+        fetch(`${BASE_URL}/sellers/vendors`, { headers: { 'x-admin-key': adminKey } }),
       ])
       const sellersData = await sellersRes.json()
       const productsData = await productsRes.json()
       const ordersData = await ordersRes.json()
       const bookingsData = await bookingsRes.json()
       const requestsData = await requestsRes.json()
+      const vendorsData = await vendorsRes.json()
 
       // ✅ A 403 here means the stored key is wrong — bounce back to login
-      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403 || requestsRes.status === 403) {
+      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403 || requestsRes.status === 403 || vendorsRes.status === 403) {
         sessionStorage.removeItem('utl_admin_key')
         navigate('/admin-login')
         return
@@ -62,6 +65,7 @@ function AdminDashboard() {
       if (ordersData.success) setOrders(ordersData.orders)
       if (bookingsData.success) setBookings(bookingsData.bookings)
       if (requestsData.success) setSourcingRequests(requestsData.requests)
+      if (vendorsData.success) setVendors(vendorsData.vendors)
     } catch (err) {
       console.error('Admin data fetch failed:', err)
     } finally {
@@ -144,6 +148,26 @@ function AdminDashboard() {
     }
   }
 
+  const handleUpdateVendorTier = async (vendorId, tier) => {
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/${vendorId}/tier`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ tier }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage(`Vendor moved to ${tier}`)
+        setVendors(prev => prev.map(v => v._id === vendorId
+          ? { ...v, subscription: data.subscription, slotsLimit: tier === 'free' ? 10 : tier === 'silver' ? 40 : tier === 'gold' ? 100 : Infinity }
+          : v
+        ))
+      }
+    } catch (err) {
+      console.error('Tier update failed:', err)
+    }
+  }
+
   const handleLogout = () => {
     sessionStorage.removeItem('utl_admin_key')
     navigate('/admin-login')
@@ -176,6 +200,7 @@ function AdminDashboard() {
       <div className="bg-white border-b border-gray-100 px-6 flex gap-1">
         {[
           { id: 'sellers', label: `Pending Sellers (${pendingSellers.length})`, icon: Store },
+          { id: 'vendors', label: `Vendors (${vendors.length})`, icon: Users },
           { id: 'products', label: `All Products (${products.length})`, icon: Package },
           { id: 'orders', label: `All Orders (${orders.length})`, icon: ClipboardList },
           { id: 'bookings', label: `All Bookings (${bookings.length})`, icon: Calendar },
@@ -223,6 +248,45 @@ function AdminDashboard() {
                     <X size={14} /> Reject
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* All Products */}
+        {/* Vendors — manual tier assignment until Paystack collection
+            exists. Slot usage shown so it's obvious who's near their
+            limit before they even ask about upgrading. */}
+        {!loading && activeTab === 'vendors' && (
+          <div className="space-y-3">
+            {vendors.length === 0 && (
+              <p className="text-gray-400 text-sm text-center py-12">No approved vendors yet.</p>
+            )}
+            {vendors.map(vendor => (
+              <div key={vendor._id} className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-gray-900 font-bold text-sm">{vendor.firstName} {vendor.lastName}</p>
+                  <p className="text-gray-500 text-xs">{vendor.email}</p>
+                  <p className="text-gray-400 text-[10px] mt-1">
+                    {vendor.slotsUsed} / {vendor.slotsLimit === Infinity ? '∞' : vendor.slotsLimit} listings used
+                    {vendor.subscription?.expiresAt && ` · renews ${new Date(vendor.subscription.expiresAt).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <select
+                  value={vendor.subscription?.tier || 'free'}
+                  onChange={(e) => handleUpdateVendorTier(vendor._id, e.target.value)}
+                  className={`text-xs font-bold px-3 py-2 rounded-lg border-0 capitalize cursor-pointer ${
+                    vendor.subscription?.tier === 'platinum' ? 'bg-purple-100 text-purple-700' :
+                    vendor.subscription?.tier === 'gold' ? 'bg-amber-100 text-amber-700' :
+                    vendor.subscription?.tier === 'silver' ? 'bg-gray-200 text-gray-700' :
+                    'bg-green-100 text-green-700'
+                  }`}
+                >
+                  <option value="free">Free (10)</option>
+                  <option value="silver">Silver (40) — ₦20k/yr</option>
+                  <option value="gold">Gold (100) — ₦50k/yr</option>
+                  <option value="platinum">Platinum (∞ + video) — ₦100k/yr</option>
+                </select>
               </div>
             ))}
           </div>
