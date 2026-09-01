@@ -34,6 +34,20 @@ const createOrder = async (req, res) => {
       }
     }
 
+    // ✅ Block self-purchase — checked against the actual Product's
+    // vendorId in the database, not the client-supplied vendorId in
+    // req.body (which could be spoofed). This is what stops a vendor
+    // from ordering their own listing to fake a sale and free up a
+    // tier slot without a real transaction happening.
+    for (const item of items) {
+      if (item.productId) {
+        const ownedProduct = await Product.findOne({ _id: item.productId, vendorId: buyerId })
+        if (ownedProduct) {
+          return res.status(400).json({ success: false, message: "You can't order your own product" })
+        }
+      }
+    }
+
     if (!deliveryAddress?.fullName || !deliveryAddress?.phone || !deliveryAddress?.coverageZone || !deliveryAddress?.address) {
       return res.status(400).json({ success: false, message: 'A complete delivery address is required' })
     }

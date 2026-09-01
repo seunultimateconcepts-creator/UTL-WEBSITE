@@ -2,8 +2,29 @@
 const User = require('../models/user')
 const Product = require('../models/product')
 const sendEmail = require('../utils/sendEmail')
-const { sellerApprovedEmail } = require('../utils/emailTemplates')
+const { sellerApprovedEmail, sellerVerificationSubmittedEmail } = require('../utils/emailTemplates')
 const { SUBSCRIPTION_TIERS, DELETE_COOLDOWN_DAYS } = require('../config/subscriptionTiers')
+const crypto = require('crypto')
+
+// ✅ Shared by both the frontend-callback path and the webhook — same
+// logic as the existing manual updateVendorTier, just applied to the
+// vendor's OWN account (from a verified payment) rather than admin
+// picking a tier by hand. Never call this without having verified the
+// payment first — see below.
+const applyPaidTier = async (userId, tier) => {
+  if (!SUBSCRIPTION_TIERS[tier] || tier === 'free') return null
+
+  const user = await User.findById(userId)
+  if (!user) return null
+
+  const now = new Date()
+  const oneYearFromNow = new Date(now)
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+
+  user.subscription = { tier, startedAt: now, expiresAt: oneYearFromNow }
+  await user.save()
+  return user.subscription
+}
 
 /**
  * sellerController.js
@@ -206,4 +227,149 @@ const updateVendorTier = async (req, res) => {
   }
 }
 
-module.exports = { approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier }
+// ✅ SUBMIT SELLER APPLICATION — the self-service replacement for the
+// old WhatsApp-based flow. Runs as one function specifically so it's
+// easy to verify at a glance: nin and bvn are read from req.body,
+// passed into the email template, and NEVER touch `user.save()` or
+// any other persistence call below. Everything else in vendorProfile/
+// verification is fine to store — see user.js for why.
+const submitSellerApplication = async (req, res) => {
+  try {
+    const {
+      bio, shopAddress, shopPhotoUrl,
+      cacNumber, lat, lng,
+      nin, bvn,
+    } = req.body
+
+    if (!bio || !shopAddress || !shopPhotoUrl) {
+      return res.status(400).json({ success: false, message: 'Bio, shop address, and shop photo are required' })
+    }
+    if (!nin || !bvn) {
+      return res.status(400).json({ success: false, message: 'NIN and BVN are required for verification' })
+    }
+    if (lat == null || lng == null) {
+      return res.status(400).json({ success: false, message: 'Live location is required for verification' })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    if (user.sellerStatus === 'approved') {
+      return res.status(400).json({ success: false, message: 'You are already an approved seller' })
+    }
+
+    // ✅ Only the safe fields get persisted — nin/bvn are deliberately
+    // absent from this object
+    user.vendorProfile = { bio, shopAddress, shopPhotoUrl }
+    user.verification = {
+      cacNumber: cacNumber || '',
+      liveLocation: { lat, lng },
+      submittedAt: new Date(),
+    }
+    user.sellerStatus = 'pending'
+    await user.save()
+
+    // ✅ NIN/BVN's only appearance, anywhere, ever — sent once to admin
+    // for manual cross-checking, never written to a database
+    try {
+      if (process.env.ADMIN_EMAIL) {
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL,
+          subject: `Seller Verification: ${user.firstName} ${user.lastName}`,
+          html: sellerVerificationSubmittedEmail(user, { nin, bvn }),
+        })
+      } else {
+        console.error('ADMIN_EMAIL not set — verification submitted but admin was not notified with NIN/BVN')
+      }
+    } catch (emailError) {
+      console.error('Verification email failed (application still recorded):', emailError.message)
+    }
+
+    res.status(200).json({ success: true, sellerStatus: user.sellerStatus })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error submitting application', error: error.message })
+  }
+}
+
+// ✅ VERIFY SUBSCRIPTION PAYMENT — called by the frontend right after
+// Paystack's popup closes successfully. This is NOT what actually
+// grants the tier by itself — it calls Paystack's own verify-
+// transaction endpoint server-side and only applies the tier if
+// Paystack confirms the payment genuinely succeeded AND the amount
+// paid matches the real tier price. Never trust a client-reported
+// "it worked" on its own.
+const verifySubscriptionPayment = async (req, res) => {
+  try {
+    const { reference } = req.body
+    if (!reference) {
+      return res.status(400).json({ success: false, message: 'Missing payment reference' })
+    }
+
+    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+    })
+    const verifyData = await verifyRes.json()
+
+    if (!verifyData.status || verifyData.data?.status !== 'success') {
+      return res.status(400).json({ success: false, message: 'Payment could not be verified' })
+    }
+
+    const { tier } = verifyData.data.metadata || {}
+    const expectedKobo = SUBSCRIPTION_TIERS[tier]?.price * 100
+
+    if (!tier || !expectedKobo || verifyData.data.amount !== expectedKobo) {
+      return res.status(400).json({ success: false, message: 'Payment amount does not match the selected plan' })
+    }
+
+    const subscription = await applyPaidTier(req.user.id, tier)
+    if (!subscription) {
+      return res.status(400).json({ success: false, message: 'Could not apply tier — invalid account or plan' })
+    }
+
+    res.status(200).json({ success: true, subscription })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error verifying payment', error: error.message })
+  }
+}
+
+// ✅ PAYSTACK WEBHOOK — the reliability backstop. If someone closes
+// their browser the instant after paying (before the frontend callback
+// above ever fires), this is what still applies the tier. Verified via
+// HMAC signature over the RAW request body — see server.js for the
+// req.rawBody change this depends on.
+const paystackWebhook = async (req, res) => {
+  try {
+    const signature = req.headers['x-paystack-signature']
+    const expectedSignature = crypto
+      .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+      .update(req.rawBody)
+      .digest('hex')
+
+    if (signature !== expectedSignature) {
+      return res.status(401).json({ success: false, message: 'Invalid signature' })
+    }
+
+    const event = req.body
+    if (event.event === 'charge.success') {
+      const { tier, userId } = event.data.metadata || {}
+      const expectedKobo = SUBSCRIPTION_TIERS[tier]?.price * 100
+
+      if (tier && userId && event.data.amount === expectedKobo) {
+        await applyPaidTier(userId, tier)
+      }
+    }
+
+    // ✅ Always 200 — Paystack retries on non-200, and we've already
+    // handled (or deliberately ignored) whatever it sent
+    res.status(200).json({ received: true })
+  } catch (error) {
+    console.error('Webhook processing error:', error.message)
+    res.status(200).json({ received: true }) // still 200 — don't trigger Paystack retries over our own bug
+  }
+}
+
+module.exports = {
+  approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
+  submitSellerApplication, verifySubscriptionPayment, paystackWebhook,
+}

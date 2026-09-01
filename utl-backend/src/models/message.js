@@ -7,10 +7,18 @@ const messageSchema = new mongoose.Schema({
     ref: 'Conversation',
     required: true,
   },
+  // ✅ Unambiguous label for who sent it, independent of senderId —
+  // needed because admin messages have no real User document behind
+  // them (admin authenticates with a shared key, not a login).
+  senderRole: {
+    type: String,
+    enum: ['buyer', 'vendor', 'admin'],
+    required: true,
+  },
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    default: null, // null only for admin-sent messages
   },
   text: {
     type: String,

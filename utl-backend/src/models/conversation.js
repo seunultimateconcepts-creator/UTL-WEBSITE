@@ -20,15 +20,23 @@ const conversationSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  // ✅ null for sourcing-request conversations — the "other side" there
+  // is admin, not a real vendor User account
   vendorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    default: null,
   },
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: true,
+    default: null,
+  },
+  // ✅ Ultimate Concepts conversations — set instead of productId/vendorId
+  sourcingRequestId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SourcingRequest',
+    default: null,
   },
   lastMessageAt: {
     type: Date,
@@ -42,8 +50,16 @@ const conversationSchema = new mongoose.Schema({
   timestamps: true,
 })
 
-// ✅ One thread per buyer/vendor/product combo — reused on every
-// return visit rather than spawning duplicate conversations.
-conversationSchema.index({ buyerId: 1, vendorId: 1, productId: 1 }, { unique: true })
+// ✅ Two SEPARATE partial unique indexes, not one — a conversation is
+// either about a product (buyer+vendor+product) or a sourcing request
+// (buyer+request), never both, so each gets its own uniqueness rule.
+conversationSchema.index(
+  { buyerId: 1, vendorId: 1, productId: 1 },
+  { unique: true, partialFilterExpression: { productId: { $type: 'objectId' } } }
+)
+conversationSchema.index(
+  { buyerId: 1, sourcingRequestId: 1 },
+  { unique: true, partialFilterExpression: { sourcingRequestId: { $type: 'objectId' } } }
+)
 
 module.exports = mongoose.model('Conversation', conversationSchema)

@@ -113,6 +113,29 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
 
+  // ✅ Vendor storefront profile — bio/address/photo auto-fill the
+  // vendor's About/Contact pages, collected once at application time
+  // instead of hand-written per page.
+  vendorProfile: {
+    bio: { type: String, default: '' },
+    shopAddress: { type: String, default: '' },
+    shopPhotoUrl: { type: String, default: '' }, // Cloudinary
+  },
+  // ✅ Verification data — deliberately does NOT include NIN or BVN.
+  // Those get emailed directly to admin for one-time manual
+  // cross-checking and are NEVER written to this or any other
+  // collection. CAC is public record; live location is low-sensitivity
+  // — both are fine to store normally. sellerStatus (already existing)
+  // remains the single source of truth for approved/pending/rejected;
+  // this block is just supporting context for that decision.
+  verification: {
+    cacNumber: { type: String, default: '' },
+    liveLocation: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
+    },
+    submittedAt: { type: Date, default: null },
+  },
   // ✅ Zero-knowledge notepad vault. salt + verifyCiphertext/verifyIv are
   // the ONLY things stored here — never the passphrase, never the
   // derived encryption key. See notesCrypto.js on the frontend for how
