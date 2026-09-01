@@ -23,6 +23,7 @@ function Navbar() {
     return user ? JSON.parse(user) : null
   }
   const user = getCurrentUser()
+  const isApprovedSeller = user?.sellerStatus === 'approved'
 
   // ✅ Logout function
   const handleLogout = () => {
@@ -56,7 +57,11 @@ function Navbar() {
   }, [location.pathname])
 
   // ✅ Nav links — add new pages here. Icon is a lucide-react component.
-  const navLinks = [
+  // Approved sellers get a locked-down list — Dashboard + their own
+  // shop page only. This is UX polish, not the security boundary — the
+  // real enforcement is server-side (blockSellerCustomerActions.js).
+  // A seller who wants to shop uses a genuinely different account.
+  const fullNavLinks = [
     { name: 'Home', path: '/' },
     {
       name: 'Services',
@@ -85,6 +90,13 @@ function Navbar() {
     { name: 'UTech Hub', path: '/tech-hub' },
     { name: 'Contact', path: '/contact' },
   ]
+
+  const sellerNavLinks = [
+    { name: 'Dashboard', path: '/dashboard' },
+    ...(user ? [{ name: 'My Shop', path: `/shop/vendor/${user.id || user._id}` }] : []),
+  ]
+
+  const navLinks = isApprovedSeller ? sellerNavLinks : fullNavLinks
 
   // ✅ Account badge — driven by sellerStatus now, not accountType
   // (accountType is always 'client' — selling is an upgrade, not a type)
@@ -235,10 +247,12 @@ function Navbar() {
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
                       <LayoutDashboard size={16} /> Dashboard
                     </Link>
-                    <Link to="/dashboard"
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
-                      <ShoppingBag size={16} /> My Orders
-                    </Link>
+                    {!isApprovedSeller && (
+                      <Link to="/dashboard"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
+                        <ShoppingBag size={16} /> My Orders
+                      </Link>
+                    )}
                     <Link to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5">
                       <Settings size={16} /> Settings

@@ -38,6 +38,26 @@ function Dashboard() {
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [activeConversation, setActiveConversation] = useState(null)
+  const [activeConversationType, setActiveConversationType] = useState(null) // 'product' | 'support'
+
+  const handleStartSupportChat = async (sourcingRequestId) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const res = await fetch(`${BASE_URL}/messages/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ sourcingRequestId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setActiveConversation(data.conversation)
+        setActiveConversationType('support')
+      }
+    } catch (err) {
+      console.error('Failed to start support chat:', err)
+    }
+  }
   const [myProducts, setMyProducts] = useState([])
   const [myProductsLoading, setMyProductsLoading] = useState(false)
 
@@ -113,6 +133,7 @@ function Dashboard() {
 
     fetchOrders()
     fetchSourcingRequests()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // ✅ Fetch bookings when the Projects tab opens (client-only tab —
@@ -137,6 +158,7 @@ function Dashboard() {
       }
     }
     fetchBookings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
 
   // ✅ Fetch conversations when Messages tab opens
@@ -160,6 +182,7 @@ function Dashboard() {
       }
     }
     fetchConversations()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
 
   // ✅ Fetch the seller's own products (all statuses) when My Shop opens
@@ -183,6 +206,7 @@ function Dashboard() {
       }
     }
     fetchMyProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
 
   if (!user) return (
@@ -602,6 +626,12 @@ function Dashboard() {
                         <p className="text-orange-900 text-sm">{request.fulfillment.details}</p>
                       </div>
                     )}
+                    <button
+                      onClick={() => handleStartSupportChat(request._id)}
+                      className="flex items-center gap-1.5 text-orange-600 hover:text-orange-700 text-xs font-bold mt-3 pt-3 border-t border-gray-50"
+                    >
+                      <Icon name="MessageCircle" className="w-3.5 h-3.5" /> Message Support
+                    </button>
                   </div>
                 ))}
               </>
@@ -707,7 +737,7 @@ function Dashboard() {
               return (
                 <button
                   key={conv._id}
-                  onClick={() => setActiveConversation(conv)}
+                  onClick={() => { setActiveConversation(conv); setActiveConversationType('product') }}
                   className="w-full flex items-center gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-left"
                 >
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -761,11 +791,29 @@ function Dashboard() {
       </div>
     </div>
 
-    {activeConversation && (
+    {activeConversation && activeConversationType === 'product' && (() => {
+      const isBuyer = user?.id === activeConversation.buyerId?._id
+      const otherParty = isBuyer ? activeConversation.vendorId : activeConversation.buyerId
+      return (
+        <ChatWindow
+          conversationId={activeConversation._id}
+          viewerRole={isBuyer ? 'buyer' : 'vendor'}
+          otherPartyName={`${otherParty?.firstName} ${otherParty?.lastName}`}
+          otherPartyPhone={otherParty?.phone}
+          contextLabel={`Re: ${activeConversation.productId?.name}`}
+          onClose={() => { setActiveConversation(null); setActiveConversationType(null) }}
+        />
+      )
+    })()}
+
+    {activeConversation && activeConversationType === 'support' && (
       <ChatWindow
-        conversation={activeConversation}
-        currentUserId={user?.id}
-        onClose={() => setActiveConversation(null)}
+        conversationId={activeConversation._id}
+        viewerRole="buyer"
+        otherPartyName="UTL Support"
+        otherPartyPhone="+2348038786037"
+        contextLabel="Ultimate Concepts"
+        onClose={() => { setActiveConversation(null); setActiveConversationType(null) }}
       />
     )}
     </>

@@ -8,15 +8,26 @@ const POLL_INTERVAL_MS = 4000
 /**
  * ChatWindow
  *
- * Polling-based, not WebSocket — a 4-second refresh is honest about
- * what this is (near-real-time, not instant) without the genuinely
- * larger infrastructure a live socket connection would need. Works
- * everywhere, no special server setup.
+ * Deliberately driven by explicit props, not derived from the
+ * conversation's populated fields — that's what lets the same
+ * component serve product chat (buyer/vendor, both real Users) and
+ * sourcing-request support chat (buyer/admin, admin has no User
+ * document) without special-casing inside here.
  *
- * Usage: <ChatWindow conversation={conversation} currentUserId={id} onClose={() => ...} />
- * conversation must be populated: { _id, buyerId: {firstName,phone,_id}, vendorId: {...}, productId: {name} }
+ * Props:
+ * - conversationId: string
+ * - viewerRole: 'buyer' | 'vendor' | 'admin'
+ * - otherPartyName: string — shown in the header
+ * - otherPartyPhone: string | null — omit the call button if null
+ * - contextLabel: string | null — e.g. "Re: Tecno Spark 20 Pro"
+ * - isAdminView: boolean — switches which endpoints/auth get used
+ * - adminKey: string — only needed when isAdminView is true
+ * - onClose: () => void
  */
-export default function ChatWindow({ conversation, currentUserId, onClose }) {
+export default function ChatWindow({
+  conversationId, viewerRole, otherPartyName, otherPartyPhone,
+  contextLabel, isAdminView = false, adminKey, onClose,
+}) {
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
@@ -24,16 +35,18 @@ export default function ChatWindow({ conversation, currentUserId, onClose }) {
   const messagesEndRef = useRef(null)
   const pollRef = useRef(null)
 
-  const isBuyer = conversation.buyerId._id === currentUserId
-  const otherParty = isBuyer ? conversation.vendorId : conversation.buyerId
+  const authHeaders = () =>
+    isAdminView
+      ? { 'x-admin-key': adminKey }
+      : { Authorization: `Bearer ${localStorage.getItem('utl_token')}` }
 
-  const token = () => localStorage.getItem('utl_token')
+  const messagesUrl = isAdminView
+    ? `${BASE_URL}/messages/admin/conversations/${conversationId}/messages`
+    : `${BASE_URL}/messages/conversations/${conversationId}/messages`
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/messages/conversations/${conversation._id}/messages`, {
-        headers: { Authorization: `Bearer ${token()}` },
-      })
+      const res = await fetch(messagesUrl, { headers: authHeaders() })
       const data = await res.json()
       if (data.success) setMessages(data.messages)
     } catch (err) {
@@ -48,7 +61,7 @@ export default function ChatWindow({ conversation, currentUserId, onClose }) {
     pollRef.current = setInterval(fetchMessages, POLL_INTERVAL_MS)
     return () => clearInterval(pollRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation._id])
+  }, [conversationId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -58,13 +71,13 @@ export default function ChatWindow({ conversation, currentUserId, onClose }) {
     e.preventDefault()
     if (!text.trim() || sending) return
     setSending(true)
-    const optimisticText = text.trim()
+    const outgoing = text.trim()
     setText('')
     try {
-      const res = await fetch(`${BASE_URL}/messages/conversations/${conversation._id}/messages`, {
+      const res = await fetch(messagesUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ text: optimisticText }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ text: outgoing }),
       })
       const data = await res.json()
       if (data.success) setMessages((prev) => [...prev, data.message])
@@ -86,16 +99,16 @@ export default function ChatWindow({ conversation, currentUserId, onClose }) {
               <MessageCircle size={18} className="text-orange-600" />
             </div>
             <div className="min-w-0">
-              <p className="text-gray-900 font-bold text-sm truncate">{otherParty.firstName} {otherParty.lastName}</p>
-              <p className="text-gray-400 text-xs truncate">Re: {conversation.productId?.name}</p>
+              <p className="text-gray-900 font-bold text-sm truncate">{otherPartyName}</p>
+              {contextLabel && <p className="text-gray-400 text-xs truncate">{contextLabel}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {otherParty.phone && (
+            {otherPartyPhone && (
               <a
-                href={`tel:${otherParty.phone}`}
+                href={`tel:${otherPartyPhone}`}
                 className="w-9 h-9 flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 rounded-full transition-colors"
-                title={`Call ${otherParty.firstName}`}
+                title={`Call ${otherPartyName}`}
               >
                 <Phone size={16} />
               </a>
@@ -122,7 +135,7 @@ export default function ChatWindow({ conversation, currentUserId, onClose }) {
           )}
 
           {messages.map((msg) => {
-            const isMine = msg.senderId === currentUserId
+            const isMine = msg.senderRole === viewerRole
             return (
               <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${

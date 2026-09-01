@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle, Pencil } from 'lucide-react'
 import ProductChat from '../../components/ProductChat'
 import ShareLink from '../../components/ShareLink'
 import OrderConfirmation from '../../components/OrderConfirmation'
@@ -222,13 +222,31 @@ function ProductDetail() {
               </div>
             )}
 
-            <button
-              onClick={handleOrderClick}
-              disabled={product.stock === 0 || placing}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 mb-6"
-            >
-              <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Place Order'}
-            </button>
+            {(() => {
+              const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
+              const isOwnProduct = vendor && (cachedUser.id === vendor._id || cachedUser._id === vendor._id)
+
+              if (isOwnProduct) {
+                return (
+                  <Link
+                    to={`/dashboard/edit-product/${productId}`}
+                    className="w-full flex items-center justify-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all mb-6"
+                  >
+                    <Pencil size={16} /> This Is Your Listing — Edit It
+                  </Link>
+                )
+              }
+
+              return (
+                <button
+                  onClick={handleOrderClick}
+                  disabled={product.stock === 0 || placing}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 mb-6"
+                >
+                  <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Place Order'}
+                </button>
+              )
+            })()}
 
             {(product.policies?.delivery || product.policies?.returns) && (
               <div className="space-y-3 mb-6">
@@ -275,10 +293,16 @@ function ProductDetail() {
       {/* Direct chat window */}
       {activeConversation && (() => {
         const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
+        const currentUserId = cachedUser.id || cachedUser._id
+        const isBuyer = activeConversation.buyerId._id === currentUserId
+        const otherParty = isBuyer ? activeConversation.vendorId : activeConversation.buyerId
         return (
           <ChatWindow
-            conversation={activeConversation}
-            currentUserId={cachedUser.id || cachedUser._id}
+            conversationId={activeConversation._id}
+            viewerRole={isBuyer ? 'buyer' : 'vendor'}
+            otherPartyName={`${otherParty.firstName} ${otherParty.lastName}`}
+            otherPartyPhone={otherParty.phone}
+            contextLabel={`Re: ${activeConversation.productId?.name}`}
             onClose={() => setActiveConversation(null)}
           />
         )

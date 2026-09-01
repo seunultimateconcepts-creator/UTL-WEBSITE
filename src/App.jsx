@@ -55,6 +55,8 @@ import { CartProvider } from './context/CartContext'
 import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
 import UltimateConcepts from './pages/UltimateConcepts'
+import UpgradePlan from './pages/Upgradeplan'
+
 // remove the old UTLShopStore import
 
 
@@ -130,6 +132,7 @@ function App() {
         <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
         <Route path="/tech-hub/notepad" element={<Notepad />} />
         <Route path="/shop/ultimate" element={<UltimateConcepts />} />
+        <Route path="/dashboard/upgrade" element={<UpgradePlan />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}

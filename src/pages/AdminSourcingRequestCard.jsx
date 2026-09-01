@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
 import { useState } from 'react'
-import { Package, ExternalLink } from 'lucide-react'
+import { Package, MessageCircle } from 'lucide-react'
 import ImageUpload from '../components/ImageUpload'
+import ChatWindow from '../components/ChatWindow'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -18,6 +18,26 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
   const [savingItem, setSavingItem] = useState(null)
   const [fulfillmentMethod, setFulfillmentMethod] = useState(request.fulfillment?.method || '')
   const [fulfillmentDetails, setFulfillmentDetails] = useState(request.fulfillment?.details || '')
+  const [chatConversation, setChatConversation] = useState(null)
+
+  // ✅ Finds the buyer-initiated conversation for this request, if one
+  // exists — admin never creates it, only the buyer does (clicking
+  // "Message Support" from their dashboard)
+  const openChat = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/messages/admin/sourcing/${request._id}/conversation`, {
+        headers: { 'x-admin-key': adminKey },
+      })
+      const data = await res.json()
+      if (data.success && data.conversation) {
+        setChatConversation(data.conversation)
+      } else {
+        flashMessage('Customer hasn\'t started a chat on this request yet')
+      }
+    } catch (err) {
+      console.error('Failed to open chat:', err)
+    }
+  }
 
   const updateItemProof = async (itemIndex, proof) => {
     setSavingItem(itemIndex)
@@ -83,18 +103,26 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
           </p>
           {request.notes && <p className="text-gray-400 text-xs mt-1 italic">"{request.notes}"</p>}
         </div>
-        <select
-          value={request.status}
-          onChange={(e) => updateStatus(e.target.value)}
-          className={`text-xs font-bold px-3 py-2 rounded-lg border-0 capitalize cursor-pointer ${
-            request.status === 'completed' ? 'bg-green-100 text-green-700' :
-            request.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-            request.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-            'bg-amber-100 text-amber-700'
-          }`}
-        >
-          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openChat}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+          >
+            <MessageCircle size={13} /> Chat
+          </button>
+          <select
+            value={request.status}
+            onChange={(e) => updateStatus(e.target.value)}
+            className={`text-xs font-bold px-3 py-2 rounded-lg border-0 capitalize cursor-pointer ${
+              request.status === 'completed' ? 'bg-green-100 text-green-700' :
+              request.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+              request.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+              'bg-amber-100 text-amber-700'
+            }`}
+          >
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Items with per-item proof upload */}
@@ -181,6 +209,19 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
           <Package size={12} /> Save Fulfillment Details
         </button>
       </div>
+
+      {chatConversation && (
+        <ChatWindow
+          conversationId={chatConversation._id}
+          viewerRole="admin"
+          isAdminView
+          adminKey={adminKey}
+          otherPartyName={`${chatConversation.buyerId?.firstName} ${chatConversation.buyerId?.lastName}`}
+          otherPartyPhone={chatConversation.buyerId?.phone}
+          contextLabel={request.requestNumber}
+          onClose={() => setChatConversation(null)}
+        />
+      )}
     </div>
   )
 }

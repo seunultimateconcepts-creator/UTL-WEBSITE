@@ -1,36 +1,29 @@
 import { useState } from 'react'
 import {
   Store, Globe, Wallet, ShieldCheck, MessageCircle, Zap, Gem,
-  PartyPopper, Send, Check, ArrowRight,
+  PartyPopper, Send, Check, ArrowRight, MapPin, ArrowLeft,
 } from 'lucide-react'
+import ImageUpload from '../components/ImageUpload'
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 function BecomeSeller() {
 
+  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
-    fullName: '',
-    businessName: '',
-    whatsapp: '',
-    email: '',
-    category: '',
-    productCount: '',
-    description: '',
+    bio: '',
+    shopAddress: '',
+    shopPhotoUrl: '',
+    cacNumber: '',
+    nin: '',
+    bvn: '',
   })
-
+  const [location, setLocation] = useState(null) // { lat, lng }
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [submitted, setSubmitted] = useState(false)
-
-  const categories = [
-    'Phones & Tablets',
-    'Laptops & Computers',
-    'Fashion & Clothing',
-    'Electronics',
-    'Home & Kitchen',
-    'Gaming',
-    'Beauty & Personal Care',
-    'Food & Groceries',
-    'Sports & Fitness',
-    'Books & Stationery',
-    'Other',
-  ]
 
   const benefits = [
     { icon: Globe, title: 'Wide Reach', desc: 'Access thousands of customers visiting Ultimate Tech Lab daily.' },
@@ -38,54 +31,45 @@ function BecomeSeller() {
     { icon: ShieldCheck, title: 'Trusted Platform', desc: 'Customers trust UTL — that trust extends to your products.' },
     { icon: MessageCircle, title: 'WhatsApp Orders', desc: 'Customers contact you directly — no middleman on orders.' },
     { icon: Zap, title: 'Quick Setup', desc: 'Get listed in less than 24 hours after approval.' },
-    { icon: Gem, title: 'Free to Start', desc: 'List your first 3 products completely free.' },
+    { icon: Gem, title: 'Free to Start', desc: 'List up to 10 products completely free.' },
   ]
 
   const plans = [
     {
-      name: 'Starter',
-      price: 'Free',
+      name: 'Free',
+      price: '₦0',
       period: 'forever',
       borderColor: 'border-gray-200',
       btnClass: 'bg-gray-800 hover:bg-gray-700 text-white',
       featured: false,
-      features: [
-        'Up to 3 products',
-        'Your WhatsApp on listings',
-        'Basic category listing',
-        'UTL support',
-      ],
+      features: ['Up to 10 products', 'Real-time buyer chat', 'Direct call button', 'UTL support'],
     },
     {
-      name: 'Growth',
-      price: '₦5,000',
-      period: 'per month',
+      name: 'Silver',
+      price: '₦20,000',
+      period: 'year',
+      borderColor: 'border-gray-300',
+      btnClass: 'bg-gray-600 hover:bg-gray-500 text-white',
+      featured: false,
+      features: ['Up to 40 products', 'Everything in Free'],
+    },
+    {
+      name: 'Gold',
+      price: '₦50,000',
+      period: 'year',
       borderColor: 'border-amber-400',
       btnClass: 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]',
       featured: true,
-      features: [
-        'Up to 20 products',
-        'Featured badge on products',
-        'Priority listing placement',
-        'Your WhatsApp on listings',
-        'Monthly analytics report',
-      ],
+      features: ['Up to 100 products', 'Everything in Silver'],
     },
     {
-      name: 'Premium',
-      price: '₦15,000',
-      period: 'per month',
+      name: 'Platinum',
+      price: '₦100,000',
+      period: 'year',
       borderColor: 'border-orange-400',
       btnClass: 'bg-orange-500 hover:bg-orange-400 text-white',
       featured: false,
-      features: [
-        'Unlimited products',
-        'Top of search placement',
-        'Featured on homepage',
-        'Social media promotion',
-        'Dedicated support',
-        'Weekly analytics report',
-      ],
+      features: ['Unlimited products', 'Product videos', 'Everything in Gold'],
     },
   ]
 
@@ -93,11 +77,84 @@ function BecomeSeller() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleGetLocation = () => {
+    setLocationError('')
+    if (!navigator.geolocation) {
+      setLocationError('Your browser does not support location access')
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocating(false)
+      },
+      () => {
+        setLocationError('Could not get your location — please allow location access and try again')
+        setLocating(false)
+      }
+    )
+  }
+
+  const handleNext = (e) => {
     e.preventDefault()
-    const message = `🏪 New Seller Application!\n\nFull Name: ${formData.fullName}\nBusiness Name: ${formData.businessName}\nWhatsApp: ${formData.whatsapp}\nEmail: ${formData.email}\nCategory: ${formData.category}\nNumber of Products: ${formData.productCount}\n\nAbout Business:\n${formData.description}`
-    window.open(`https://wa.me/2348038786037?text=${encodeURIComponent(message)}`, '_blank')
-    setSubmitted(true)
+    if (!formData.bio.trim() || !formData.shopAddress.trim() || !formData.shopPhotoUrl) {
+      setSubmitError('Please fill in your bio, shop address, and upload a shop photo')
+      return
+    }
+    setSubmitError('')
+    setStep(2)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitError('')
+
+    if (!formData.nin.trim() || !formData.bvn.trim()) {
+      setSubmitError('NIN and BVN are required for verification')
+      return
+    }
+    if (!location) {
+      setSubmitError('Please share your live location')
+      return
+    }
+
+    const currentUser = localStorage.getItem('utl_current_user')
+    if (!currentUser) {
+      localStorage.setItem('utl_redirect_after_login', '/become-seller')
+      window.location.href = '/login'
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/sellers/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          bio: formData.bio,
+          shopAddress: formData.shopAddress,
+          shopPhotoUrl: formData.shopPhotoUrl,
+          cacNumber: formData.cacNumber,
+          nin: formData.nin,
+          bvn: formData.bvn,
+          lat: location.lat,
+          lng: location.lng,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setSubmitError(data.message || 'Something went wrong — please try again')
+        return
+      }
+      setSubmitted(true)
+    } catch (err) {
+      console.error('Application submission failed:', err)
+      setSubmitError('Network error — please check your connection and try again')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -191,11 +248,11 @@ function BecomeSeller() {
               Start free and upgrade as your business grows.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`bg-white rounded-2xl p-8 border-2 ${plan.borderColor} relative ${plan.featured ? 'shadow-xl scale-105' : 'shadow-sm'}`}
+                className={`bg-white rounded-2xl p-6 border-2 ${plan.borderColor} relative ${plan.featured ? 'shadow-xl' : 'shadow-sm'}`}
               >
                 {plan.featured && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -250,150 +307,176 @@ function BecomeSeller() {
             {submitted ? (
               <div className="text-center py-12">
                 <PartyPopper size={56} className="mx-auto mb-4 text-orange-500" />
-                <h3 className="text-2xl font-black text-gray-900 mb-2">Application Sent!</h3>
+                <h3 className="text-2xl font-black text-gray-900 mb-2">Application Submitted!</h3>
                 <p className="text-gray-500 mb-2">
-                  Your seller application has been sent to our WhatsApp.
+                  We've received your details and verification is underway.
                 </p>
                 <p className="text-gray-500 mb-6">
-                  We'll review and get back to you within 24 hours!
+                  We'll email you once your account is approved — usually within 24 hours.
                 </p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-400 transition-colors"
-                >
-                  Submit Another Application
-                </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      required
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      placeholder="Your full name"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                    />
+              <>
+                {/* Step indicator */}
+                <div className="flex items-center gap-3 mb-8">
+                  <div className={`flex items-center gap-2 ${step === 1 ? 'text-orange-600' : 'text-gray-400'}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 1 ? 'bg-orange-500 text-white' : 'bg-gray-100'}`}>1</span>
+                    <span className="text-sm font-semibold">Shop Info</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      Business Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="businessName"
-                      required
-                      value={formData.businessName}
-                      onChange={handleChange}
-                      placeholder="Your business or brand name"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                    />
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className={`flex items-center gap-2 ${step === 2 ? 'text-orange-600' : 'text-gray-400'}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 2 ? 'bg-orange-500 text-white' : 'bg-gray-100'}`}>2</span>
+                    <span className="text-sm font-semibold">Verification</span>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      WhatsApp Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="whatsapp"
-                      required
-                      value={formData.whatsapp}
-                      onChange={handleChange}
-                      placeholder="+234 800 000 0000"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                    />
+                {submitError && (
+                  <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-xl">
+                    <p className="text-red-600 text-sm">{submitError}</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your@email.com"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                    />
-                  </div>
-                </div>
+                )}
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      Product Category *
-                    </label>
-                    <select
-                      name="category"
-                      required
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                {step === 1 && (
+                  <form onSubmit={handleNext} className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Shop Photo *
+                      </label>
+                      <p className="text-gray-400 text-xs mb-2">This becomes your storefront's cover image.</p>
+                      <ImageUpload
+                        value={formData.shopPhotoUrl}
+                        onChange={(url) => setFormData({ ...formData, shopPhotoUrl: url })}
+                        label="Upload your shop photo"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Tell us about your business *
+                      </label>
+                      <p className="text-gray-400 text-xs mb-2">This becomes your shop's "About Us" page automatically.</p>
+                      <textarea
+                        name="bio"
+                        rows={4}
+                        value={formData.bio}
+                        onChange={handleChange}
+                        placeholder="What do you sell? What makes your shop worth buying from?"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Shop Address *
+                      </label>
+                      <p className="text-gray-400 text-xs mb-2">This becomes your shop's "Contact Us" page automatically.</p>
+                      <input
+                        type="text"
+                        name="shopAddress"
+                        value={formData.shopAddress}
+                        onChange={handleChange}
+                        placeholder="Street, area, city, state"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 text-sm"
                     >
-                      <option value="">Select category</option>
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      Number of Products *
-                    </label>
-                    <select
-                      name="productCount"
-                      required
-                      value={formData.productCount}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                    >
-                      <option value="">Select range</option>
-                      <option value="1-5">1 - 5 products</option>
-                      <option value="6-20">6 - 20 products</option>
-                      <option value="21-50">21 - 50 products</option>
-                      <option value="50+">50+ products</option>
-                    </select>
-                  </div>
-                </div>
+                      Continue to Verification <ArrowRight size={16} />
+                    </button>
+                  </form>
+                )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Tell us about your business *
-                  </label>
-                  <textarea
-                    name="description"
-                    required
-                    rows={4}
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Describe what you sell, your location and anything else we should know..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all resize-none"
-                  />
-                </div>
+                {step === 2 && (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <ShieldCheck size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-blue-800 text-xs leading-relaxed">
+                        Your NIN and BVN are used only for a one-time manual verification check and are
+                        <strong> never stored in our database</strong> — they're sent securely for review and then discarded.
+                      </p>
+                    </div>
 
-                <button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 text-sm"
-                >
-                  <Send size={16} /> Submit Application via WhatsApp
-                </button>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">NIN *</label>
+                        <input
+                          type="text"
+                          name="nin"
+                          value={formData.nin}
+                          onChange={handleChange}
+                          placeholder="National Identification Number"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">BVN *</label>
+                        <input
+                          type="text"
+                          name="bvn"
+                          value={formData.bvn}
+                          onChange={handleChange}
+                          placeholder="Bank Verification Number"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        />
+                      </div>
+                    </div>
 
-                <p className="text-gray-400 text-xs text-center">
-                  Clicking submit opens WhatsApp with your application. We review within 24 hours!
-                </p>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                        CAC Registration Number <span className="text-gray-400 font-normal">(optional, if registered)</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="cacNumber"
+                        value={formData.cacNumber}
+                        onChange={handleChange}
+                        placeholder="RC or BN number"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                      />
+                    </div>
 
-              </form>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Live Location *</label>
+                      <p className="text-gray-400 text-xs mb-2">Confirms where your shop actually operates.</p>
+                      {location ? (
+                        <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-medium">
+                          <Check size={16} /> Location captured
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleGetLocation}
+                          disabled={locating}
+                          className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 hover:border-orange-300 rounded-xl text-gray-700 text-sm font-semibold transition-colors"
+                        >
+                          <MapPin size={16} className="text-orange-500" /> {locating ? 'Getting location...' : 'Share My Live Location'}
+                        </button>
+                      )}
+                      {locationError && <p className="text-red-500 text-xs mt-1.5">{locationError}</p>}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="flex items-center gap-2 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-sm"
+                      >
+                        <ArrowLeft size={16} /> Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-all text-sm"
+                      >
+                        <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Application'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </>
             )}
           </div>
         </div>
