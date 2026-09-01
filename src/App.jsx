@@ -55,7 +55,7 @@ import { CartProvider } from './context/CartContext'
 import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
 import UltimateConcepts from './pages/UltimateConcepts'
-import UpgradePlan from './pages/Upgradeplan'
+import UpgradePlan from './pages/UpgradePlan'
 
 // remove the old UTLShopStore import
 
