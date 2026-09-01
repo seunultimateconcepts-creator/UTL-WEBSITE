@@ -13,6 +13,12 @@ const generateToken = (userId) => {
   )
 }
 
+// ✅ NOTE: accountType/accountTypeConfirmed removed throughout this file.
+// Those fields predate the sellerStatus-based architecture used
+// everywhere else in this build — this file just never got updated
+// when that changed. A Google/Facebook sign-in now behaves exactly
+// like a normal email signup: one plain account, sellerStatus
+// defaults to 'none', no separate "complete profile" step.
 const googleAuth = async (req, res) => {
   try {
     const { credential } = req.body
@@ -44,7 +50,6 @@ const googleAuth = async (req, res) => {
         googleId,
         avatar: picture,
         isVerified: true,
-        accountTypeConfirmed: false,
       })
     }
 
@@ -59,8 +64,8 @@ const googleAuth = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        accountType: user.accountType,
-        accountTypeConfirmed: user.accountTypeConfirmed,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
         avatar: user.avatar,
         isVerified: user.isVerified,
       },
@@ -121,7 +126,6 @@ const facebookAuth = async (req, res) => {
         facebookId,
         avatar: picture?.data?.url || null,
         isVerified: true,
-        accountTypeConfirmed: false,
       })
     }
 
@@ -136,8 +140,8 @@ const facebookAuth = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        accountType: user.accountType,
-        accountTypeConfirmed: user.accountTypeConfirmed,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
         avatar: user.avatar,
         isVerified: user.isVerified,
       },
@@ -152,47 +156,4 @@ const facebookAuth = async (req, res) => {
   }
 }
 
-const completeProfile = async (req, res) => {
-  try {
-    const { accountType } = req.body
-
-    if (!['client', 'seller'].includes(accountType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'accountType must be either "client" or "seller"',
-      })
-    }
-
-    const user = await User.findById(req.user.id)
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
-    }
-
-    user.accountType = accountType
-    user.accountTypeConfirmed = true
-    await user.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Profile completed',
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        accountType: user.accountType,
-        accountTypeConfirmed: user.accountTypeConfirmed,
-        avatar: user.avatar,
-        isVerified: user.isVerified,
-      },
-    })
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error completing profile',
-      error: error.message,
-    })
-  }
-}
-
-module.exports = { googleAuth, facebookAuth, completeProfile }
+module.exports = { googleAuth, facebookAuth }
