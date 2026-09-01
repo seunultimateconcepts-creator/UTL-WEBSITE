@@ -132,7 +132,7 @@ function App() {
         <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
         <Route path="/tech-hub/notepad" element={<Notepad />} />
         <Route path="/shop/ultimate" element={<UltimateConcepts />} />
-        <Route path="/dashboard/upgrade" element={<UpgradePlan />} />
+        <Route path="/upgrade-plan" element={<UpgradePlan />} />
         </Routes>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ChatBot />}
