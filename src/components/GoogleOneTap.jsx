@@ -38,11 +38,6 @@ function GoogleOneTap() {
       localStorage.setItem('utl_token', data.token)
       localStorage.setItem('utl_current_user', JSON.stringify(data.user))
 
-      if (!data.user.accountTypeConfirmed) {
-        navigate('/complete-profile')
-        return
-      }
-
       // Don't yank someone off a page they're actively using —
       // e.g. mid-task on Tech Hub — just let the token silently attach.
       const noRedirectPaths = ['/tech-hub']
@@ -50,6 +45,9 @@ function GoogleOneTap() {
         return
       }
 
+      // ✅ No more accountTypeConfirmed check / complete-profile
+      // redirect — that belonged to the old account-type picker flow,
+      // which doesn't exist anymore. Straight to the real destination.
       const redirect = localStorage.getItem('utl_redirect_after_login')
       localStorage.removeItem('utl_redirect_after_login')
       navigate(redirect || '/dashboard')
