@@ -11,6 +11,8 @@ function BecomeSeller() {
 
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
+    shopName: '',
+    businessCategory: 'Product Seller',
     bio: '',
     shopAddress: '',
     shopPhotoUrl: '',
@@ -132,8 +134,8 @@ function BecomeSeller() {
 
   const handleNext = (e) => {
     e.preventDefault()
-    if (!formData.bio.trim() || !formData.shopAddress.trim() || !formData.shopPhotoUrl || !selectedState) {
-      setSubmitError('Please fill in your bio, state, shop address, and upload a shop photo')
+    if (!formData.shopName.trim() || !formData.bio.trim() || !formData.shopAddress.trim() || !formData.shopPhotoUrl || !selectedState) {
+      setSubmitError('Please fill in your shop name, bio, state, shop address, and upload a shop photo')
       return
     }
     setSubmitError('')
@@ -167,6 +169,8 @@ function BecomeSeller() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
+          shopName: formData.shopName,
+          businessCategory: formData.businessCategory,
           bio: formData.bio,
           shopAddress: formData.shopAddress,
           shopPhotoUrl: formData.shopPhotoUrl,
@@ -372,6 +376,35 @@ function BecomeSeller() {
 
                 {step === 1 && (
                   <form onSubmit={handleNext} className="space-y-6">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Shop Name *</label>
+                        <input
+                          type="text"
+                          value={formData.shopName}
+                          onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
+                          placeholder="e.g. Mama Tee Shop"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Business Type *</label>
+                        <select
+                          value={formData.businessCategory}
+                          onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        >
+                          <option value="Product Seller">Product Seller</option>
+                          <option value="Hotel / Accommodation">Hotel / Accommodation</option>
+                          <option value="Restaurant / Eatery">Restaurant / Eatery</option>
+                          <option value="Property (Rent/Sale)">Property (Rent/Sale)</option>
+                          <option value="Printing & Documents">Printing & Documents</option>
+                          <option value="Service Provider">Service Provider (car wash, repairs, etc.)</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                         Shop Photo *

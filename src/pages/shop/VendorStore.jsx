@@ -23,7 +23,8 @@ function VendorStore() {
           // vendor field if your API returns it — falling back to a
           // generic label if not.
           if (data.products[0]?.vendorId?.firstName) {
-            setVendorName(`${data.products[0].vendorId.firstName} ${data.products[0].vendorId.lastName}`)
+            const vendor = data.products[0].vendorId
+            setVendorName(vendor.vendorProfile?.shopName || `${vendor.firstName} ${vendor.lastName}`)
           }
         }
       } catch (err) {
