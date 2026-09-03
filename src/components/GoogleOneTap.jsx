@@ -58,6 +58,16 @@ function GoogleOneTap() {
 
   useEffect(() => {
     // Skip entirely if already logged in
+    // ✅ Skip entirely on pages that already render their own explicit
+    // Google button — GoogleAuthButton.jsx on /login and /signup. Both
+    // components call window.google.accounts.id.initialize() with their
+    // own callback; running both on the same page means the second call
+    // silently overwrites the first's config, which is very likely why
+    // the rendered signup button stopped working while One Tap (active
+    // everywhere else) kept working fine.
+    const skipEntirely = ['/login', '/signup']
+    if (skipEntirely.some((p) => window.location.pathname.startsWith(p))) return
+
     if (localStorage.getItem('utl_token')) return
 
     if (initialized.current) return
