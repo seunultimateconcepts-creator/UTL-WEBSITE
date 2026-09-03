@@ -83,7 +83,7 @@ const create = async (req, res) => {
       })
     }
 
-    const { name, description, price, category, stock, images, faqs, policies, videoUrl } = req.body
+    const { name, description, price, category, stock, images, faqs, policies, videoUrl, attributes } = req.body
 
     // ✅ Video is Platinum-only — silently dropped for anyone else,
     // not an error, since a downgraded vendor's old form data shouldn't
@@ -101,6 +101,7 @@ const create = async (req, res) => {
       faqs,
       policies,
       videoUrl: finalVideoUrl,
+      attributes: attributes || {},
     })
 
     res.status(201).json({ success: true, product })
@@ -181,7 +182,7 @@ const updateMyProduct = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You can only edit your own products' })
     }
 
-    const { name, description, price, category, stock, images, faqs, policies, status, videoUrl } = req.body
+    const { name, description, price, category, stock, images, faqs, policies, status, videoUrl, attributes } = req.body
 
     if (name !== undefined) product.name = name
     if (description !== undefined) product.description = description
@@ -192,6 +193,8 @@ const updateMyProduct = async (req, res) => {
     if (faqs !== undefined) product.faqs = faqs
     if (policies !== undefined) product.policies = policies
     if (status !== undefined) product.status = status
+
+    if (attributes !== undefined) product.attributes = attributes
 
     // ✅ Same tier check as creation — re-verified here in case the
     // vendor's tier changed (e.g. downgraded) since the product was made

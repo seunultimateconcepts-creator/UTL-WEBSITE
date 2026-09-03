@@ -216,6 +216,23 @@ function ProductDetail() {
 
             <p className="text-gray-600 text-sm leading-relaxed mb-6">{product.description}</p>
 
+            {/* Category-specific details — generic rendering, works for
+                any category since the fields themselves are dynamic */}
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
+              <div className="grid grid-cols-2 gap-3 mb-6 p-4 bg-gray-50 rounded-xl">
+                {Object.entries(product.attributes).map(([key, value]) => (
+                  value ? (
+                    <div key={key}>
+                      <p className="text-gray-400 text-[10px] uppercase font-semibold">
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase())}
+                      </p>
+                      <p className="text-gray-900 text-sm font-medium">{value}</p>
+                    </div>
+                  ) : null
+                ))}
+              </div>
+            )}
+
             {orderError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl">
                 <p className="text-red-600 text-sm">{orderError}</p>

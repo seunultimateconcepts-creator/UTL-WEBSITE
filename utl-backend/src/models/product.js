@@ -69,6 +69,16 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  // ✅ Category-specific extra data — beds/baths for Property, room
+  // type/nightly rate for Hotels, service area/rate type for Home &
+  // Local Services, etc. Deliberately flexible (not a rigid schema per
+  // category) — see listingCategoryFields.js on the frontend for what
+  // renders per category, and it maps straight onto this.
+  attributes: {
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
 }, {
   timestamps: true,
 })

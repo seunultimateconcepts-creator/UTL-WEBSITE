@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, X, Package, PartyPopper, Trash2 } from 'lucide-react'
+import { CATEGORY_FIELDS } from '../config/listingCategoryFields'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -32,6 +33,24 @@ function AddProduct() {
   })
   const [images, setImages] = useState([''])
   const [faqs, setFaqs] = useState([{ question: '', answer: '' }])
+  const [vendorCategory, setVendorCategory] = useState('Product Seller')
+  const [attributeValues, setAttributeValues] = useState({})
+
+  // ✅ Pull the vendor's own businessCategory from their cached profile
+  // — decides which extra fields render below, per listingCategoryFields.js
+  useEffect(() => {
+    const currentUser = localStorage.getItem('utl_current_user')
+    if (currentUser) {
+      const user = JSON.parse(currentUser)
+      setVendorCategory(user.vendorProfile?.businessCategory || 'Product Seller')
+    }
+  }, [])
+
+  const categoryFields = CATEGORY_FIELDS[vendorCategory] || []
+
+  const handleAttributeChange = (key, value) => {
+    setAttributeValues((prev) => ({ ...prev, [key]: value }))
+  }
 
   // ✅ Prefill everything when editing an existing product
   useEffect(() => {
@@ -57,6 +76,7 @@ function AddProduct() {
         })
         setImages(p.images?.length ? p.images : [''])
         setFaqs(p.faqs?.length ? p.faqs : [{ question: '', answer: '' }])
+        setAttributeValues(p.attributes ? Object.fromEntries(Object.entries(p.attributes)) : {})
       } catch (err) {
         console.error('Failed to load product:', err)
         setError('Network error loading this product')
@@ -107,6 +127,7 @@ function AddProduct() {
           delivery: formData.deliveryPolicy,
           returns: formData.returnsPolicy,
         },
+        attributes: attributeValues,
       }
 
       const url = isEditMode ? `${BASE_URL}/products/my-products/${productId}` : `${BASE_URL}/products`
@@ -272,6 +293,43 @@ function AddProduct() {
               </select>
             </div>
           </div>
+
+          {/* Category-specific fields — only shown when this vendor's
+              business category actually has extra fields defined.
+              Product Seller and Other render nothing here at all. */}
+          {categoryFields.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+              <div>
+                <h3 className="text-gray-900 font-bold text-sm">{vendorCategory} Details</h3>
+                <p className="text-gray-400 text-xs">Extra details specific to your business type.</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {categoryFields.map((field) => (
+                  <div key={field.key}>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">{field.label}</label>
+                    {field.type === 'select' ? (
+                      <select
+                        value={attributeValues[field.key] || ''}
+                        onChange={(e) => handleAttributeChange(field.key, e.target.value)}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors"
+                      >
+                        <option value="">Select</option>
+                        {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type}
+                        value={attributeValues[field.key] || ''}
+                        onChange={(e) => handleAttributeChange(field.key, e.target.value)}
+                        placeholder={field.placeholder || ''}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Images */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
