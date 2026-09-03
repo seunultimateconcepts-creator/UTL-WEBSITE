@@ -1,32 +1,45 @@
 /* eslint-disable no-undef */
+const { NIGERIA_STATES_LGAS } = require('./nigeriaStatesLGAs')
 
 /**
  * deliveryZones.js
  *
- * ✅ Server is the ONLY source of truth for delivery fees and ETAs.
- * The frontend fetches this list via GET /api/delivery-zones and only
- * ever sends back the zone id — never a fee amount. orderController.js
- * looks the fee up from here, so nobody can submit a fake ₦0 delivery
- * fee from the browser's dev tools.
+ * ✅ "Zone" is now just the STATE the customer selected — e.g. "Lagos",
+ * "Edo", "Kano" — not an arbitrary zone id anymore, now that the full
+ * State → LGA dropdown exists. Server is still the ONLY source of
+ * truth for the actual fee; the frontend only ever sends back the
+ * state NAME, never a price.
  *
- * Flat zone-based pricing for now (matches the original checkout plan:
- * "Address with coverage-zone dropdown"). Real distance-based pricing
- * via Google Distance Matrix is a Stage 2 upgrade once you have real
- * delivery data to calibrate against — this is deliberately simple to
- * ship today.
- *
- * Edit this list freely — it's the one place zone/fee/ETA changes happen.
+ * Four states have real, calibrated fees — the ones actually being
+ * delivered to regularly. Every other state (all 33 others + FCT gets
+ * its own too) uses the same flat default until there's real delivery
+ * data to calibrate against. Distance-based pricing via Google Distance
+ * Matrix remains the Stage 2 upgrade, unchanged from the original plan.
  */
-const DELIVERY_ZONES = [
-  { id: 'lagos-mainland', label: 'Lagos Mainland', fee: 2000, estimatedDays: '2-3 business days' },
-  { id: 'lagos-island', label: 'Lagos Island', fee: 2500, estimatedDays: '2-3 business days' },
-  { id: 'edo-benin', label: 'Edo State (Benin City)', fee: 1500, estimatedDays: '1-2 business days' },
-  { id: 'abuja', label: 'Abuja (FCT)', fee: 3500, estimatedDays: '3-5 business days' },
-  { id: 'other-states', label: 'Other Nigerian States', fee: 4500, estimatedDays: '5-7 business days' },
-]
+const STATE_DELIVERY_FEES = {
+  'Lagos': { fee: 2000, estimatedDays: '2-3 business days' },
+  'Edo': { fee: 1500, estimatedDays: '1-2 business days' },
+  'FCT': { fee: 3500, estimatedDays: '3-5 business days' },
+  'Ekiti': { fee: 3000, estimatedDays: '3-4 business days' },
+}
+const DEFAULT_STATE_FEE = { fee: 4500, estimatedDays: '5-7 business days' }
 
-const getZoneInfo = (zoneId) => {
-  return DELIVERY_ZONES.find((z) => z.id === zoneId) || null
+const ALL_STATE_NAMES = Object.keys(NIGERIA_STATES_LGAS)
+
+// ✅ Full list for the frontend's State dropdown, fee/ETA included so
+// the customer sees the real cost before they even submit — but this
+// is DISPLAY only, never trusted back from the client at order time.
+const DELIVERY_ZONES = ALL_STATE_NAMES.map((state) => {
+  const feeInfo = STATE_DELIVERY_FEES[state] || DEFAULT_STATE_FEE
+  return { id: state, label: state, ...feeInfo }
+})
+
+// ✅ Server-side lookup used at order creation — recomputes the fee
+// from the state name itself, never from anything the client sent.
+const getZoneInfo = (stateName) => {
+  if (!NIGERIA_STATES_LGAS[stateName]) return null // not a real state — reject
+  const feeInfo = STATE_DELIVERY_FEES[stateName] || DEFAULT_STATE_FEE
+  return { id: stateName, label: stateName, ...feeInfo }
 }
 
-module.exports = { DELIVERY_ZONES, getZoneInfo }
+module.exports = { DELIVERY_ZONES, getZoneInfo, ALL_STATE_NAMES }

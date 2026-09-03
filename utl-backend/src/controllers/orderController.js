@@ -205,4 +205,13 @@ const getLastAddress = async (req, res) => {
   }
 }
 
-module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, getDeliveryZones, getLastAddress }
+// ✅ NIGERIA_STATES_LGAS — powers the cascading State → LGA dropdown.
+// Sent once, whole thing — 774 LGAs is small enough as JSON that
+// splitting this into a per-state lookup call isn't worth the extra
+// round trips.
+const getNigeriaLGAs = async (req, res) => {
+  const { NIGERIA_STATES_LGAS } = require('../config/nigeriaStatesLGAs')
+  res.status(200).json({ success: true, statesLGAs: NIGERIA_STATES_LGAS })
+}
+
+module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, getDeliveryZones, getLastAddress, getNigeriaLGAs }
