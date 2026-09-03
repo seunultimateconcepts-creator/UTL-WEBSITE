@@ -30,7 +30,7 @@ const listByVendor = async (req, res) => {
     }
 
     const products = await Product.find({ vendorId, status: 'active', deletedAt: null })
-      .populate('vendorId', 'firstName lastName')
+      .populate('vendorId', 'firstName lastName vendorProfile')
       .sort({ createdAt: -1 })
 
     res.status(200).json({ success: true, products })
@@ -119,7 +119,7 @@ const listAll = async (req, res) => {
     }
 
     const products = await Product.find()
-      .populate('vendorId', 'firstName lastName email')
+      .populate('vendorId', 'firstName lastName email vendorProfile')
       .sort({ createdAt: -1 })
 
     res.status(200).json({ success: true, products })

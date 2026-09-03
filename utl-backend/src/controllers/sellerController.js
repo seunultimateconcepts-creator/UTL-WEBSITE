@@ -236,13 +236,13 @@ const updateVendorTier = async (req, res) => {
 const submitSellerApplication = async (req, res) => {
   try {
     const {
-      bio, shopAddress, shopPhotoUrl,
+      shopName, businessCategory, bio, shopAddress, shopPhotoUrl,
       cacNumber, lat, lng,
       nin, bvn,
     } = req.body
 
-    if (!bio || !shopAddress || !shopPhotoUrl) {
-      return res.status(400).json({ success: false, message: 'Bio, shop address, and shop photo are required' })
+    if (!shopName || !bio || !shopAddress || !shopPhotoUrl) {
+      return res.status(400).json({ success: false, message: 'Shop name, bio, shop address, and shop photo are required' })
     }
     if (!nin || !bvn) {
       return res.status(400).json({ success: false, message: 'NIN and BVN are required for verification' })
@@ -261,7 +261,7 @@ const submitSellerApplication = async (req, res) => {
 
     // ✅ Only the safe fields get persisted — nin/bvn are deliberately
     // absent from this object
-    user.vendorProfile = { bio, shopAddress, shopPhotoUrl }
+    user.vendorProfile = { shopName, businessCategory: businessCategory || 'Product Seller', bio, shopAddress, shopPhotoUrl }
     user.verification = {
       cacNumber: cacNumber || '',
       liveLocation: { lat, lng },

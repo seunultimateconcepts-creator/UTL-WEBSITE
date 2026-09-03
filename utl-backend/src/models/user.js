@@ -117,6 +117,8 @@ const userSchema = new mongoose.Schema({
   // vendor's About/Contact pages, collected once at application time
   // instead of hand-written per page.
   vendorProfile: {
+    shopName: { type: String, default: '' },
+    businessCategory: { type: String, default: 'Product Seller' },
     bio: { type: String, default: '' },
     shopAddress: { type: String, default: '' },
     shopPhotoUrl: { type: String, default: '' }, // Cloudinary
