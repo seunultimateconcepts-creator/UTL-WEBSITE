@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Store, Globe, Wallet, ShieldCheck, MessageCircle, Zap, Gem,
   PartyPopper, Send, Check, ArrowRight, MapPin, ArrowLeft,
@@ -21,6 +21,10 @@ function BecomeSeller() {
   const [location, setLocation] = useState(null) // { lat, lng }
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
+  const [zones, setZones] = useState([])
+  const [statesLGAs, setStatesLGAs] = useState({})
+  const [selectedState, setSelectedState] = useState('')
+  const [selectedLGA, setSelectedLGA] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -77,6 +81,36 @@ function BecomeSeller() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  useEffect(() => {
+    fetch(`${BASE_URL}/orders/delivery-zones`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success) setZones(data.zones) })
+      .catch((err) => console.error('Failed to load states:', err))
+
+    fetch(`${BASE_URL}/orders/nigeria-lgas`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success) setStatesLGAs(data.statesLGAs) })
+      .catch((err) => console.error('Failed to load LGA list:', err))
+  }, [])
+
+  const handleStateChange = (e) => {
+    setSelectedState(e.target.value)
+    setSelectedLGA('')
+  }
+
+  const handleLGAChange = (e) => {
+    const lga = e.target.value
+    setSelectedLGA(lga)
+    if (lga) {
+      setFormData((prev) => ({
+        ...prev,
+        shopAddress: prev.shopAddress.startsWith(lga) ? prev.shopAddress : `${lga}, ${prev.shopAddress}`.replace(/^, /, ''),
+      }))
+    }
+  }
+
+  const lgasForState = statesLGAs[selectedState] || []
+
   const handleGetLocation = () => {
     setLocationError('')
     if (!navigator.geolocation) {
@@ -98,8 +132,8 @@ function BecomeSeller() {
 
   const handleNext = (e) => {
     e.preventDefault()
-    if (!formData.bio.trim() || !formData.shopAddress.trim() || !formData.shopPhotoUrl) {
-      setSubmitError('Please fill in your bio, shop address, and upload a shop photo')
+    if (!formData.bio.trim() || !formData.shopAddress.trim() || !formData.shopPhotoUrl || !selectedState) {
+      setSubmitError('Please fill in your bio, state, shop address, and upload a shop photo')
       return
     }
     setSubmitError('')
@@ -365,6 +399,34 @@ function BecomeSeller() {
                       />
                     </div>
 
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">State *</label>
+                        <select
+                          value={selectedState} onChange={handleStateChange}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        >
+                          <option value="">Select state</option>
+                          {zones.map((z) => (
+                            <option key={z.id} value={z.id}>{z.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">LGA</label>
+                        <select
+                          value={selectedLGA} onChange={handleLGAChange}
+                          disabled={!selectedState}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">{selectedState ? 'Select LGA' : 'Pick a state first'}</option>
+                          {lgasForState.map((lga) => (
+                            <option key={lga} value={lga}>{lga}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                         Shop Address *
@@ -375,7 +437,7 @@ function BecomeSeller() {
                         name="shopAddress"
                         value={formData.shopAddress}
                         onChange={handleChange}
-                        placeholder="Street, area, city, state"
+                        placeholder="Street, area, city"
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
                       />
                     </div>
