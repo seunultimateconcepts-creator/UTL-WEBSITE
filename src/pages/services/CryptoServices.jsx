@@ -2,8 +2,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Coins, Handshake, GraduationCap, Zap, ShieldCheck, Gem, Phone,
-  RefreshCw, TrendingUp, Wallet, AlertTriangle, Lightbulb, ArrowRight,
+  Coins, GraduationCap, Zap, ShieldCheck, Gem, Phone,
+  RefreshCw, TrendingUp, Wallet, AlertTriangle, Lightbulb, PlayCircle, Calendar,
 } from 'lucide-react'
 
 // ✅ Outside the main function — React rule!
@@ -26,6 +26,17 @@ const TradingViewChart = ({ symbol, title }) => (
   </div>
 )
 
+// ✅ Free educational videos — unlisted YouTube embeds, zero hosting
+// cost. These are placeholder/test video IDs (distinct, real, publicly
+// available) so the grid can actually be tested with 4 different
+// embeds — swap every id for your real uploaded videos before launch.
+const EDUCATIONAL_VIDEOS = [
+  { id: 'dQw4w9WgXcQ', title: 'Getting Started: Setting Up Your First Exchange Account' },
+  { id: 'jNQXAC9IVRw', title: 'Reading a Candlestick Chart — The Basics' },
+  { id: '9bZkp7q19f0', title: 'Common Beginner Mistakes to Avoid' },
+  { id: 'M7lc1UVf-VE', title: 'Understanding Risk Management' },
+]
+
 function CryptoServices() {
 
   const [cryptos, setCryptos]       = useState([])
@@ -34,17 +45,23 @@ function CryptoServices() {
   const [lastUpdated, setLastUpdated] = useState(null)
   const [activeTab, setActiveTab]   = useState('prices')
 
+  // ✅ REMOVED: "Buy & Sell Crypto" and "P2P Trading" — both were
+  // direct trading-facilitation services, which is exactly what's
+  // ruled out given the SEC capital requirements (₦2bn+ for
+  // exchanges/custodians). Crypto Mentorship stays — pure education,
+  // zero regulatory exposure, and now genuinely bookable instead of
+  // dead-ending at WhatsApp.
   const services = [
-    { icon: Coins, title: 'Buy & Sell Crypto', desc: 'Buy or sell Bitcoin, Ethereum, USDT and more at the best market rates. Fast, safe and reliable.', features: ['Bitcoin (BTC)', 'Ethereum (ETH)', 'USDT', 'BNB', 'Solana (SOL)', 'Litecoin (LTC)'] },
-    { icon: Handshake, title: 'P2P Trading', desc: 'Trade directly with a trusted partner at better rates than any exchange. No hidden fees.', features: ['Best rates guaranteed', 'Fast settlement', 'Secure transactions', 'Multiple payment methods'] },
-    { icon: GraduationCap, title: 'Crypto Mentorship', desc: 'New to crypto? We guide you from zero to confident trader with practical hands-on training.', features: ['Chart reading', 'Trading strategies', 'Risk management', 'Market analysis'] },
+    { icon: GraduationCap, title: 'Crypto Mentorship', desc: 'New to crypto? We guide you from zero to confident, informed trader with practical hands-on training — you make every trade yourself, on your own exchange account.', features: ['Chart reading', 'Trading strategies', 'Risk management', 'Market analysis'] },
+    { icon: PlayCircle, title: 'Free Video Library', desc: 'Learn the fundamentals at your own pace before booking a live session.', features: ['Account setup walkthroughs', 'Chart reading basics', 'Common beginner mistakes', 'Always free'] },
+    { icon: TrendingUp, title: 'Live Market Data', desc: 'Real-time prices, currency rates and live charts — completely free, no account needed.', features: ['Top 10 crypto prices', 'NGN exchange rates', 'Live TradingView charts', 'Updates every 60 seconds'] },
   ]
 
   const whyUs = [
-    { icon: Zap, title: 'Fast Transactions', desc: 'We process all trades quickly.' },
-    { icon: ShieldCheck, title: 'Secure & Safe', desc: 'Your funds are always protected.' },
-    { icon: Gem, title: 'Best Rates', desc: 'Competitive market rates always.' },
-    { icon: Phone, title: '24/7 Support', desc: 'Always available to assist you.' },
+    { icon: Zap, title: 'Real Mentorship', desc: 'Hands-on, practical guidance — not generic courses.' },
+    { icon: ShieldCheck, title: 'Zero Trading Risk From Us', desc: 'We never touch your funds or execute trades on your behalf.' },
+    { icon: Gem, title: 'Free Foundations', desc: 'Learn the basics at no cost before you ever pay for anything.' },
+    { icon: Phone, title: 'Real Support', desc: 'Message us directly with questions once you\'re a client.' },
   ]
 
   const charts = [
@@ -128,25 +145,26 @@ function CryptoServices() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 bg-green-600/10 border border-green-500/30 rounded-full px-4 py-1.5">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-green-300 text-xs font-medium tracking-wide">CRYPTO SERVICES</span>
+                <span className="text-green-300 text-xs font-medium tracking-wide">CRYPTO EDUCATION & MARKET DATA</span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                Trade Crypto{' '}
+                Learn Crypto{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-                  Safely & Profitably
+                  The Right Way
                 </span>
               </h1>
               <p className="text-gray-400 text-lg leading-relaxed">
-                Buy, sell and trade cryptocurrencies at the best rates. We mentor beginners to become confident and profitable traders.
+                Free market data, free educational videos, and real hands-on mentorship — we teach you
+                to trade confidently on your own account. We never execute trades or hold funds on your behalf.
               </p>
               <div className="flex flex-wrap gap-4">
-                <a href="https://wa.me/2348038786037" target="_blank" rel="noopener noreferrer"
+                <Link to="/book-service"
                   className="px-6 py-3 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
-                  Start Trading →
-                </a>
-                <a href="https://wa.me/2348038786037" target="_blank" rel="noopener noreferrer"
+                  Book Mentorship →
+                </Link>
+                <a href="#videos"
                   className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
-                  Get Mentorship
+                  Watch Free Videos
                 </a>
               </div>
             </div>
@@ -177,7 +195,7 @@ function CryptoServices() {
           <div className="text-center mb-14">
             <p className="text-green-600 text-sm font-semibold tracking-widest uppercase mb-3">WHAT WE OFFER</p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">Crypto Services</h2>
-            <p className="text-gray-500 max-w-md mx-auto">Everything you need to succeed in the crypto market.</p>
+            <p className="text-gray-500 max-w-md mx-auto">Education and market data — never trade execution.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {services.map((service) => (
@@ -202,15 +220,54 @@ function CryptoServices() {
         </div>
       </section>
 
+      {/* ── Free Video Library ── */}
+      <section id="videos" className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-green-600 text-sm font-semibold tracking-widest uppercase mb-3">FREE, ALWAYS</p>
+            <h2 className="text-4xl font-black text-gray-900 mb-4">Learn the Basics First</h2>
+            <p className="text-gray-500 max-w-md mx-auto">
+              Start here — free videos covering the fundamentals before you ever need to book anything.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {EDUCATIONAL_VIDEOS.map((video) => (
+              <div key={video.title} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                <div className="aspect-video">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.id}`}
+                    title={video.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="p-4">
+                  <p className="text-gray-900 font-semibold text-sm">{video.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link to="/book-service"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
+              <Calendar size={18} /> Ready for 1-on-1? Book Mentorship
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── Market Tracker ── */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}
           <div className="text-center mb-10">
             <p className="text-green-600 text-sm font-semibold tracking-widest uppercase mb-3">LIVE DATA</p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">Full Market Tracker</h2>
-            <p className="text-gray-500 max-w-md mx-auto">Real-time prices, currency rates and live trading charts.</p>
+            <p className="text-gray-500 max-w-md mx-auto">Real-time prices, currency rates and live trading charts — free, no account needed.</p>
             {lastUpdated && (
               <div className="flex items-center justify-center gap-3 mt-3">
                 <span className="text-gray-400 text-xs">Updated: {lastUpdated}</span>
@@ -318,11 +375,6 @@ function CryptoServices() {
                   </div>
                 ))}
               </div>
-              <div className="px-6 py-4 bg-green-50 border-t border-green-100">
-                <p className="flex items-center gap-1.5 text-green-600 text-xs">
-                  <Lightbulb size={13} /> Contact us on WhatsApp for best P2P rates
-                </p>
-              </div>
             </div>
           )}
 
@@ -345,20 +397,22 @@ function CryptoServices() {
               <AlertTriangle size={13} /> Disclaimer
             </p>
             <p className="text-yellow-600 text-xs leading-relaxed">
-              Crypto trading involves risk. Always do your own research (DYOR) before investing.
-              Never invest more than you can afford to lose. UTL is not a licensed financial advisor.
+              This page is for information and education only. UTL does not execute trades, hold funds,
+              or act as an exchange or broker on your behalf. Crypto trading involves real risk — always
+              do your own research (DYOR) and never invest more than you can afford to lose. UTL is not
+              a licensed financial advisor.
             </p>
           </div>
 
         </div>
       </section>
 
-      {/* ── Why Trade With Us ── */}
-      <section className="py-20 bg-white">
+      {/* ── Why Choose Us ── */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-green-600 text-sm font-semibold tracking-widest uppercase mb-3">WHY CHOOSE US</p>
-            <h2 className="text-4xl font-black text-gray-900 mb-4">Why Trade With UTL?</h2>
+            <h2 className="text-4xl font-black text-gray-900 mb-4">Why Learn With UTL?</h2>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
             {whyUs.map((item) => (
@@ -378,20 +432,16 @@ function CryptoServices() {
       <section className="py-20 bg-[#0a0f2c]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Ready to start trading?
+            Ready to learn?
           </h2>
           <p className="text-gray-400 mb-8">
-            Contact us on WhatsApp and let's get you started today.
+            Book a mentorship session, or start with the free videos above.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/2348038786037" target="_blank" rel="noopener noreferrer"
+            <Link to="/book-service"
               className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.856L.054 23.447a.5.5 0 0 0 .609.61l5.704-1.49A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.009-1.374l-.36-.213-3.726.973.997-3.634-.234-.374A9.818 9.818 0 1 1 12 21.818z"/>
-              </svg>
-              Start Trading on WhatsApp
-            </a>
+              <Calendar size={18} /> Book Mentorship
+            </Link>
             <Link to="/contact"
               className="px-8 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5">
               Contact Us
