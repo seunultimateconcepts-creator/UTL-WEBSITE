@@ -65,7 +65,7 @@ function GoogleOneTap() {
     // silently overwrites the first's config, which is very likely why
     // the rendered signup button stopped working while One Tap (active
     // everywhere else) kept working fine.
-    const skipEntirely = ['/login', '/signup']
+    const skipEntirely = ['/login', '/signup', '/admin']
     if (skipEntirely.some((p) => window.location.pathname.startsWith(p))) return
 
     if (localStorage.getItem('utl_token')) return
@@ -78,14 +78,25 @@ function GoogleOneTap() {
 
     const init = () => {
       if (!window.google) return
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-        auto_select: false,        // require a tap — never log in silently
-        cancel_on_tap_outside: true,
-        use_fedcm_for_prompt: true,
-      })
-      window.google.accounts.id.prompt() // triggers the One Tap popup
+      // ✅ Defense in depth — GoogleAuthButton.jsx should have this too.
+      // A third-party script failing (FedCM NetworkError, an ad blocker,
+      // a future Google API change) should NEVER be able to crash the
+      // whole React app. This is exactly what happened on /admin: GSI's
+      // own internal failure propagated up through React's render tree
+      // instead of staying contained. Isolating it here means the worst
+      // case is now "One Tap silently doesn't appear," not a blank page.
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: false,        // require a tap — never log in silently
+          cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: true,
+        })
+        window.google.accounts.id.prompt() // triggers the One Tap popup
+      } catch (err) {
+        console.error('Google One Tap failed to initialize (non-fatal):', err)
+      }
     }
 
     if (!script) {

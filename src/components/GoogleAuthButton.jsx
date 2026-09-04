@@ -42,17 +42,21 @@ function GoogleAuthButton() {
 
     const init = () => {
       if (!window.google || !buttonRef.current) return
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-        use_fedcm_for_prompt: true,
-      })
-      window.google.accounts.id.renderButton(buttonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: '100%',
-        text: 'continue_with',
-      })
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse,
+          use_fedcm_for_prompt: true,
+        })
+        window.google.accounts.id.renderButton(buttonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'continue_with',
+        })
+      } catch (err) {
+        console.error('Google Sign-In button failed to initialize (non-fatal):', err)
+      }
     }
 
     if (!script) {
