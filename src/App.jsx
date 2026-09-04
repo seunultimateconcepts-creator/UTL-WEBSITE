@@ -67,9 +67,13 @@ function App() {
   const location = useLocation()
 
   // ✅ Pages that should NOT show Navbar and Footer
+  // /admin added — it has its own header/logout in AdminDashboard.jsx,
+  // and the main site's Navbar, Footer, AND ChatBot were all silently
+  // rendering on top of it, doubled up with the admin's own chrome.
   const authPages = ['/signup', '/login', '/dashboard',
                   '/signup-success', '/verify-email',
-                '/forgot-password', '/reset-password'
+                '/forgot-password', '/reset-password',
+                '/admin'
   ]
   const isAuthPage = authPages.some(page =>
     location.pathname.startsWith(page)

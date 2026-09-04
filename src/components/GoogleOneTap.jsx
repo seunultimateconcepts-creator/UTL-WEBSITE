@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { handleGoogleCredential } from '../utils/handleGoogleCredential'
 
 /**
  * GoogleOneTap
@@ -10,85 +11,45 @@ import { useNavigate } from 'react-router-dom'
  *   - are not currently logged in (no utl_token in localStorage)
  *   - have a Google session active in their browser
  *
- * Uses the SAME endpoint, payload shape, and response contract as
- * GoogleAuthButton.jsx (POST {BASE_URL}/auth/oauth/google, { credential }).
+ * Uses the shared handleGoogleCredential — see that file for why this
+ * matters: GoogleAuthButton.jsx uses the exact same function, so it no
+ * longer matters which component's initialize() call Google's SDK
+ * treats as "active."
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 function GoogleOneTap() {
   const navigate = useNavigate()
   const initialized = useRef(false)
 
-  const handleCredentialResponse = async (response) => {
-    try {
-      const res = await fetch(`${BASE_URL}/auth/oauth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential }),
-      })
-      const data = await res.json()
-
-      if (!data.success) {
-        console.error('Google One Tap sign-in failed:', data.message)
-        return
-      }
-
-      localStorage.setItem('utl_token', data.token)
-      localStorage.setItem('utl_current_user', JSON.stringify(data.user))
-
-      // Don't yank someone off a page they're actively using —
-      // e.g. mid-task on Tech Hub — just let the token silently attach.
-      const noRedirectPaths = ['/tech-hub']
-      if (noRedirectPaths.some((p) => window.location.pathname.startsWith(p))) {
-        return
-      }
-
-      // ✅ No more accountTypeConfirmed check / complete-profile
-      // redirect — that belonged to the old account-type picker flow,
-      // which doesn't exist anymore. Straight to the real destination.
-      const redirect = localStorage.getItem('utl_redirect_after_login')
-      localStorage.removeItem('utl_redirect_after_login')
-      navigate(redirect || '/dashboard')
-    } catch (err) {
-      console.error('Google One Tap error:', err)
-    }
-  }
-
   useEffect(() => {
     // Skip entirely if already logged in
-    // ✅ Skip entirely on pages that already render their own explicit
-    // Google button — GoogleAuthButton.jsx on /login and /signup. Both
-    // components call window.google.accounts.id.initialize() with their
-    // own callback; running both on the same page means the second call
-    // silently overwrites the first's config, which is very likely why
-    // the rendered signup button stopped working while One Tap (active
-    // everywhere else) kept working fine.
-    const skipEntirely = ['/login', '/signup', '/admin']
-    if (skipEntirely.some((p) => window.location.pathname.startsWith(p))) return
-
     if (localStorage.getItem('utl_token')) return
 
     if (initialized.current) return
     initialized.current = true
+
+    // ✅ Skip entirely on pages that already render their own explicit
+    // Google button — GoogleAuthButton.jsx on /login, /signup, and the
+    // admin key screens. A Google sign-in prompt is meaningless on
+    // /admin regardless of any bug, and running both on the same page
+    // means duplicate initialize() calls.
+    const skipEntirely = ['/login', '/signup', '/admin']
+    if (skipEntirely.some((p) => window.location.pathname.startsWith(p))) return
 
     const scriptId = 'google-identity-script'
     let script = document.getElementById(scriptId)
 
     const init = () => {
       if (!window.google) return
-      // ✅ Defense in depth — GoogleAuthButton.jsx should have this too.
-      // A third-party script failing (FedCM NetworkError, an ad blocker,
-      // a future Google API change) should NEVER be able to crash the
-      // whole React app. This is exactly what happened on /admin: GSI's
-      // own internal failure propagated up through React's render tree
-      // instead of staying contained. Isolating it here means the worst
-      // case is now "One Tap silently doesn't appear," not a blank page.
+      // ✅ Defense in depth — a third-party script failing (FedCM
+      // NetworkError, an ad blocker, a future Google API change)
+      // should never be able to crash the whole React app.
       try {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
-          callback: handleCredentialResponse,
+          callback: (response) => handleGoogleCredential(response, navigate),
           auto_select: false,        // require a tap — never log in silently
           cancel_on_tap_outside: true,
           use_fedcm_for_prompt: true,

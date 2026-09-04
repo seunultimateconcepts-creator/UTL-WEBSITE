@@ -42,6 +42,7 @@ app.use('/api/bookings', require('./routes/bookingRoutes'))
 app.use('/api/notes', require('./routes/noteRoutes'))
 app.use('/api/sourcing-requests', require('./routes/sourcingRequestRoutes'))
 app.use('/api/messages', require('./routes/messageRoutes'))
+app.use('/api/chatbot', require('./routes/chatbotRoutes'))
 
 // ✅ Health check — visit this to confirm server is running
 app.get('/', (req, res) => {
