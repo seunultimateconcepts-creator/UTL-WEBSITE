@@ -56,6 +56,7 @@ import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
 import UltimateConcepts from './pages/UltimateConcepts'
 import UpgradePlan from './pages/UpgradePlan'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // remove the old UTLShopStore import
 
@@ -75,69 +76,72 @@ function App() {
   )
 
   return (
-    <CartProvider>
-    <div>
-      <ScrollToTop />
-      <GoogleOneTap />
-      {!isAuthPage && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/about/who-we-are" element={<WhoWeAre />} />
-        <Route path="/about/values" element={<Values />} />
-        <Route path="/about/vision" element={<Vision />} />
-        <Route path="/about/faqs" element={<FAQs />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/services/web-development" element={<WebDevelopment />} />
-        <Route path="/services/crypto" element={<CryptoServices />} />
-        <Route path="/services/shopping" element={<ShoppingAssistance />} />
-        <Route path="/portfolio" element={<Portfolio />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/become-seller" element={<BecomeSeller />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="*" element={<NotFound />} />
-        <Route path="/signup-success" element={<SignUpSuccess />} />
-        <Route path="/verify-email/:token" element={<VerifyEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
-        <Route path="/tech-hub" element={<TechHub />} />
-        <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
-        <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
-        <Route path="/tech-hub/word-counter" element={<WordCounter />} />
-        <Route path="/tech-hub/qr-generator" element={<QRGenerator />} />
-        <Route path="/tech-hub/cv-builder" element={<CVBuilder />} />
-        <Route path="/tech-hub/unit-converter" element={<UnitConverter />} />
-        <Route path="/tech-hub/base64-tool" element={<Base64Tool />} />
-        <Route path="/tech-hub/currency-converter" element={<CurrencyConverter />} />
-        <Route path="/tech-hub/hash-uuid-generator" element={<HashUuidGenerator />} />
-        <Route path="/tech-hub/percentage-vat-calculator" element={<PercentageVatCalculator />} />
-        <Route path="/tech-hub/color-converter" element={<ColorConverter />} />
-        <Route path="/tech-hub/image-compressor" element={<ImageCompressor />} />
-        <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
-        <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
-        <Route path="/complete-profile" element={<CompleteProfile />} />      
-        <Route path="/shop/vendor/:vendorId" element={<VendorStore />} />
-        <Route path="/shop/vendor/:vendorId/product/:productId" element={<ProductDetail />} />
-        <Route path="/dashboard/add-product" element={<AddProduct />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/book-service" element={<BookService />} />
-        <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
-        <Route path="/tech-hub/notepad" element={<Notepad />} />
-        <Route path="/shop/ultimate" element={<UltimateConcepts />} />
-        <Route path="/upgrade-plan" element={<UpgradePlan />} />
-        </Routes>
-      {!isAuthPage && <Footer />}
-      {!isAuthPage && <ChatBot />}
-    </div>
-    </CartProvider>
+    
+    <ErrorBoundary>
+      <CartProvider>
+        <div>
+          <ScrollToTop />
+          <GoogleOneTap />
+          {!isAuthPage && <Navbar />}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/about/who-we-are" element={<WhoWeAre />} />
+            <Route path="/about/values" element={<Values />} />
+            <Route path="/about/vision" element={<Vision />} />
+            <Route path="/about/faqs" element={<FAQs />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/web-development" element={<WebDevelopment />} />
+            <Route path="/services/crypto" element={<CryptoServices />} />
+            <Route path="/services/shopping" element={<ShoppingAssistance />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/become-seller" element={<BecomeSeller />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="*" element={<NotFound />} />
+            <Route path="/signup-success" element={<SignUpSuccess />} />
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
+            <Route path="/tech-hub" element={<TechHub />} />
+            <Route path="/tech-hub/json-formatter" element={<JsonFormatter />} />
+            <Route path="/tech-hub/password-generator" element={<PasswordGenerator />} />
+            <Route path="/tech-hub/word-counter" element={<WordCounter />} />
+            <Route path="/tech-hub/qr-generator" element={<QRGenerator />} />
+            <Route path="/tech-hub/cv-builder" element={<CVBuilder />} />
+            <Route path="/tech-hub/unit-converter" element={<UnitConverter />} />
+            <Route path="/tech-hub/base64-tool" element={<Base64Tool />} />
+            <Route path="/tech-hub/currency-converter" element={<CurrencyConverter />} />
+            <Route path="/tech-hub/hash-uuid-generator" element={<HashUuidGenerator />} />
+            <Route path="/tech-hub/percentage-vat-calculator" element={<PercentageVatCalculator />} />
+            <Route path="/tech-hub/color-converter" element={<ColorConverter />} />
+            <Route path="/tech-hub/image-compressor" element={<ImageCompressor />} />
+            <Route path="/tech-hub/image-pdf-converter" element={<ImagePdfConverter />} />
+            <Route path="/tech-hub/pdf-toolkit" element={<PdfToolkit />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/shop/vendor/:vendorId" element={<VendorStore />} />
+            <Route path="/shop/vendor/:vendorId/product/:productId" element={<ProductDetail />} />
+            <Route path="/dashboard/add-product" element={<AddProduct />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/book-service" element={<BookService />} />
+            <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
+            <Route path="/tech-hub/notepad" element={<Notepad />} />
+            <Route path="/shop/ultimate" element={<UltimateConcepts />} />
+            <Route path="/upgrade-plan" element={<UpgradePlan />} />
+          </Routes>
+          {!isAuthPage && <Footer />}
+          {!isAuthPage && <ChatBot />}
+        </div>
+      </CartProvider>
+    </ErrorBoundary>
   )
 }
 

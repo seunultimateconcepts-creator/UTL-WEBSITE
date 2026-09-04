@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/immutability */
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Image as ImageIcon, Users } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users } from 'lucide-react'
 import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -29,11 +27,6 @@ function AdminDashboard() {
     }
     setAdminKey(key)
   }, [navigate])
-
-  useEffect(() => {
-    if (adminKey) fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminKey])
 
   const fetchData = async () => {
     setLoading(true)
@@ -72,6 +65,11 @@ function AdminDashboard() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (adminKey) fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminKey])
 
   const flashMessage = (msg) => {
     setActionMessage(msg)
