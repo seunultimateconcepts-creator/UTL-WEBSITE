@@ -17,4 +17,13 @@ export default defineConfig({
       targets: ['defaults', 'not IE 11'],
     }),
   ],
+  build: {
+    // ✅ The legacy plugin only splits browsers by ES-module support,
+    // not by every individual feature — a browser can support modules
+    // fine while still lacking something as recent as `Iterator`,
+    // landing it on the "modern" bundle anyway. Explicitly targeting
+    // es2020 tells esbuild not to rely on anything newer than that in
+    // the main bundle at all, closing that specific gap directly.
+    target: 'es2020',
+  },
 })
