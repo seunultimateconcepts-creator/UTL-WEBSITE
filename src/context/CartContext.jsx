@@ -14,7 +14,13 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : []
+      const parsed = saved ? JSON.parse(saved) : []
+      // ✅ JSON.parse succeeds on ANY valid JSON, not just arrays — a
+      // browser holding old cart data from before this was repurposed
+      // (a different shape entirely) would parse fine here and silently
+      // hand back something that isn't an array, breaking `.length`
+      // wherever it's read downstream. Guard against that explicitly.
+      return Array.isArray(parsed) ? parsed : []
     } catch {
       return []
     }
