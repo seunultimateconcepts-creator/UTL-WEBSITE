@@ -123,13 +123,17 @@ const userSchema = new mongoose.Schema({
     shopAddress: { type: String, default: '' },
     shopPhotoUrl: { type: String, default: '' }, // Cloudinary
   },
-  // ✅ Verification data — deliberately does NOT include NIN or BVN.
-  // Those get emailed directly to admin for one-time manual
-  // cross-checking and are NEVER written to this or any other
-  // collection. CAC is public record; live location is low-sensitivity
-  // — both are fine to store normally. sellerStatus (already existing)
-  // remains the single source of truth for approved/pending/rejected;
-  // this block is just supporting context for that decision.
+  // ✅ Verification data. CAC is public record; live location is
+  // low-sensitivity — both fine to store normally and kept indefinitely.
+  // nin / ninPhotoBase64 / selfiePhotoBase64 are the sensitive
+  // exception: stored ONLY for the review window while sellerStatus
+  // === 'pending', so the admin panel can display them for side-by-side
+  // comparison against the applicant's card. approveSeller and
+  // rejectSeller BOTH wipe these three fields back to '' the moment a
+  // decision is made — see sellerController.js. Still also emailed
+  // once to ADMIN_EMAIL at submission time as a backup/audit copy.
+  // sellerStatus (already existing) remains the single source of truth
+  // for approved/pending/rejected; this block is supporting context.
   verification: {
     cacNumber: { type: String, default: '' },
     liveLocation: {
@@ -137,6 +141,9 @@ const userSchema = new mongoose.Schema({
       lng: { type: Number, default: null },
     },
     submittedAt: { type: Date, default: null },
+    nin: { type: String, default: '' },               // wiped on approve/reject
+    ninPhotoBase64: { type: String, default: '' },     // wiped on approve/reject
+    selfiePhotoBase64: { type: String, default: '' },  // wiped on approve/reject
   },
   // ✅ Zero-knowledge notepad vault. salt + verifyCiphertext/verifyIv are
   // the ONLY things stored here — never the passphrase, never the

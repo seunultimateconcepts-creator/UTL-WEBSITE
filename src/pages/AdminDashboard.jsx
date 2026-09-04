@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users, MapPin, FileText, Tag } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users, MapPin, FileText, Tag, ScanFace, Lock } from 'lucide-react'
 import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -288,6 +288,12 @@ function AdminDashboard() {
                           <span>CAC: {ver.cacNumber}</span>
                         </div>
                       )}
+                      {ver.nin && (
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <FileText size={13} className="text-gray-400 flex-shrink-0" />
+                          <span>NIN: {ver.nin}</span>
+                        </div>
+                      )}
                       {hasLocation && (
                         <a href={`https://www.google.com/maps?q=${ver.liveLocation.lat},${ver.liveLocation.lng}`}
                           target="_blank" rel="noopener noreferrer"
@@ -296,6 +302,35 @@ function AdminDashboard() {
                           View submitted location on map
                         </a>
                       )}
+                    </div>
+                  )}
+
+                  {(ver.ninPhotoBase64 || ver.selfiePhotoBase64) && (
+                    <div className="border-t border-gray-50 pt-3">
+                      <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-2">
+                        <Lock size={11} />
+                        <span>Visible only until approved/rejected — then permanently deleted</span>
+                      </div>
+                      <div className="flex gap-4 flex-wrap">
+                        {ver.ninPhotoBase64 && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
+                              <FileText size={11} /> NIMC slip
+                            </p>
+                            <img src={ver.ninPhotoBase64} alt="NIMC slip"
+                              className="w-32 h-32 rounded-xl object-cover border border-gray-100" />
+                          </div>
+                        )}
+                        {ver.selfiePhotoBase64 && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
+                              <ScanFace size={11} /> Selfie
+                            </p>
+                            <img src={ver.selfiePhotoBase64} alt="Selfie"
+                              className="w-32 h-32 rounded-xl object-cover border border-gray-100" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

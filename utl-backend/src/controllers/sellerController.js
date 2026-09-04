@@ -58,6 +58,12 @@ const approveSeller = async (req, res) => {
     }
 
     user.sellerStatus = 'approved'
+    // ✅ Review window is over — wipe the sensitive verification copy
+    // immediately. The email sent at submission time remains the only
+    // durable record from here on.
+    user.verification.nin = ''
+    user.verification.ninPhotoBase64 = ''
+    user.verification.selfiePhotoBase64 = ''
     await user.save()
 
     const storeLink = `${process.env.CLIENT_URL}/shop/vendor/${user._id}`
@@ -116,6 +122,10 @@ const rejectSeller = async (req, res) => {
     }
 
     user.sellerStatus = 'rejected'
+    // ✅ Same wipe as approveSeller — review window is over either way.
+    user.verification.nin = ''
+    user.verification.ninPhotoBase64 = ''
+    user.verification.selfiePhotoBase64 = ''
     await user.save()
 
     res.status(200).json({ success: true, message: 'Seller application rejected' })
@@ -136,7 +146,7 @@ const listPendingSellers = async (req, res) => {
     }
 
     const pending = await User.find({ sellerStatus: 'pending' })
-      .select('firstName lastName email phone createdAt vendorProfile verification.cacNumber verification.liveLocation verification.submittedAt')
+      .select('firstName lastName email phone createdAt vendorProfile verification.cacNumber verification.liveLocation verification.submittedAt verification.nin verification.ninPhotoBase64 verification.selfiePhotoBase64')
       .sort({ createdAt: -1 })
 
     res.status(200).json({ success: true, sellers: pending })
@@ -228,11 +238,10 @@ const updateVendorTier = async (req, res) => {
 }
 
 // ✅ SUBMIT SELLER APPLICATION — the self-service replacement for the
-// old WhatsApp-based flow. Runs as one function specifically so it's
-// easy to verify at a glance: nin and bvn are read from req.body,
-// passed into the email template, and NEVER touch `user.save()` or
-// any other persistence call below. Everything else in vendorProfile/
-// verification is fine to store — see user.js for why.
+// old WhatsApp-based flow. nin/ninPhotoBase64/selfiePhotoBase64 ARE
+// persisted here now (review-window only — see verification block in
+// user.js), plus emailed to ADMIN_EMAIL as a backup copy. Everything
+// in vendorProfile/verification is fine to store — see user.js.
 const submitSellerApplication = async (req, res) => {
   try {
     const {
@@ -259,19 +268,21 @@ const submitSellerApplication = async (req, res) => {
       return res.status(400).json({ success: false, message: 'You are already an approved seller' })
     }
 
-    // ✅ Only the safe fields get persisted — nin/bvn are deliberately
-    // absent from this object
     user.vendorProfile = { shopName, businessCategory: businessCategory || 'Product Seller', bio, shopAddress, shopPhotoUrl }
     user.verification = {
       cacNumber: cacNumber || '',
       liveLocation: { lat, lng },
       submittedAt: new Date(),
+      // ✅ Review-window only — wiped by approveSeller/rejectSeller
+      nin,
+      ninPhotoBase64,
+      selfiePhotoBase64,
     }
     user.sellerStatus = 'pending'
     await user.save()
 
-    // ✅ NIN/BVN's only appearance, anywhere, ever — sent once to admin
-    // for manual cross-checking, never written to a database
+    // ✅ Backup/audit copy — DB copy above is temporary and gets wiped
+    // on approve/reject, so this email is the durable record.
     try {
       if (process.env.ADMIN_EMAIL) {
         await sendEmail({
