@@ -136,7 +136,7 @@ const listPendingSellers = async (req, res) => {
     }
 
     const pending = await User.find({ sellerStatus: 'pending' })
-      .select('firstName lastName email phone createdAt')
+      .select('firstName lastName email phone createdAt vendorProfile verification.cacNumber verification.liveLocation verification.submittedAt')
       .sort({ createdAt: -1 })
 
     res.status(200).json({ success: true, sellers: pending })

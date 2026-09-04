@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users, MapPin, FileText, Tag } from 'lucide-react'
 import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -229,25 +229,78 @@ function AdminDashboard() {
             {pendingSellers.length === 0 && (
               <p className="text-gray-400 text-sm text-center py-12">No pending seller applications.</p>
             )}
-            {pendingSellers.map(seller => (
-              <div key={seller._id} className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                  <p className="text-gray-900 font-bold text-sm">{seller.firstName} {seller.lastName}</p>
-                  <p className="text-gray-500 text-xs">{seller.email} · {seller.phone}</p>
-                  <p className="text-gray-400 text-[10px] mt-1">Applied {new Date(seller.createdAt).toLocaleDateString()}</p>
+            {pendingSellers.map(seller => {
+              const vp = seller.vendorProfile || {}
+              const ver = seller.verification || {}
+              const hasLocation = ver.liveLocation && ver.liveLocation.lat && ver.liveLocation.lng
+              return (
+                <div key={seller._id} className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col gap-4">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex items-start gap-4">
+                      {vp.shopPhotoUrl && (
+                        <img src={vp.shopPhotoUrl} alt={vp.shopName || 'Shop photo'}
+                          className="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className="text-gray-900 font-bold text-sm">{seller.firstName} {seller.lastName}</p>
+                        <p className="text-gray-500 text-xs">{seller.email} · {seller.phone}</p>
+                        <p className="text-gray-400 text-[10px] mt-1">Applied {new Date(seller.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleApprove(seller._id)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-bold rounded-lg transition-colors">
+                        <Check size={14} /> Approve
+                      </button>
+                      <button onClick={() => handleReject(seller._id)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-bold rounded-lg transition-colors">
+                        <X size={14} /> Reject
+                      </button>
+                    </div>
+                  </div>
+
+                  {(vp.shopName || vp.businessCategory || vp.bio || vp.shopAddress || ver.cacNumber || hasLocation) && (
+                    <div className="border-t border-gray-50 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                      {vp.shopName && (
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <Store size={13} className="text-gray-400 flex-shrink-0" />
+                          <span className="font-semibold">{vp.shopName}</span>
+                        </div>
+                      )}
+                      {vp.businessCategory && (
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <Tag size={13} className="text-gray-400 flex-shrink-0" />
+                          <span>{vp.businessCategory}</span>
+                        </div>
+                      )}
+                      {vp.shopAddress && (
+                        <div className="flex items-center gap-2 text-xs text-gray-700 sm:col-span-2">
+                          <MapPin size={13} className="text-gray-400 flex-shrink-0" />
+                          <span>{vp.shopAddress}</span>
+                        </div>
+                      )}
+                      {vp.bio && (
+                        <p className="text-xs text-gray-600 sm:col-span-2 leading-relaxed">{vp.bio}</p>
+                      )}
+                      {ver.cacNumber && (
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <FileText size={13} className="text-gray-400 flex-shrink-0" />
+                          <span>CAC: {ver.cacNumber}</span>
+                        </div>
+                      )}
+                      {hasLocation && (
+                        <a href={`https://www.google.com/maps?q=${ver.liveLocation.lat},${ver.liveLocation.lng}`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-xs text-blue-600 hover:underline">
+                          <MapPin size={13} className="flex-shrink-0" />
+                          View submitted location on map
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleApprove(seller._id)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-bold rounded-lg transition-colors">
-                    <Check size={14} /> Approve
-                  </button>
-                  <button onClick={() => handleReject(seller._id)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-bold rounded-lg transition-colors">
-                    <X size={14} /> Reject
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
