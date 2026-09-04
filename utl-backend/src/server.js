@@ -20,7 +20,13 @@ app.use(cors({
   ],
   credentials: true
 }))
-app.use(express.json())
+// ✅ limit: '10mb' added — the seller verification flow now submits
+// two compressed photo images as base64 in the request body, which
+// exceeds Express's default 100kb JSON limit without this.
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => { req.rawBody = buf }
+}))
 app.use(express.urlencoded({ extended: true }))
 
 // ✅ Routes — we'll add more here
@@ -32,6 +38,10 @@ app.use('/api/auth/oauth', require('./routes/oauthRoutes'))
 app.use('/api/products', require('./routes/productRoutes'))
 app.use('/api/inquiries', require('./routes/inquiryroutes'))
 app.use('/api/sellers', require('./routes/sellerRoutes'))
+app.use('/api/bookings', require('./routes/bookingRoutes'))
+app.use('/api/notes', require('./routes/noteRoutes'))
+app.use('/api/sourcing-requests', require('./routes/sourcingRequestRoutes'))
+app.use('/api/messages', require('./routes/messageRoutes'))
 
 // ✅ Health check — visit this to confirm server is running
 app.get('/', (req, res) => {

@@ -2,23 +2,49 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, Lock } from 'lucide-react'
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 function AdminLogin() {
   const navigate = useNavigate()
   const [key, setKey] = useState('')
   const [error, setError] = useState('')
+  const [verifying, setVerifying] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!key.trim()) {
       setError('Enter your admin key')
       return
     }
-    // ✅ sessionStorage, not localStorage — clears when the browser tab
-    // closes rather than persisting indefinitely. There's no way to
-    // validate the key without hitting a protected endpoint, so we just
-    // store it and let the first real admin request fail loudly if wrong.
-    sessionStorage.setItem('utl_admin_key', key.trim())
-    navigate('/admin')
+
+    // ✅ Actually verify the key against a real protected endpoint
+    // BEFORE navigating — this is what was missing. The old version
+    // stored whatever was typed and navigated regardless of whether
+    // it was correct, relying on AdminDashboard to catch a bad key
+    // downstream. Checking here means a wrong key gets a clear,
+    // immediate "incorrect" message instead of a confusing blank
+    // dashboard with every tab silently showing zero.
+    setVerifying(true)
+    setError('')
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/pending`, {
+        headers: { 'x-admin-key': key.trim() },
+      })
+      const data = await res.json()
+
+      if (res.status === 403 || !data.success) {
+        setError('Incorrect admin key')
+        return
+      }
+
+      sessionStorage.setItem('utl_admin_key', key.trim())
+      navigate('/admin')
+    } catch (err) {
+      console.error('Admin key verification failed:', err)
+      setError('Network error — please try again')
+    } finally {
+      setVerifying(false)
+    }
   }
 
   return (
@@ -43,9 +69,9 @@ function AdminLogin() {
               className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             />
           </div>
-          <button type="submit"
-            className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm">
-            Continue
+          <button type="submit" disabled={verifying}
+            className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-600 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm">
+            {verifying ? 'Verifying...' : 'Continue'}
           </button>
         </form>
       </div>

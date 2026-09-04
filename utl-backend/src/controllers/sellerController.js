@@ -238,14 +238,14 @@ const submitSellerApplication = async (req, res) => {
     const {
       shopName, businessCategory, bio, shopAddress, shopPhotoUrl,
       cacNumber, lat, lng,
-      nin, bvn,
+      nin, ninPhotoBase64, selfiePhotoBase64,
     } = req.body
 
     if (!shopName || !bio || !shopAddress || !shopPhotoUrl) {
       return res.status(400).json({ success: false, message: 'Shop name, bio, shop address, and shop photo are required' })
     }
-    if (!nin || !bvn) {
-      return res.status(400).json({ success: false, message: 'NIN and BVN are required for verification' })
+    if (!nin || !ninPhotoBase64 || !selfiePhotoBase64) {
+      return res.status(400).json({ success: false, message: 'NIN, NIMC photo, and selfie are all required for verification' })
     }
     if (lat == null || lng == null) {
       return res.status(400).json({ success: false, message: 'Live location is required for verification' })
@@ -277,7 +277,7 @@ const submitSellerApplication = async (req, res) => {
         await sendEmail({
           to: process.env.ADMIN_EMAIL,
           subject: `Seller Verification: ${user.firstName} ${user.lastName}`,
-          html: sellerVerificationSubmittedEmail(user, { nin, bvn }),
+          html: sellerVerificationSubmittedEmail(user, { nin, ninPhotoBase64, selfiePhotoBase64 }),
         })
       } else {
         console.error('ADMIN_EMAIL not set — verification submitted but admin was not notified with NIN/BVN')

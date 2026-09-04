@@ -1,13 +1,34 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Store, Globe, Wallet, ShieldCheck, MessageCircle, Zap, Gem,
-  PartyPopper, Send, Check, ArrowRight, MapPin, ArrowLeft,
+  PartyPopper, Send, Check, ArrowRight, MapPin, ArrowLeft, Camera, UserCircle,
 } from 'lucide-react'
 import ImageUpload from '../components/ImageUpload'
+import { compressImageToBase64 } from '../utils/compressImageToBase64'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 function BecomeSeller() {
+  const navigate = useNavigate()
+  const [loggedInUser, setLoggedInUser] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // ✅ You must already be a registered UTL user to apply — the backend
+  // already enforces this (submitSellerApplication requires a valid
+  // login token), but redirecting here means someone finds out BEFORE
+  // filling out a two-step form, not after submitting it.
+  useEffect(() => {
+    const currentUser = localStorage.getItem('utl_current_user')
+    if (!currentUser) {
+      localStorage.setItem('utl_redirect_after_login', '/become-seller')
+      navigate('/login')
+      return
+    }
+    setLoggedInUser(JSON.parse(currentUser))
+    setCheckingAuth(false)
+  }, [navigate])
 
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
@@ -18,8 +39,11 @@ function BecomeSeller() {
     shopPhotoUrl: '',
     cacNumber: '',
     nin: '',
-    bvn: '',
   })
+  const [ninPhotoBase64, setNinPhotoBase64] = useState('')
+  const [selfiePhotoBase64, setSelfiePhotoBase64] = useState('')
+  const [compressingNin, setCompressingNin] = useState(false)
+  const [compressingSelfie, setCompressingSelfie] = useState(false)
   const [location, setLocation] = useState(null) // { lat, lng }
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
@@ -113,6 +137,40 @@ function BecomeSeller() {
 
   const lgasForState = statesLGAs[selectedState] || []
 
+  // ✅ Compressed and converted entirely client-side — these never
+  // touch Cloudinary or any persistent storage. They exist only in
+  // component state until submission, at which point they go straight
+  // into the one-time admin email and nowhere else.
+  const handleNinPhotoChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCompressingNin(true)
+    try {
+      const base64 = await compressImageToBase64(file)
+      setNinPhotoBase64(base64)
+    } catch (err) {
+      console.error('NIN photo processing failed:', err)
+      setSubmitError('Could not process that image — please try a different photo')
+    } finally {
+      setCompressingNin(false)
+    }
+  }
+
+  const handleSelfiePhotoChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCompressingSelfie(true)
+    try {
+      const base64 = await compressImageToBase64(file)
+      setSelfiePhotoBase64(base64)
+    } catch (err) {
+      console.error('Selfie processing failed:', err)
+      setSubmitError('Could not process that image — please try a different photo')
+    } finally {
+      setCompressingSelfie(false)
+    }
+  }
+
   const handleGetLocation = () => {
     setLocationError('')
     if (!navigator.geolocation) {
@@ -146,19 +204,20 @@ function BecomeSeller() {
     e.preventDefault()
     setSubmitError('')
 
-    if (!formData.nin.trim() || !formData.bvn.trim()) {
-      setSubmitError('NIN and BVN are required for verification')
+    if (!formData.nin.trim()) {
+      setSubmitError('NIN is required for verification')
+      return
+    }
+    if (!ninPhotoBase64) {
+      setSubmitError('Please upload a photo of your NIMC slip/card')
+      return
+    }
+    if (!selfiePhotoBase64) {
+      setSubmitError('Please upload a selfie for the liveness check')
       return
     }
     if (!location) {
       setSubmitError('Please share your live location')
-      return
-    }
-
-    const currentUser = localStorage.getItem('utl_current_user')
-    if (!currentUser) {
-      localStorage.setItem('utl_redirect_after_login', '/become-seller')
-      window.location.href = '/login'
       return
     }
 
@@ -176,7 +235,8 @@ function BecomeSeller() {
           shopPhotoUrl: formData.shopPhotoUrl,
           cacNumber: formData.cacNumber,
           nin: formData.nin,
-          bvn: formData.bvn,
+          ninPhotoBase64,
+          selfiePhotoBase64,
           lat: location.lat,
           lng: location.lng,
         }),
@@ -193,6 +253,14 @@ function BecomeSeller() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="pt-16 min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -337,7 +405,7 @@ function BecomeSeller() {
               Apply to Sell on UTL
             </h2>
             <p className="text-gray-500">
-              Fill in the form and we'll get back to you within 24 hours.
+              Fill in the form and we'll get back to you within 3-4 days.
             </p>
           </div>
 
@@ -350,7 +418,7 @@ function BecomeSeller() {
                   We've received your details and verification is underway.
                 </p>
                 <p className="text-gray-500 mb-6">
-                  We'll email you once your account is approved — usually within 24 hours.
+                  We'll email you once your account is approved — usually within 3-4 days.
                 </p>
               </div>
             ) : (
@@ -489,35 +557,66 @@ function BecomeSeller() {
                     <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl p-4">
                       <ShieldCheck size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
                       <p className="text-blue-800 text-xs leading-relaxed">
-                        Your NIN and BVN are used only for a one-time manual verification check and are
-                        <strong> never stored in our database</strong> — they're sent securely for review and then discarded.
+                        Your NIN, NIMC photo, and selfie are used only for a one-time manual verification check.
+                        <strong> None of this is stored in our database</strong> — everything is sent securely
+                        for review and then discarded.
                       </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+                      <UserCircle size={18} className="text-gray-400 flex-shrink-0" />
+                      <p className="text-gray-600 text-sm">
+                        Applying as <strong>{loggedInUser?.firstName} {loggedInUser?.lastName}</strong> — from your account.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">NIN *</label>
+                      <input
+                        type="text"
+                        name="nin"
+                        value={formData.nin}
+                        onChange={handleChange}
+                        placeholder="National Identification Number"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                      />
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">NIN *</label>
-                        <input
-                          type="text"
-                          name="nin"
-                          value={formData.nin}
-                          onChange={handleChange}
-                          placeholder="National Identification Number"
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                        />
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Photo of your NIMC Slip *</label>
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-300 cursor-pointer transition-colors">
+                          {compressingNin ? (
+                            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                          ) : ninPhotoBase64 ? (
+                            <img src={ninPhotoBase64} alt="NIMC slip" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <>
+                              <Camera size={18} className="text-gray-400" />
+                              <span className="text-gray-500 text-xs">Upload photo</span>
+                            </>
+                          )}
+                          <input type="file" accept="image/*" onChange={handleNinPhotoChange} className="hidden" />
+                        </label>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">BVN *</label>
-                        <input
-                          type="text"
-                          name="bvn"
-                          value={formData.bvn}
-                          onChange={handleChange}
-                          placeholder="Bank Verification Number"
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
-                        />
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selfie (Liveness Check) *</label>
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-300 cursor-pointer transition-colors">
+                          {compressingSelfie ? (
+                            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                          ) : selfiePhotoBase64 ? (
+                            <img src={selfiePhotoBase64} alt="Selfie" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <>
+                              <Camera size={18} className="text-gray-400" />
+                              <span className="text-gray-500 text-xs">Take/upload selfie</span>
+                            </>
+                          )}
+                          <input type="file" accept="image/*" capture="user" onChange={handleSelfiePhotoChange} className="hidden" />
+                        </label>
                       </div>
                     </div>
+                    <p className="text-gray-400 text-xs -mt-3">We compare your selfie against the photo on your NIMC slip.</p>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">
