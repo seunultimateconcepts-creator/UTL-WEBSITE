@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users, MapPin, FileText, Tag, ScanFace, Lock } from 'lucide-react'
+import { ShieldCheck, Check, X, Trash2, LogOut, Store, Package, ClipboardList, Calendar, Truck, Users, MapPin, FileText, Tag, ScanFace, Lock, ZoomIn } from 'lucide-react'
 import AdminSourcingRequestCard from './AdminSourcingRequestCard'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -18,6 +18,7 @@ function AdminDashboard() {
   const [vendors, setVendors] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionMessage, setActionMessage] = useState('')
+  const [lightboxImage, setLightboxImage] = useState(null) // { src, label } | null
 
   useEffect(() => {
     const key = sessionStorage.getItem('utl_admin_key')
@@ -238,8 +239,14 @@ function AdminDashboard() {
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-start gap-4">
                       {vp.shopPhotoUrl && (
-                        <img src={vp.shopPhotoUrl} alt={vp.shopName || 'Shop photo'}
-                          className="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0" />
+                        <button type="button"
+                          onClick={() => setLightboxImage({ src: vp.shopPhotoUrl, label: vp.shopName || 'Shop photo' })}
+                          className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 group">
+                          <img src={vp.shopPhotoUrl} alt={vp.shopName || 'Shop photo'} className="w-full h-full object-cover" />
+                          <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                            <ZoomIn size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </span>
+                        </button>
                       )}
                       <div>
                         <p className="text-gray-900 font-bold text-sm">{seller.firstName} {seller.lastName}</p>
@@ -317,8 +324,14 @@ function AdminDashboard() {
                             <p className="text-[10px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
                               <FileText size={11} /> NIMC slip
                             </p>
-                            <img src={ver.ninPhotoBase64} alt="NIMC slip"
-                              className="w-32 h-32 rounded-xl object-cover border border-gray-100" />
+                            <button type="button"
+                              onClick={() => setLightboxImage({ src: ver.ninPhotoBase64, label: 'NIMC slip' })}
+                              className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-100 group">
+                              <img src={ver.ninPhotoBase64} alt="NIMC slip" className="w-full h-full object-cover" />
+                              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                                <ZoomIn size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                           </div>
                         )}
                         {ver.selfiePhotoBase64 && (
@@ -326,8 +339,14 @@ function AdminDashboard() {
                             <p className="text-[10px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
                               <ScanFace size={11} /> Selfie
                             </p>
-                            <img src={ver.selfiePhotoBase64} alt="Selfie"
-                              className="w-32 h-32 rounded-xl object-cover border border-gray-100" />
+                            <button type="button"
+                              onClick={() => setLightboxImage({ src: ver.selfiePhotoBase64, label: 'Selfie' })}
+                              className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-100 group">
+                              <img src={ver.selfiePhotoBase64} alt="Selfie" className="w-full h-full object-cover" />
+                              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                                <ZoomIn size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -517,6 +536,26 @@ function AdminDashboard() {
         )}
 
       </div>
+
+      {/* Fullscreen image lightbox — click any thumbnail to open, click
+          anywhere (or the X) to close. Used for shop photo, NIMC slip, selfie. */}
+      {lightboxImage && (
+        <div
+          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <button type="button"
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+            <X size={20} />
+          </button>
+          <div className="max-w-3xl max-h-[85vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxImage.src} alt={lightboxImage.label}
+              className="max-w-full max-h-[75vh] rounded-xl object-contain cursor-default" />
+            <p className="text-white text-sm font-semibold">{lightboxImage.label}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { getDashboardConfig } from '../../config/dashboardConfig'
 import {
   LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
   Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
-  Trash2, CheckCircle2, Clock, Menu, X,
+  Trash2, CheckCircle2, Clock, Menu, X, XCircle, RefreshCw,
 } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
 import ChatWindow from '../../components/ChatWindow'
@@ -256,7 +256,9 @@ function Dashboard() {
     ? 'Seller'
     : user.sellerStatus === 'pending'
       ? 'Seller application pending'
-      : 'Client'
+      : user.sellerStatus === 'rejected'
+        ? 'Seller application not approved'
+        : 'Client'
 
   return (
     <>
@@ -378,6 +380,23 @@ function Dashboard() {
           </div>
         )}
 
+        {/* Seller application rejected banner — was previously indistinguishable
+            from a user who never applied at all. Offers a direct path to
+            reapply since the backend already allows resubmission for any
+            status other than 'approved'. */}
+        {user.sellerStatus === 'rejected' && (
+          <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 flex-wrap">
+            <XCircle size={20} className="text-red-600 flex-shrink-0" />
+            <p className="text-red-800 text-sm flex-1">
+              Your seller application wasn't approved this time.
+            </p>
+            <Link to="/become-seller"
+              className="flex items-center gap-1.5 text-red-700 text-sm font-bold hover:text-red-800">
+              <RefreshCw size={14} /> Reapply
+            </Link>
+          </div>
+        )}
+
         {/* Your store link — approved sellers only. This IS their live,
             shareable storefront the moment they've added at least one
             product — surfacing it here is what makes that actually
@@ -450,7 +469,7 @@ function Dashboard() {
                   { label: 'Full Name', value: `${user.firstName} ${user.lastName}` },
                   { label: 'Email', value: user.email },
                   { label: 'Phone', value: user.phone || '—' },
-                  { label: 'Seller Status', value: isApprovedSeller ? 'Approved' : user.sellerStatus === 'pending' ? 'Pending review' : 'Not a seller' },
+                  { label: 'Seller Status', value: isApprovedSeller ? 'Approved' : user.sellerStatus === 'pending' ? 'Pending review' : user.sellerStatus === 'rejected' ? 'Not approved' : 'Not a seller' },
                   { label: 'Member Since', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' },
                   { label: 'Account Status', value: 'Active' },
                 ].map((info) => (
