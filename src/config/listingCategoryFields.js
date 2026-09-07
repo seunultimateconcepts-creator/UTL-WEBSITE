@@ -61,3 +61,24 @@ export const CATEGORY_FIELDS = {
 
   'Other': [],
 }
+
+/**
+ * BOOKING_CATEGORIES
+ *
+ * ✅ Categories where checkout needs DATES (a stay, a viewing, an
+ * event date) instead of a delivery address. ProductDetail.jsx reads
+ * this to decide which form to show — BookingDateForm vs AddressForm
+ * — and which field (bookingDetails vs deliveryAddress) to send to
+ * POST /orders. See Order.bookingDetails in the backend model.
+ */
+export const BOOKING_CATEGORIES = [
+  'Hotel & Short-Let Accommodation',
+  'Property & Real Estate',
+  'Events & Entertainment',
+  'Travel & Tour Booking',
+]
+
+// ✅ Hotel needs a checkout date (range); Property/Events/Travel just
+// need one date (a viewing, an event day, a departure). Read by
+// BookingDateForm.jsx to decide whether to show the second date field.
+export const RANGE_DATE_CATEGORIES = ['Hotel & Short-Let Accommodation']

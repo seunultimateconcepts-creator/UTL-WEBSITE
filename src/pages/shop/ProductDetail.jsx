@@ -5,7 +5,10 @@ import ProductChat from '../../components/ProductChat'
 import ShareLink from '../../components/ShareLink'
 import OrderConfirmation from '../../components/OrderConfirmation'
 import AddressForm from '../../components/AddressForm'
+import BookingDateForm from '../../components/BookingDateForm'
 import ChatWindow from '../../components/ChatWindow'
+import { BOOKING_CATEGORIES, RANGE_DATE_CATEGORIES } from '../../config/listingCategoryFields'
+import { getCategoryHighlights } from '../../utils/categoryHighlights'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -20,6 +23,7 @@ function ProductDetail() {
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [orderError, setOrderError] = useState('')
   const [showAddressForm, setShowAddressForm] = useState(false)
+  const [bookedDates, setBookedDates] = useState([])
   const [activeConversation, setActiveConversation] = useState(null)
   const [startingChat, setStartingChat] = useState(false)
 
@@ -32,6 +36,12 @@ function ProductDetail() {
         if (data.success) {
           setProduct(data.product)
           setVendor(data.vendor)
+          if (BOOKING_CATEGORIES.includes(data.product.category)) {
+            fetch(`${BASE_URL}/orders/booked-dates/${productId}`)
+              .then((r) => r.json())
+              .then((d) => { if (d.success) setBookedDates(d.bookedDates) })
+              .catch((err) => console.error('Failed to load booked dates:', err))
+          }
         }
       } catch (err) {
         console.error('Failed to load product:', err)
@@ -81,7 +91,10 @@ function ProductDetail() {
     setShowAddressForm(true)
   }
 
-  const handlePlaceOrder = async (deliveryAddress) => {
+  const needsBooking = BOOKING_CATEGORIES.includes(product?.category)
+  const isRangeBooking = RANGE_DATE_CATEGORIES.includes(product?.category)
+
+  const handlePlaceOrder = async (formData) => {
     const currentUser = localStorage.getItem('utl_current_user')
     const user = JSON.parse(currentUser)
     setPlacing(true)
@@ -105,7 +118,7 @@ function ProductDetail() {
             store: vendor ? `${vendor.firstName} ${vendor.lastName}` : '',
             quantity: 1,
           }],
-          deliveryAddress,
+          ...(needsBooking ? { bookingDetails: formData } : { deliveryAddress: formData }),
         }),
       })
       const data = await res.json()
@@ -208,6 +221,16 @@ function ProductDetail() {
               {product.currency} {product.price.toLocaleString()}
             </p>
 
+            {getCategoryHighlights(product).length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {getCategoryHighlights(product).map((h, i) => (
+                  <span key={i} className="text-xs font-semibold px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg">
+                    {h}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {product.stock === 0 ? (
               <span className="inline-block text-sm font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mb-4">Out of stock</span>
             ) : (
@@ -260,7 +283,7 @@ function ProductDetail() {
                   disabled={product.stock === 0 || placing}
                   className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 mb-6"
                 >
-                  <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Place Order'}
+                  <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : needsBooking ? 'Book Now' : 'Place Order'}
                 </button>
               )
             })()}
@@ -325,7 +348,7 @@ function ProductDetail() {
         )
       })()}
 
-      {/* Address modal — shown before order creation */}
+      {/* Address or booking-date modal — shown before order creation */}
       {showAddressForm && !confirmedOrder && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
@@ -334,11 +357,21 @@ function ProductDetail() {
                 <p className="text-red-600 text-sm">{orderError}</p>
               </div>
             )}
-            <AddressForm
-              onSubmit={handlePlaceOrder}
-              submitting={placing}
-              submitLabel="Place Order"
-            />
+            {needsBooking ? (
+              <BookingDateForm
+                isRange={isRangeBooking}
+                bookedDates={bookedDates}
+                onSubmit={handlePlaceOrder}
+                submitting={placing}
+                submitLabel="Book Now"
+              />
+            ) : (
+              <AddressForm
+                onSubmit={handlePlaceOrder}
+                submitting={placing}
+                submitLabel="Place Order"
+              />
+            )}
           </div>
         </div>
       )}
@@ -351,6 +384,7 @@ function ProductDetail() {
               order={confirmedOrder}
               onContinue={() => setConfirmedOrder(null)}
               continueLabel="Keep Browsing"
+              vendorBankDetails={vendor?.bankDetails}
             />
           </div>
         </div>

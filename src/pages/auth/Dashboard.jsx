@@ -1,11 +1,15 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/immutability */
+/* eslint-disable react-hooks/purity */
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import logo from '../../assets/logo_utl.png'
 import { getDashboardConfig } from '../../config/dashboardConfig'
 import {
   LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
   Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
-  Trash2, CheckCircle2, Clock, Menu, X, XCircle, RefreshCw,
+  Trash2, CheckCircle2, Clock, Menu, X, XCircle, RefreshCw, Landmark,
 } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
 import ChatWindow from '../../components/ChatWindow'
@@ -15,7 +19,7 @@ import ChatWindow from '../../components/ChatWindow'
 const ICONS = {
   LayoutDashboard, Briefcase, ShoppingCart, Store, MessageCircle,
   Settings, Bell, Plus, FileText, Palette, Home, LogOut, User, Lock,
-  Trash2, CheckCircle2, Clock,
+  Trash2, CheckCircle2, Clock, Landmark,
 }
 
 // ✅ Small helper so we can write <Icon name="Briefcase" /> anywhere
@@ -27,9 +31,13 @@ function Icon({ name, className = 'w-5 h-5' }) {
 
 function Dashboard() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [user, setUser] = useState(null)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifOpen, setNotifOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [bookings, setBookings] = useState([])
@@ -39,6 +47,10 @@ function Dashboard() {
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [activeConversation, setActiveConversation] = useState(null)
   const [activeConversationType, setActiveConversationType] = useState(null) // 'product' | 'support'
+  const [settingsModal, setSettingsModal] = useState(null) // 'profile' | 'password' | 'delete' | null
+  const [settingsForm, setSettingsForm] = useState({})
+  const [settingsError, setSettingsError] = useState('')
+  const [settingsLoading, setSettingsLoading] = useState(false)
 
   const handleStartSupportChat = async (sourcingRequestId) => {
     try {
@@ -73,20 +85,190 @@ function Dashboard() {
     const parsed = JSON.parse(currentUser)
 
     if (!parsed.dashboardUnlocked) {
-      navigate('/shop', {
+      navigate('/', {
         state: { message: 'Place your first order to unlock your dashboard!' },
       })
       return
     }
 
-    // eslint-disable-next-line
     setUser(parsed)
+
+    // ✅ localStorage only ever holds the flat login-response shape
+    // (id, name, email, sellerStatus, etc.) — vendorProfile (including
+    // bankDetails) was never part of that and is never otherwise
+    // fetched. This hydrates it in without disrupting the fast
+    // localStorage-first render above.
+    const token = localStorage.getItem('utl_token')
+    if (token) {
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      fetch(`${BASE_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.user) {
+            setUser((prev) => ({ ...prev, vendorProfile: data.user.vendorProfile }))
+          }
+        })
+        .catch((err) => console.error('Failed to hydrate full profile:', err))
+    }
   }, [navigate])
 
   const handleLogout = () => {
     localStorage.removeItem('utl_token')
     localStorage.removeItem('utl_current_user')
     navigate('/')
+  }
+
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
+  const openSettingsModal = (type) => {
+    setSettingsError('')
+    if (type === 'profile') {
+      setSettingsForm({ firstName: user.firstName || '', lastName: user.lastName || '', phone: user.phone || '' })
+    } else if (type === 'bank') {
+      const existing = user.vendorProfile?.bankDetails || {}
+      setSettingsForm({ bankName: existing.bankName || '', accountNumber: existing.accountNumber || '', accountName: existing.accountName || '' })
+    } else {
+      setSettingsForm({})
+    }
+    setSettingsModal(type)
+  }
+
+  const closeSettingsModal = () => {
+    setSettingsModal(null)
+    setSettingsForm({})
+    setSettingsError('')
+  }
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault()
+    setSettingsError('')
+    setSettingsLoading(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(settingsForm),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setSettingsError(data.message || 'Failed to update profile')
+        return
+      }
+      const updatedUser = { ...user, ...data.user }
+      setUser(updatedUser)
+      localStorage.setItem('utl_current_user', JSON.stringify(updatedUser))
+      closeSettingsModal()
+    } catch (err) {
+      setSettingsError('Something went wrong. Please try again.')
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
+  const handleConfirmPayment = async (orderId) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/confirm-payment`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, paymentStatus: 'confirmed', status: data.order.status } : o))
+      }
+    } catch (err) {
+      console.error('Failed to confirm payment:', err)
+    }
+  }
+
+  const handleUpdateBankDetails = async (e) => {
+    e.preventDefault()
+    setSettingsError('')
+    setSettingsLoading(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/sellers/bank-details`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(settingsForm),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setSettingsError(data.message || 'Failed to save bank details')
+        return
+      }
+      // ✅ Bank details live under vendorProfile, not top-level on
+      // `user` — merge carefully so other vendorProfile fields
+      // (shopName, bio, etc., hydrated from /auth/me on mount) aren't
+      // clobbered by this narrower update.
+      setUser((prev) => ({
+        ...prev,
+        vendorProfile: { ...prev.vendorProfile, bankDetails: data.bankDetails },
+      }))
+      closeSettingsModal()
+    } catch (err) {
+      setSettingsError('Something went wrong. Please try again.')
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setSettingsError('')
+    if (settingsForm.newPassword !== settingsForm.confirmPassword) {
+      setSettingsError("New passwords don't match")
+      return
+    }
+    setSettingsLoading(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/auth/change-password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          currentPassword: settingsForm.currentPassword,
+          newPassword: settingsForm.newPassword,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setSettingsError(data.message || 'Failed to change password')
+        return
+      }
+      closeSettingsModal()
+    } catch (err) {
+      setSettingsError('Something went wrong. Please try again.')
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault()
+    setSettingsError('')
+    setSettingsLoading(true)
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/auth/account`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password: settingsForm.password }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        setSettingsError(data.message || 'Failed to delete account')
+        return
+      }
+      localStorage.removeItem('utl_token')
+      localStorage.removeItem('utl_current_user')
+      navigate('/')
+    } catch (err) {
+      setSettingsError('Something went wrong. Please try again.')
+    } finally {
+      setSettingsLoading(false)
+    }
   }
 
   // ✅ Fetch real order + sourcing-request history on MOUNT, not gated
@@ -133,7 +315,6 @@ function Dashboard() {
 
     fetchOrders()
     fetchSourcingRequests()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // ✅ Fetch bookings when the Projects tab opens (client-only tab —
@@ -158,7 +339,6 @@ function Dashboard() {
       }
     }
     fetchBookings()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
 
   // ✅ Fetch conversations when Messages tab opens
@@ -182,7 +362,6 @@ function Dashboard() {
       }
     }
     fetchConversations()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
 
   // ✅ Fetch the seller's own products (all statuses) when My Shop opens
@@ -206,8 +385,95 @@ function Dashboard() {
       }
     }
     fetchMyProducts()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user])
+
+  // ✅ Keeps the tab in sync when a notification link like
+  // '/dashboard?tab=orders' is clicked while already on this page —
+  // the initial useState only reads searchParams once on mount, so
+  // this effect is what makes it react to later URL changes too.
+  useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t) setActiveTab(t)
+  }, [searchParams])
+
+  // ✅ Notifications — fetched once the user is loaded, independent of
+  // which tab is open, since the bell icon lives in the header on
+  // every tab. No polling for now; refetches on mount and whenever the
+  // dropdown is opened, which is enough for a first version.
+  useEffect(() => {
+    if (!user) return
+    fetchNotifications()
+  }, [user])
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const res = await fetch(`${BASE_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setNotifications(data.notifications)
+        setUnreadCount(data.unreadCount)
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err)
+    }
+  }
+
+  const handleOpenNotifications = () => {
+    setNotifOpen((open) => !open)
+    if (!notifOpen) fetchNotifications() // refresh on open, cheap and keeps it current
+  }
+
+  const handleNotificationClick = async (notification) => {
+    setNotifOpen(false)
+    if (!notification.read) {
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        await fetch(`${BASE_URL}/notifications/${notification._id}/read`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setNotifications((prev) => prev.map((n) => n._id === notification._id ? { ...n, read: true } : n))
+        setUnreadCount((c) => Math.max(0, c - 1))
+      } catch (err) {
+        console.error('Failed to mark notification read:', err)
+      }
+    }
+    if (notification.link) navigate(notification.link)
+  }
+
+  const handleMarkAllRead = async () => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      await fetch(`${BASE_URL}/notifications/read-all`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+      setUnreadCount(0)
+    } catch (err) {
+      console.error('Failed to mark all notifications read:', err)
+    }
+  }
+
+  // ✅ Simple relative-time formatter — "3m ago", "2h ago", "5d ago" —
+  // good enough for a notification dropdown without pulling in a
+  // date library for this one spot.
+  const timeAgo = (dateStr) => {
+    const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000)
+    if (seconds < 60) return 'just now'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes}m ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    return `${days}d ago`
+  }
 
   if (!user) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -360,10 +626,55 @@ function Dashboard() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <button className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 relative">
+            <button
+              onClick={handleOpenNotifications}
+              className="relative w-9 h-9 sm:w-10 sm:h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors"
+            >
               <Icon name="Bell" className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
+
+            {notifOpen && (
+              <>
+                {/* Click-outside backdrop — invisible, just closes the dropdown */}
+                <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                <div className="absolute top-12 right-0 w-80 max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-lg z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+                    <p className="text-gray-900 font-bold text-sm">Notifications</p>
+                    {unreadCount > 0 && (
+                      <button onClick={handleMarkAllRead} className="text-amber-600 text-xs font-semibold hover:text-amber-700">
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 && (
+                      <p className="text-gray-400 text-sm text-center py-8">No notifications yet.</p>
+                    )}
+                    {notifications.map((n) => (
+                      <button
+                        key={n._id}
+                        onClick={() => handleNotificationClick(n)}
+                        className={`w-full text-left px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors flex gap-2 ${!n.read ? 'bg-amber-50/50' : ''}`}
+                      >
+                        {!n.read && <span className="w-2 h-2 mt-1.5 rounded-full bg-amber-500 flex-shrink-0" />}
+                        <div className={n.read ? 'pl-4' : ''}>
+                          <p className="text-gray-900 text-sm font-semibold">{n.title}</p>
+                          <p className="text-gray-500 text-xs mt-0.5">{n.message}</p>
+                          <p className="text-gray-300 text-[10px] mt-1">{timeAgo(n.createdAt)}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-amber-500 rounded-xl flex items-center justify-center text-[#0a0f2c] font-bold text-sm flex-shrink-0">
               {user.firstName?.[0]}{user.lastName?.[0]}
             </div>
@@ -576,13 +887,20 @@ function Dashboard() {
                     {order.orderNumber} · {new Date(order.createdAt).toLocaleDateString()}
                     {isApprovedSeller && order.buyerId && ` · ${order.buyerId.firstName} ${order.buyerId.lastName}`}
                   </p>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
-                    order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                    order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-amber-100 text-amber-700'
-                  }`}>
-                    {order.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                      order.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+                    }`}>
+                      {order.paymentStatus === 'confirmed' ? 'Paid' : 'Payment Pending'}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                      order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                      order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-1.5 mb-3">
                   {order.items?.map((item, i) => (
@@ -605,6 +923,29 @@ function Dashboard() {
                     Delivering to {order.deliveryAddress.address}
                     {order.estimatedDeliveryDays && ` · Est. ${order.estimatedDeliveryDays}`}
                   </p>
+                )}
+                {order.bookingDetails?.startDate && (
+                  <p className="text-gray-400 text-[10px] mt-1.5">
+                    Booked for {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+                    {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
+                    {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                  </p>
+                )}
+                {isApprovedSeller && order.paymentStatus !== 'confirmed' && (
+                  <button
+                    onClick={() => handleConfirmPayment(order._id)}
+                    className="w-full mt-3 py-2.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Confirm Payment Received
+                  </button>
+                )}
+                {!isApprovedSeller && order.paymentStatus === 'confirmed' && (
+                  <Link
+                    to={`/dashboard/receipt/${order._id}`}
+                    className="block w-full mt-3 py-2.5 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    View Receipt
+                  </Link>
                 )}
               </div>
             ))}
@@ -661,14 +1002,39 @@ function Dashboard() {
         {/* My Shop Tab — approved sellers only, real product management now */}
         {currentTab === 'myshop' && (
           <div className="space-y-4">
+            {!user.vendorProfile?.bankDetails?.accountNumber && (
+              <div className="flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <Icon name="Landmark" className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <p className="text-blue-800 text-sm">Add your bank account so customers know where to send payment.</p>
+                </div>
+                <button
+                  onClick={() => openSettingsModal('bank')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors flex-shrink-0"
+                >
+                  Add Bank Details
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <p className="text-gray-500 text-sm">{myProducts.length} product{myProducts.length !== 1 ? 's' : ''}</p>
-              <Link
-                to="/dashboard/add-product"
-                className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-lg transition-colors"
-              >
-                <Icon name="Plus" className="w-3.5 h-3.5" /> Add Product
-              </Link>
+              <div className="flex items-center gap-2">
+                {user.vendorProfile?.bankDetails?.accountNumber && (
+                  <button
+                    onClick={() => openSettingsModal('bank')}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    <Icon name="Landmark" className="w-3.5 h-3.5" /> Bank Details
+                  </button>
+                )}
+                <Link
+                  to="/dashboard/add-product"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-lg transition-colors"
+                >
+                  <Icon name="Plus" className="w-3.5 h-3.5" /> Add Product
+                </Link>
+              </div>
             </div>
 
             {myProductsLoading && (
@@ -780,27 +1146,31 @@ function Dashboard() {
             <h3 className="text-gray-900 font-bold mb-6">Account Settings</h3>
             <div className="space-y-4">
               {[
-                { label: 'Edit Profile', desc: 'Update your name, email and phone', icon: 'User' },
-                { label: 'Change Password', desc: 'Update your account password', icon: 'Lock' },
-                { label: 'Notifications', desc: 'Manage your notification preferences', icon: 'Bell' },
-                { label: 'Delete Account', desc: 'Permanently delete your account', icon: 'Trash2', danger: true },
+                { key: 'profile', label: 'Edit Profile', desc: 'Update your name and phone', icon: 'User' },
+                { key: 'password', label: 'Change Password', desc: 'Update your account password', icon: 'Lock' },
+                { key: 'notifications', label: 'Notifications', desc: 'Coming soon', icon: 'Bell', disabled: true },
+                { key: 'delete', label: 'Delete Account', desc: 'Permanently delete your account', icon: 'Trash2', danger: true },
               ].map((setting) => (
                 <button
-                  key={setting.label}
+                  key={setting.key}
+                  disabled={setting.disabled}
+                  onClick={() => !setting.disabled && openSettingsModal(setting.key)}
                   className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                    setting.danger
-                      ? 'border-red-100 hover:bg-red-50 text-red-600'
-                      : 'border-gray-100 hover:bg-gray-50 text-gray-700'
+                    setting.disabled
+                      ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                      : setting.danger
+                        ? 'border-red-100 hover:bg-red-50 text-red-600'
+                        : 'border-gray-100 hover:bg-gray-50 text-gray-700'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon name={setting.icon} className="w-5 h-5" />
                     <div className="text-left">
                       <p className="font-semibold text-sm">{setting.label}</p>
-                      <p className="text-gray-400 text-xs">{setting.desc}</p>
+                      <p className={`text-xs ${setting.disabled ? 'text-gray-300' : 'text-gray-400'}`}>{setting.desc}</p>
                     </div>
                   </div>
-                  <span className="text-gray-300">→</span>
+                  {!setting.disabled && <span className="text-gray-300">→</span>}
                 </button>
               ))}
             </div>
@@ -808,6 +1178,146 @@ function Dashboard() {
         )}
 
       </div>
+
+      {/* Settings modals — Edit Profile, Change Password, Delete Account */}
+      {settingsModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeSettingsModal}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+
+            {settingsModal === 'profile' && (
+              <form onSubmit={handleUpdateProfile}>
+                <h3 className="text-gray-900 font-bold text-lg mb-4">Edit Profile</h3>
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="text" placeholder="First name" value={settingsForm.firstName || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, firstName: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="text" placeholder="Last name" value={settingsForm.lastName || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, lastName: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="tel" placeholder="Phone" value={settingsForm.phone || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-gray-400 text-xs">Email ({user.email}) can't be changed here.</p>
+                </div>
+                {settingsError && <p className="text-red-600 text-xs mb-3">{settingsError}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeSettingsModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={settingsLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold disabled:opacity-60">
+                    {settingsLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {settingsModal === 'password' && (
+              <form onSubmit={handleChangePassword}>
+                <h3 className="text-gray-900 font-bold text-lg mb-4">Change Password</h3>
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="password" placeholder="Current password" value={settingsForm.currentPassword || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, currentPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="password" placeholder="New password (min 8 characters)" value={settingsForm.newPassword || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, newPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="password" placeholder="Confirm new password" value={settingsForm.confirmPassword || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+                {settingsError && <p className="text-red-600 text-xs mb-3">{settingsError}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeSettingsModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={settingsLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold disabled:opacity-60">
+                    {settingsLoading ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {settingsModal === 'bank' && (
+              <form onSubmit={handleUpdateBankDetails}>
+                <h3 className="text-gray-900 font-bold text-lg mb-1">Bank Details</h3>
+                <p className="text-gray-400 text-xs mb-4">
+                  Shown to customers at checkout so they know where to send payment for your orders.
+                </p>
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="text" placeholder="Bank name" value={settingsForm.bankName || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, bankName: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="text" placeholder="Account number" value={settingsForm.accountNumber || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, accountNumber: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  <input
+                    type="text" placeholder="Account name" value={settingsForm.accountName || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, accountName: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+                {settingsError && <p className="text-red-600 text-xs mb-3">{settingsError}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeSettingsModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={settingsLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold disabled:opacity-60">
+                    {settingsLoading ? 'Saving...' : 'Save Bank Details'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {settingsModal === 'delete' && (
+              <form onSubmit={handleDeleteAccount}>
+                <h3 className="text-red-600 font-bold text-lg mb-2">Delete Account</h3>
+                <p className="text-gray-500 text-sm mb-4">
+                  This permanently deletes your account. This cannot be undone.
+                </p>
+                <input
+                  type="password" placeholder="Confirm your password" value={settingsForm.password || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, password: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:border-red-400"
+                />
+                {settingsError && <p className="text-red-600 text-xs mb-3">{settingsError}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeSettingsModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={settingsLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold disabled:opacity-60">
+                    {settingsLoading ? 'Deleting...' : 'Delete My Account'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
     </div>
 
     {activeConversation && activeConversationType === 'product' && (() => {

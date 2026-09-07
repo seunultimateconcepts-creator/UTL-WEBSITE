@@ -20,6 +20,7 @@ import BecomeSeller from './pages/BecomeSeller'
 import SignUp from './pages/auth/SignUp'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/auth/Dashboard'
+import Receipt from './pages/Receipt'
 import NotFound from './pages/NotFound'
 import SignUpSuccess from './pages/auth/SignUpSuccess'
 import VerifyEmail from './pages/auth/VerifyEmail'
@@ -137,6 +138,7 @@ function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/book-service" element={<BookService />} />
             <Route path="/dashboard/edit-product/:productId" element={<AddProduct />} />
+            <Route path="/dashboard/receipt/:orderId" element={<Receipt />} />
             <Route path="/tech-hub/notepad" element={<Notepad />} />
             <Route path="/shop/ultimate" element={<UltimateConcepts />} />
             <Route path="/upgrade-plan" element={<UpgradePlan />} />

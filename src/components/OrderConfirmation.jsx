@@ -1,4 +1,4 @@
-import { CheckCircle2, Package, Bot, Phone, LayoutDashboard, ShoppingBag } from 'lucide-react'
+import { CheckCircle2, Package, Bot, Phone, LayoutDashboard, ShoppingBag, Landmark, Calendar } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 /**
@@ -24,7 +24,7 @@ import { Link } from 'react-router-dom'
 // designated support person — hardcoded for now since it's just you.
 const SUPPORT_PHONE = '+2348038786037'
 
-export default function OrderConfirmation({ order, onContinue, continueLabel = 'Continue Shopping' }) {
+export default function OrderConfirmation({ order, onContinue, continueLabel = 'Continue Shopping', vendorBankDetails }) {
   return (
     <div className="text-center py-6 px-4">
       <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -62,6 +62,19 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
           </div>
         )}
 
+        {order.bookingDetails?.startDate && (
+          <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mb-3">
+            <p className="font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
+              <Calendar size={12} /> Booking date{order.bookingDetails.endDate ? 's' : ''}
+            </p>
+            <p>
+              {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+              {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
+            </p>
+            {order.bookingDetails.guests && <p>{order.bookingDetails.guests} guest{order.bookingDetails.guests > 1 ? 's' : ''}</p>}
+          </div>
+        )}
+
         <div className="space-y-1 pt-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>Subtotal</span>
@@ -81,6 +94,23 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
           </div>
         </div>
       </div>
+
+      {vendorBankDetails?.accountNumber && (
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-5 text-left">
+          <div className="flex items-center gap-2 mb-3">
+            <Landmark size={16} className="text-blue-600" />
+            <span className="text-blue-900 font-bold text-sm">Complete Payment by Bank Transfer</span>
+          </div>
+          <p className="text-blue-800 text-xs mb-3">
+            Transfer the total above to the vendor's account below. Your order moves forward once the vendor confirms receipt.
+          </p>
+          <div className="bg-white rounded-xl p-4 space-y-1.5">
+            <p className="text-gray-900 text-sm"><span className="text-gray-400">Bank:</span> <span className="font-semibold">{vendorBankDetails.bankName}</span></p>
+            <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Number:</span> <span className="font-semibold">{vendorBankDetails.accountNumber}</span></p>
+            <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Name:</span> <span className="font-semibold">{vendorBankDetails.accountName}</span></p>
+          </div>
+        </div>
+      )}
 
       {/* AI-first support note, human fallback is a CALL, never a chat link */}
       <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl p-3.5 mb-5 text-left">

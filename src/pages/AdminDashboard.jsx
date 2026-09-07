@@ -147,6 +147,42 @@ function AdminDashboard() {
     }
   }
 
+  const handleUpdateOrderStatus = async (orderId, status) => {
+    try {
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage(`Order marked ${status}`)
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status } : o))
+      }
+    } catch (err) {
+      console.error('Order status update failed:', err)
+    }
+  }
+
+  const handleConfirmOrderPayment = async (orderId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/confirm-payment`, {
+        method: 'PATCH',
+        headers: { 'x-admin-key': adminKey },
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Payment confirmed')
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentStatus: 'confirmed', status: data.order.status } : o))
+      }
+    } catch (err) {
+      console.error('Payment confirmation failed:', err)
+    }
+  }
+
   const handleUpdateVendorTier = async (vendorId, tier) => {
     try {
       const res = await fetch(`${BASE_URL}/sellers/${vendorId}/tier`, {
@@ -440,13 +476,27 @@ function AdminDashboard() {
                     </p>
                     <p className="text-gray-400 text-[10px] mt-1">{new Date(order.createdAt).toLocaleString()}</p>
                   </div>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize flex-shrink-0 ${
-                    order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                    order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-amber-100 text-amber-700'
-                  }`}>
-                    {order.status}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full ${
+                      order.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+                    }`}>
+                      {order.paymentStatus === 'confirmed' ? 'Paid' : 'Unpaid'}
+                    </span>
+                    <select
+                      value={order.status}
+                      onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+                      className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full capitalize border-0 cursor-pointer ${
+                        order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                        order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {['pending', 'confirmed', 'processing', 'delivered', 'cancelled'].map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-1 pl-3 border-l-2 border-gray-100">
                   {order.items?.map((item, i) => (
@@ -461,7 +511,24 @@ function AdminDashboard() {
                     {order.deliveryAddress.landmark && ` (near ${order.deliveryAddress.landmark})`} · {order.deliveryAddress.phone}
                   </p>
                 )}
-                <div className="flex items-center justify-end mt-2 pt-2 border-t border-gray-50">
+                {order.bookingDetails?.startDate && (
+                  <p className="text-gray-500 text-xs mb-2">
+                    <span className="font-semibold">Booked for:</span> {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+                    {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
+                    {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                  </p>
+                )}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                  {order.paymentStatus !== 'confirmed' ? (
+                    <button
+                      onClick={() => handleConfirmOrderPayment(order._id)}
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors"
+                    >
+                      Confirm Payment
+                    </button>
+                  ) : (
+                    <span />
+                  )}
                   <span className="text-amber-600 font-bold text-sm">
                     Total: {order.items?.[0]?.currency || 'NGN'} {(order.grandTotal ?? order.totalAmount)?.toLocaleString()}
                     {order.deliveryFee != null && (

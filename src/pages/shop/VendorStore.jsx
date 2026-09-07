@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Store, ShoppingBag, ArrowLeft, PackageX } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
+import { getCategoryHighlights } from '../../utils/categoryHighlights'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -109,6 +110,11 @@ function VendorStore() {
                   <h3 className="text-gray-900 font-bold text-sm leading-snug mb-2 line-clamp-2">
                     {product.name}
                   </h3>
+                  {getCategoryHighlights(product).length > 0 && (
+                    <p className="text-gray-500 text-xs mb-2">
+                      {getCategoryHighlights(product).join(' · ')}
+                    </p>
+                  )}
                   <p className="text-amber-600 font-black text-lg">
                     {product.currency} {product.price.toLocaleString()}
                   </p>
