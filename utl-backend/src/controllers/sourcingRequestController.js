@@ -4,6 +4,8 @@ const User = require('../models/user')
 const { getNextSequence } = require('../models/counter')
 const sendEmail = require('../utils/sendEmail')
 const { sourcingRequestReceivedEmail, sourcingRequestStatusEmail } = require('../utils/emailTemplates')
+const { createNotification } = require('../utils/notify')
+const { getUltimateShopBankDetails } = require('../config/ultimateShopBank')
 
 // ✅ SR-2026-00001 style — same atomic Counter as Order/Booking, own key
 const generateRequestNumber = async () => {
@@ -58,6 +60,18 @@ const createRequest = async (req, res) => {
       }
     } catch (emailError) {
       console.error('Sourcing request confirmation email failed (request still created):', emailError.message)
+    }
+
+    try {
+      await createNotification({
+        userId: customerId,
+        type: 'sourcing-request',
+        title: 'Sourcing request received',
+        message: `We've received your sourcing request ${request.requestNumber}.`,
+        link: '/dashboard?tab=orders',
+      })
+    } catch (notifyError) {
+      console.error('Sourcing request notification failed (request still created):', notifyError.message)
     }
 
     res.status(201).json({ success: true, request })
@@ -168,10 +182,75 @@ const updateRequestStatus = async (req, res) => {
       console.error('Sourcing request status email failed (status still updated):', emailError.message)
     }
 
+    try {
+      await createNotification({
+        userId: request.customerId,
+        type: 'sourcing-request',
+        title: 'Sourcing request update',
+        message: status
+          ? `Your request ${request.requestNumber} is now ${status}.`
+          : `Your request ${request.requestNumber} has a fulfillment update.`,
+        link: '/dashboard?tab=orders',
+      })
+    } catch (notifyError) {
+      console.error('Sourcing request status notification failed (status still updated):', notifyError.message)
+    }
+
     res.status(200).json({ success: true, request })
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error updating request', error: error.message })
   }
 }
 
-module.exports = { createRequest, getMyRequests, listAllRequests, updateItemProof, updateRequestStatus }
+// ✅ GET BANK DETAILS — public, no auth needed. Returns UTL's own
+// account (see config/ultimateShopBank.js) so the frontend can show it
+// once a request reaches 'ready' and a real total is known. Returns
+// { available: false } rather than a 404/500 when env vars aren't set
+// yet, since "not configured" is a normal, expected state early on.
+const getBankDetails = async (req, res) => {
+  const bankDetails = getUltimateShopBankDetails()
+  res.status(200).json({ success: true, available: !!bankDetails, bankDetails })
+}
+
+// ✅ CONFIRM PAYMENT — admin key only. Unlike Order's confirmOrderPayment
+// (vendor confirms their own money), there's no vendor here — it's
+// UTL's own account, so only admin can mark this paid.
+const confirmRequestPayment = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const { requestId } = req.params
+    const request = await SourcingRequest.findById(requestId)
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' })
+    }
+    if (request.paymentStatus === 'confirmed') {
+      return res.status(400).json({ success: false, message: 'Payment already confirmed for this request' })
+    }
+
+    request.paymentStatus = 'confirmed'
+    request.paymentConfirmedAt = new Date()
+    await request.save()
+
+    try {
+      await createNotification({
+        userId: request.customerId,
+        type: 'sourcing-request',
+        title: 'Payment confirmed',
+        message: `Your payment for request ${request.requestNumber} has been confirmed.`,
+        link: '/dashboard?tab=orders',
+      })
+    } catch (notifyError) {
+      console.error('Sourcing request payment notification failed (payment still confirmed):', notifyError.message)
+    }
+
+    res.status(200).json({ success: true, request })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error confirming payment', error: error.message })
+  }
+}
+
+module.exports = { createRequest, getMyRequests, listAllRequests, updateItemProof, updateRequestStatus, getBankDetails, confirmRequestPayment }

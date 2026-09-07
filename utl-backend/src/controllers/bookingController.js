@@ -4,6 +4,7 @@ const User = require('../models/user')
 const { getNextSequence } = require('../models/counter')
 const sendEmail = require('../utils/sendEmail')
 const { bookingRequestedEmail, bookingStatusUpdateEmail } = require('../utils/emailTemplates')
+const { createNotification } = require('../utils/notify')
 
 // ✅ BK-2026-00001 style — same atomic Counter as Order, different key
 // so the two sequences never collide or share numbers.
@@ -54,6 +55,18 @@ const createBooking = async (req, res) => {
       }
     } catch (emailError) {
       console.error('Booking confirmation email failed (booking still created):', emailError.message)
+    }
+
+    try {
+      await createNotification({
+        userId: customerId,
+        type: 'booking',
+        title: 'Booking received',
+        message: `We've received your booking ${booking.bookingNumber} for ${serviceType}.`,
+        link: '/dashboard?tab=projects',
+      })
+    } catch (notifyError) {
+      console.error('Booking notification failed (booking still created):', notifyError.message)
     }
 
     res.status(201).json({ success: true, booking })
@@ -126,6 +139,18 @@ const updateBookingStatus = async (req, res) => {
       }
     } catch (emailError) {
       console.error('Booking status email failed (status still updated):', emailError.message)
+    }
+
+    try {
+      await createNotification({
+        userId: booking.customerId,
+        type: 'booking',
+        title: 'Booking update',
+        message: `Your booking ${booking.bookingNumber} is now ${status}.`,
+        link: '/dashboard?tab=projects',
+      })
+    } catch (notifyError) {
+      console.error('Booking status notification failed (status still updated):', notifyError.message)
     }
 
     res.status(200).json({ success: true, booking })

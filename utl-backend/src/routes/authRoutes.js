@@ -8,7 +8,10 @@ const {
   forgotPassword,
   resetPassword,
   getMe,
-  unlockDashboard
+  unlockDashboard,
+  updateProfile,
+  changePassword,
+  deleteAccount
 } = require('../controllers/authController')
 const { protect } = require('../middleware/authMiddleware')
 
@@ -22,5 +25,8 @@ router.post('/reset-password/:token', resetPassword)
 // ✅ Protected routes
 router.get('/me', protect, getMe)
 router.patch('/unlock-dashboard', protect, unlockDashboard)
+router.patch('/profile', protect, updateProfile)
+router.patch('/change-password', protect, changePassword)
+router.delete('/account', protect, deleteAccount)
 
 module.exports = router

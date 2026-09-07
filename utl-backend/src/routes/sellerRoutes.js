@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
-  submitSellerApplication, verifySubscriptionPayment, paystackWebhook,
+  submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
 } = require('../controllers/sellerController')
 const { protect } = require('../middleware/authMiddleware')
 
@@ -13,6 +13,7 @@ const { protect } = require('../middleware/authMiddleware')
 // acting on their own account.
 router.post('/apply', protect, submitSellerApplication)             // POST /api/sellers/apply
 router.post('/verify-payment', protect, verifySubscriptionPayment)  // POST /api/sellers/verify-payment
+router.patch('/bank-details', protect, updateBankDetails)           // PATCH /api/sellers/bank-details
 
 // ✅ Paystack calls this directly — no user session exists here at
 // all. Verified via HMAC signature inside the controller instead.

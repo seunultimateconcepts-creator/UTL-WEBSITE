@@ -71,6 +71,22 @@ const sourcingRequestSchema = new mongoose.Schema({
     },
     details: { type: String, default: '' }, // free text — station name, address, whatever's relevant
   },
+  // ✅ Manual bank-transfer flow, same shape as Order.paymentStatus —
+  // but the "vendor" confirming here is UTL itself (admin key), via
+  // getUltimateShopBankDetails() in config/ultimateShopBank.js, since
+  // there's no vendor User document to attach bank details to for
+  // Ultimate Shop. Total price isn't known until items are actually
+  // sourced (see requestItemSchema.sourcingProof.actualPrice), so this
+  // realistically only becomes relevant once status reaches 'ready'.
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'confirmed'],
+    default: 'unpaid',
+  },
+  paymentConfirmedAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true,
 })

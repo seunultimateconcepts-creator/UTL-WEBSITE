@@ -122,6 +122,16 @@ const userSchema = new mongoose.Schema({
     bio: { type: String, default: '' },
     shopAddress: { type: String, default: '' },
     shopPhotoUrl: { type: String, default: '' }, // Cloudinary
+    // ✅ Manual bank-transfer flow — see confirmOrderPayment in
+    // orderController.js and the Dashboard "Add Bank Details" modal.
+    // A newly-approved vendor's shop is live but this stays empty
+    // until they fill it in — the Dashboard prompts them via a
+    // notification + banner rather than blocking approval on it.
+    bankDetails: {
+      bankName: { type: String, default: '' },
+      accountNumber: { type: String, default: '' },
+      accountName: { type: String, default: '' },
+    },
   },
   // ✅ Verification data. CAC is public record; live location is
   // low-sensitivity — both fine to store normally and kept indefinitely.

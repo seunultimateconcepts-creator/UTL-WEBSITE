@@ -273,7 +273,12 @@ const resetPassword = async (req, res) => {
 // ✅ GET ME
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
+    // ✅ SECURITY FIX: this previously returned the raw user document,
+    // which includes the bcrypt password hash — sent straight to the
+    // frontend on every dashboard load. .select('-password') excludes
+    // it; everything else (including vendorProfile, needed for bank
+    // details) still comes through.
+    const user = await User.findById(req.user.id).select('-password')
     res.status(200).json({
       success: true,
       user,
@@ -318,4 +323,114 @@ const unlockDashboard = async (req, res) => {
   }
 }
 
-module.exports = { signup, verifyEmail, login, forgotPassword, resetPassword, getMe, unlockDashboard }
+// ✅ UPDATE PROFILE — powers Settings → Edit Profile. Deliberately
+// limited to firstName/lastName/phone. Email is intentionally NOT
+// editable here — changing it would need a fresh verification flow
+// (it's the account's unique identifier and login credential), so
+// that's left as a separate feature rather than silently allowed.
+const updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, phone } = req.body
+    if (!firstName?.trim() || !lastName?.trim()) {
+      return res.status(400).json({ success: false, message: 'First and last name are required' })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    user.firstName = firstName.trim()
+    user.lastName = lastName.trim()
+    if (phone !== undefined) user.phone = phone.trim()
+    await user.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated',
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        sellerStatus: user.sellerStatus,
+        dashboardUnlocked: user.dashboardUnlocked,
+        isVerified: user.isVerified,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error updating profile', error: error.message })
+  }
+}
+
+// ✅ CHANGE PASSWORD — powers Settings → Change Password. If the
+// account has no password yet (Google/Facebook-only signup), this
+// doubles as "set a password" — currentPassword is only checked when
+// one actually exists to check against.
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    if (user.password) {
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: 'Current password is required' })
+      }
+      const isMatch = await user.comparePassword(currentPassword)
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: 'Current password is incorrect' })
+      }
+    }
+
+    user.password = newPassword // hashed by the pre('save') hook
+    await user.save()
+
+    res.status(200).json({ success: true, message: 'Password updated' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error changing password', error: error.message })
+  }
+}
+
+// ✅ DELETE ACCOUNT — powers Settings → Delete Account. Password
+// confirmation required if one exists, same pattern as changePassword.
+// ⚠️ KNOWN LIMITATION: this deletes the User document only. It does
+// NOT cascade-delete their Orders/Bookings/Products/SourcingRequests —
+// those will be left pointing at a buyerId/vendorId/customerId that no
+// longer resolves. Fine for MVP, but worth revisiting (soft-delete or
+// anonymize instead of hard delete) before this sees real volume.
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    if (user.password) {
+      if (!password) {
+        return res.status(400).json({ success: false, message: 'Password is required to delete your account' })
+      }
+      const isMatch = await user.comparePassword(password)
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: 'Incorrect password' })
+      }
+    }
+
+    await User.findByIdAndDelete(user._id)
+
+    res.status(200).json({ success: true, message: 'Account deleted' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error deleting account', error: error.message })
+  }
+}
+
+module.exports = { signup, verifyEmail, login, forgotPassword, resetPassword, getMe, unlockDashboard, updateProfile, changePassword, deleteAccount }

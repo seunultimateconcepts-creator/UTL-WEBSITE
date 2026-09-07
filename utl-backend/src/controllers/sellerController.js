@@ -3,6 +3,7 @@ const User = require('../models/user')
 const Product = require('../models/product')
 const sendEmail = require('../utils/sendEmail')
 const { sellerApprovedEmail, sellerVerificationSubmittedEmail } = require('../utils/emailTemplates')
+const { createNotification } = require('../utils/notify')
 const { SUBSCRIPTION_TIERS, DELETE_COOLDOWN_DAYS } = require('../config/subscriptionTiers')
 const crypto = require('crypto')
 
@@ -80,6 +81,35 @@ const approveSeller = async (req, res) => {
       console.error('Seller approval email failed (approval still applied):', emailError.message)
     }
 
+    try {
+      await createNotification({
+        userId: user._id,
+        type: 'seller-status',
+        title: "You're approved! 🎉",
+        message: "Your seller application was approved. You're now a verified vendor on U-Come.",
+        link: '/dashboard?tab=myshop',
+      })
+    } catch (notifyError) {
+      console.error('Seller approval notification failed (approval still applied):', notifyError.message)
+    }
+
+    // ✅ Separate, actionable follow-up — buyers pay via direct bank
+    // transfer (see confirmOrderPayment in orderController.js), so a
+    // vendor genuinely can't get paid until this is filled in. Kept as
+    // its own notification rather than folded into the approval one so
+    // it doesn't get lost in a celebratory message.
+    try {
+      await createNotification({
+        userId: user._id,
+        type: 'seller-status',
+        title: 'Add your bank details',
+        message: 'Add your bank account so customers know where to send payment for your orders.',
+        link: '/dashboard?tab=myshop',
+      })
+    } catch (notifyError) {
+      console.error('Bank details prompt notification failed (approval still applied):', notifyError.message)
+    }
+
     res.status(200).json({
       success: true,
       message: 'Seller approved and notified',
@@ -127,6 +157,23 @@ const rejectSeller = async (req, res) => {
     user.verification.ninPhotoBase64 = ''
     user.verification.selfiePhotoBase64 = ''
     await user.save()
+
+    // ✅ No rejection email exists (by design — see the comment on
+    // rejectSeller's declaration: reasons are meant to be explained
+    // case-by-case rather than a generic template). This in-app
+    // notification plus the Dashboard's red "reapply" banner are the
+    // only signal a rejected user gets right now.
+    try {
+      await createNotification({
+        userId: user._id,
+        type: 'seller-status',
+        title: 'Seller application update',
+        message: "Your seller application wasn't approved this time. You can reapply from your dashboard.",
+        link: '/become-seller',
+      })
+    } catch (notifyError) {
+      console.error('Seller rejection notification failed (rejection still applied):', notifyError.message)
+    }
 
     res.status(200).json({ success: true, message: 'Seller application rejected' })
   } catch (error) {
@@ -380,7 +427,41 @@ const paystackWebhook = async (req, res) => {
   }
 }
 
+// ✅ UPDATE BANK DETAILS — vendor-only (protect middleware at the
+// route), powers the "Add Bank Details" modal prompted right after
+// seller approval. Deliberately simple: bank name, account number,
+// account name, no third-party bank-account-verification API call
+// (e.g. Paystack's resolve-account endpoint) — that's a nice-to-have
+// for catching typos, not a blocker for this to work.
+const updateBankDetails = async (req, res) => {
+  try {
+    const { bankName, accountNumber, accountName } = req.body
+    if (!bankName?.trim() || !accountNumber?.trim() || !accountName?.trim()) {
+      return res.status(400).json({ success: false, message: 'Bank name, account number, and account name are all required' })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    if (user.sellerStatus !== 'approved') {
+      return res.status(403).json({ success: false, message: 'Only approved sellers can add bank details' })
+    }
+
+    user.vendorProfile.bankDetails = {
+      bankName: bankName.trim(),
+      accountNumber: accountNumber.trim(),
+      accountName: accountName.trim(),
+    }
+    await user.save()
+
+    res.status(200).json({ success: true, bankDetails: user.vendorProfile.bankDetails })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error updating bank details', error: error.message })
+  }
+}
+
 module.exports = {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
-  submitSellerApplication, verifySubscriptionPayment, paystackWebhook,
+  submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
 }

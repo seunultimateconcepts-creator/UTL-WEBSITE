@@ -50,12 +50,12 @@ const getById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' })
     }
 
-    const vendor = await User.findById(product.vendorId).select('firstName lastName')
+    const vendor = await User.findById(product.vendorId).select('firstName lastName vendorProfile.bankDetails')
 
     res.status(200).json({
       success: true,
       product,
-      vendor: vendor ? { firstName: vendor.firstName, lastName: vendor.lastName } : null,
+      vendor: vendor ? { firstName: vendor.firstName, lastName: vendor.lastName, bankDetails: vendor.vendorProfile?.bankDetails || null } : null,
     })
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching product', error: error.message })
