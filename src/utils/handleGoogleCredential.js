@@ -13,10 +13,18 @@
  * The fix: both components use THIS exact function as their callback.
  * It no longer matters which one's initialize() call is "active" —
  * either way, the same correct thing happens.
+ *
+ * `onError` (optional) — if the backend rejects the sign-in (e.g. a
+ * brand-new Google account isn't on the OAuth consent screen's test-
+ * user list while the app is still in "Testing" publishing status),
+ * this used to just console.error and silently do nothing — which
+ * looks exactly like the page "stalling" to whoever's testing it, with
+ * no visible feedback at all. Callers that render visible UI (like
+ * GoogleAuthButton) should pass a setter to actually show the message.
  */
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-export async function handleGoogleCredential(response, navigate) {
+export async function handleGoogleCredential(response, navigate, onError) {
   try {
     const res = await fetch(`${BASE_URL}/auth/oauth/google`, {
       method: 'POST',
@@ -27,6 +35,7 @@ export async function handleGoogleCredential(response, navigate) {
 
     if (!data.success) {
       console.error('Google sign-in failed:', data.message)
+      if (onError) onError(data.message || 'Google sign-in failed. Please try again.')
       return
     }
 
@@ -45,5 +54,6 @@ export async function handleGoogleCredential(response, navigate) {
     navigate(redirect || '/dashboard')
   } catch (err) {
     console.error('Google sign-in error:', err)
+    if (onError) onError('Something went wrong signing in with Google. Please try again.')
   }
 }
