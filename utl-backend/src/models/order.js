@@ -1,148 +1,130 @@
-import { CheckCircle2, Package, Bot, Phone, LayoutDashboard, ShoppingBag, Landmark, Calendar } from 'lucide-react'
-import { Link } from 'react-router-dom'
+/* eslint-disable no-undef */
+const mongoose = require('mongoose')
 
 /**
- * OrderConfirmation
+ * Order
  *
- * Replaces the old "auto-redirect to WhatsApp" pattern. The order is
- * already saved server-side by the time this renders.
+ * ✅ Now supports MULTIPLE items per order (a real cart checkout),
+ * not just one product per order. This matters most for Ultimate
+ * Shop, where a customer might order a phone AND a laptop in one
+ * checkout — previously that would have needed two separate orders.
  *
- * ✅ No WhatsApp link here on purpose — this app already runs a
- * site-wide AI chatbot (see ChatBot.jsx, the floating "Ask me
- * anything!" bubble) for the AI-first support tier. A raw WhatsApp
- * link would reopen the exact off-platform-negotiation risk that
- * ProductChat's contact filtering was built to close. If someone
- * genuinely needs a human, they get ONE centralized phone number to
- * CALL — not a chat channel, which is much easier to steer toward an
- * off-platform arrangement than a live phone call is.
+ * Each item keeps its own denormalized snapshot (name/price/store) for
+ * the same reason as before: an order should never silently change if
+ * the underlying product/price is edited or deleted later.
  *
- * Usage:
- * <OrderConfirmation order={order} onContinue={() => ...} />
+ * vendorId stays at the ORDER level, not per-item — a single order is
+ * still tied to one vendor (or null for Ultimate Shop). Cross-vendor
+ * carts aren't supported; each vendor's items would need a separate
+ * order, same as most real marketplaces (Amazon, Jumia) handle it.
  */
+const orderItemSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    default: null,
+  },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  currency: { type: String, default: 'NGN' },
+  store: { type: String, default: '' }, // e.g. 'Jumia' for Ultimate Shop items
+  quantity: { type: Number, default: 1 },
+}, { _id: false })
 
-// ⚠️ TODO: move this to a real settings/admin field once there's a
-// designated support person — hardcoded for now since it's just you.
-const SUPPORT_PHONE = '+2348038786037'
+const orderSchema = new mongoose.Schema({
+  orderNumber: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  buyerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  // ✅ null = Ultimate Shop (UTL itself), set = a real U-Come vendor
+  vendorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
+  items: {
+    type: [orderItemSchema],
+    required: true,
+    validate: v => Array.isArray(v) && v.length > 0,
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+  },
+  // ✅ Structured, not a free-text string — makes delivery fee/time
+  // calculation possible, and is what the vendor/admin needs to
+  // actually ship the order. NOT required at the schema level anymore
+  // — bookingDetails (below) is the alternative for date-based
+  // categories (hotel stays, property viewings, event dates) where a
+  // shipping address doesn't apply. orderController enforces "exactly
+  // one of deliveryAddress or bookingDetails must be present" instead.
+  deliveryAddress: {
+    fullName: { type: String },
+    phone: { type: String },
+    coverageZone: { type: String },
+    address: { type: String },
+    landmark: { type: String, default: '' },
+  },
+  // ✅ For Hotel & Short-Let, Property & Real Estate, Events &
+  // Entertainment, Travel & Tour Booking — a reservation needs dates,
+  // not a delivery address. Deliberately minimal (no availability
+  // calendar, no double-booking prevention yet) — startDate covers a
+  // property viewing or single-day event; endDate is only meaningful
+  // for a hotel stay's checkout date.
+  bookingDetails: {
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    guests: { type: Number, default: null },
+    details: { type: String, default: '' },
+  },
+  deliveryFee: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  estimatedDeliveryDays: {
+    type: String,
+    default: '',
+  },
+  // ✅ items total + deliveryFee — what the customer actually pays
+  grandTotal: {
+    type: Number,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'processing', 'delivered', 'cancelled'],
+    default: 'pending',
+  },
+  // ✅ Manual bank-transfer flow — see utils/notify.js and
+  // confirmOrderPayment in orderController.js. UTL never touches the
+  // money (per the no-payment-mediation decision); this just tracks
+  // whether the VENDOR has confirmed receiving the buyer's transfer.
+  // 'unpaid' until the vendor (or admin, for Ultimate Shop orders)
+  // explicitly confirms — there is no buyer-side "I've paid" click,
+  // since the vendor is the one who can actually see their bank alert.
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'confirmed'],
+    default: 'unpaid',
+  },
+  paymentConfirmedAt: {
+    type: Date,
+    default: null,
+  },
+  notes: {
+    type: String,
+    default: '',
+  },
+}, {
+  timestamps: true,
+})
 
-export default function OrderConfirmation({ order, onContinue, continueLabel = 'Continue Shopping', vendorBankDetails }) {
-  return (
-    <div className="text-center py-6 px-4">
-      <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-        <CheckCircle2 size={32} className="text-green-500" />
-      </div>
-
-      <h3 className="text-xl font-black text-gray-900 mb-1">Order Placed!</h3>
-      <p className="text-gray-500 text-sm mb-5">
-        We've received your order and will confirm availability shortly.
-      </p>
-
-      <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-5 text-left">
-        <div className="flex items-center gap-2 mb-4">
-          <Package size={16} className="text-orange-500" />
-          <span className="text-gray-900 font-bold text-sm">{order.orderNumber}</span>
-        </div>
-
-        <div className="space-y-2 mb-4">
-          {order.items?.map((item, i) => (
-            <div key={i} className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">{item.name} {item.quantity > 1 && `× ${item.quantity}`}</span>
-              <span className="text-gray-900 font-medium">
-                {item.currency} {(item.price * item.quantity).toLocaleString()}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {order.deliveryAddress && (
-          <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mb-3">
-            <p className="font-semibold text-gray-700 mb-0.5">Delivering to {order.deliveryAddress.fullName}</p>
-            <p>{order.deliveryAddress.address}</p>
-            {order.deliveryAddress.landmark && <p>Near: {order.deliveryAddress.landmark}</p>}
-            {order.estimatedDeliveryDays && <p className="mt-1 text-orange-600 font-medium">Est. arrival: {order.estimatedDeliveryDays}</p>}
-          </div>
-        )}
-
-        {order.bookingDetails?.startDate && (
-          <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mb-3">
-            <p className="font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
-              <Calendar size={12} /> Booking date{order.bookingDetails.endDate ? 's' : ''}
-            </p>
-            <p>
-              {new Date(order.bookingDetails.startDate).toLocaleDateString()}
-              {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
-            </p>
-            {order.bookingDetails.guests && <p>{order.bookingDetails.guests} guest{order.bookingDetails.guests > 1 ? 's' : ''}</p>}
-          </div>
-        )}
-
-        <div className="space-y-1 pt-3 border-t border-gray-200">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Subtotal</span>
-            <span>{order.items?.[0]?.currency || 'NGN'} {order.totalAmount?.toLocaleString()}</span>
-          </div>
-          {order.deliveryFee != null && (
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>Delivery Fee</span>
-              <span>{order.items?.[0]?.currency || 'NGN'} {order.deliveryFee.toLocaleString()}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-gray-500 text-xs font-semibold uppercase">Total</span>
-            <span className="text-amber-600 font-black">
-              {order.items?.[0]?.currency || 'NGN'} {(order.grandTotal ?? order.totalAmount)?.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {vendorBankDetails?.accountNumber && (
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-5 text-left">
-          <div className="flex items-center gap-2 mb-3">
-            <Landmark size={16} className="text-blue-600" />
-            <span className="text-blue-900 font-bold text-sm">Complete Payment by Bank Transfer</span>
-          </div>
-          <p className="text-blue-800 text-xs mb-3">
-            Transfer the total above to the vendor's account below. Your order moves forward once the vendor confirms receipt.
-          </p>
-          <div className="bg-white rounded-xl p-4 space-y-1.5">
-            <p className="text-gray-900 text-sm"><span className="text-gray-400">Bank:</span> <span className="font-semibold">{vendorBankDetails.bankName}</span></p>
-            <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Number:</span> <span className="font-semibold">{vendorBankDetails.accountNumber}</span></p>
-            <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Name:</span> <span className="font-semibold">{vendorBankDetails.accountName}</span></p>
-          </div>
-        </div>
-      )}
-
-      {/* AI-first support note, human fallback is a CALL, never a chat link */}
-      <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl p-3.5 mb-5 text-left">
-        <Bot size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-        <p className="text-amber-800 text-xs leading-relaxed">
-          Questions about this order? Use the chat assistant (bottom-right of your screen) for instant answers.
-          For anything it can't resolve, call us directly — we don't handle order questions over chat outside the app.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Link
-          to="/dashboard"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm"
-        >
-          <LayoutDashboard size={15} /> View My Orders
-        </Link>
-        <a
-          href={`tel:${SUPPORT_PHONE}`}
-          className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-sm"
-        >
-          <Phone size={15} /> Call Support: {SUPPORT_PHONE}
-        </a>
-        {onContinue && (
-          <button
-            onClick={onContinue}
-            className="flex items-center justify-center gap-2 w-full py-3 text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors"
-          >
-            <ShoppingBag size={15} /> {continueLabel}
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
+const Order = mongoose.model('Order', orderSchema)
+module.exports = Order
