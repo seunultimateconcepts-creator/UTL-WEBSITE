@@ -1,12 +1,12 @@
 /* eslint-disable no-undef */
-const Order = require('../models/order')
-const Product = require('../models/product')
-const User = require('../models/user')
-const { getNextSequence } = require('../models/counter')
-const { getZoneInfo, DELIVERY_ZONES } = require('../config/deliveryZones')
-const sendEmail = require('../utils/sendEmail')
-const { sellerNewOrderEmail, orderStatusUpdateEmail } = require('../utils/emailTemplates')
-const { createNotification } = require('../utils/notify')
+const Order = require('../../utl-backend/src/models/order')
+const Product = require('../../utl-backend/src/models/product')
+const User = require('../../utl-backend/src/models/user')
+const { getNextSequence } = require('../../utl-backend/src/models/counter')
+const { getZoneInfo, DELIVERY_ZONES } = require('../../utl-backend/src/config/deliveryZones')
+const sendEmail = require('../../utl-backend/src/utils/sendEmail')
+const { sellerNewOrderEmail, orderStatusUpdateEmail } = require('../../utl-backend/src/utils/emailTemplates')
+const { createNotification } = require('../../utl-backend/src/utils/notify')
 const jwt = require('jsonwebtoken')
 
 // ✅ Generates UTL-2026-00001 style order numbers. Year comes from the
@@ -270,7 +270,7 @@ const getLastAddress = async (req, res) => {
 // splitting this into a per-state lookup call isn't worth the extra
 // round trips.
 const getNigeriaLGAs = async (req, res) => {
-  const { NIGERIA_STATES_LGAS } = require('../config/nigeriaStatesLGAs')
+  const { NIGERIA_STATES_LGAS } = require('../../utl-backend/src/config/nigeriaStatesLGAs')
   res.status(200).json({ success: true, statesLGAs: NIGERIA_STATES_LGAS })
 }
 
