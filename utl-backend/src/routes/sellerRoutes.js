@@ -4,8 +4,14 @@ const router = express.Router()
 const {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
+  listPublicVendors, getPublicVendorProfile,
 } = require('../controllers/sellerController')
 const { protect } = require('../middleware/authMiddleware')
+
+// ✅ Public — powers the U-Come directory page and individual vendor
+// storefronts. No auth of any kind.
+router.get('/public', listPublicVendors)                            // GET /api/sellers/public
+router.get('/public/:vendorId', getPublicVendorProfile)             // GET /api/sellers/public/:vendorId
 
 // ✅ Self-service — a logged-in user applying to become a seller, or
 // an already-approved seller paying for a tier upgrade. Both JWT-

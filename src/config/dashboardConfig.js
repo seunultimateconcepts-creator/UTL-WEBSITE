@@ -25,7 +25,7 @@ export const getDashboardConfig = (view) => {
         ],
         quickActions: [
           { label: 'Add a Product',    icon: 'Plus',          link: '/dashboard/add-product', color: 'bg-orange-50 hover:bg-orange-100 text-orange-700' },
-          { label: 'View My Shop',     icon: 'Store',         link: '/shop/ultimate', color: 'bg-orange-50 hover:bg-orange-100 text-orange-700' },
+          { label: 'View My Shop',     icon: 'Store',         isTab: 'myshop', color: 'bg-orange-50 hover:bg-orange-100 text-orange-700' },
           { label: 'Contact Support',  icon: 'MessageCircle', link: '/contact',       color: 'bg-gray-50 hover:bg-gray-100 text-gray-700' },
         ],
       }

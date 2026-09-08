@@ -461,7 +461,74 @@ const updateBankDetails = async (req, res) => {
   }
 }
 
+// ✅ LIST PUBLIC VENDORS — powers the U-Come directory page (Shop.jsx).
+// Public, no auth — this is the whole point of a marketplace directory.
+// Only returns vendors with at least one active, non-deleted product:
+// an approved-but-empty shop isn't worth showing to browsing customers
+// yet (they'd land on a page with nothing to buy), and it keeps this
+// list from silently growing with abandoned/incomplete shops.
+const listPublicVendors = async (req, res) => {
+  try {
+    const vendors = await User.find({ sellerStatus: 'approved' })
+      .select('vendorProfile')
+
+    const withProductCounts = await Promise.all(
+      vendors.map(async (v) => {
+        const productCount = await Product.countDocuments({
+          vendorId: v._id,
+          status: 'active',
+          deletedAt: null,
+        })
+        return {
+          id: v._id,
+          shopName: v.vendorProfile?.shopName || '',
+          bio: v.vendorProfile?.bio || '',
+          shopPhotoUrl: v.vendorProfile?.shopPhotoUrl || '',
+          businessCategory: v.vendorProfile?.businessCategory || '',
+          productCount,
+        }
+      })
+    )
+
+    const liveVendors = withProductCounts.filter((v) => v.productCount > 0)
+
+    res.status(200).json({ success: true, vendors: liveVendors })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching vendors', error: error.message })
+  }
+}
+
+// ✅ GET PUBLIC VENDOR PROFILE — powers VendorStore.jsx's header
+// (shop name, bio, photo). Deliberately separate from the products
+// fetch (GET /products?vendorId=X) — that endpoint only returns data
+// when populated alongside an actual product, so a freshly-approved
+// vendor with zero products yet would show a blank header with no
+// name/bio/photo at all. This works regardless of product count.
+const getPublicVendorProfile = async (req, res) => {
+  try {
+    const { vendorId } = req.params
+    const vendor = await User.findOne({ _id: vendorId, sellerStatus: 'approved' })
+      .select('firstName lastName vendorProfile')
+    if (!vendor) {
+      return res.status(404).json({ success: false, message: 'Vendor not found' })
+    }
+    res.status(200).json({
+      success: true,
+      vendor: {
+        id: vendor._id,
+        shopName: vendor.vendorProfile?.shopName || `${vendor.firstName} ${vendor.lastName}`,
+        bio: vendor.vendorProfile?.bio || '',
+        shopPhotoUrl: vendor.vendorProfile?.shopPhotoUrl || '',
+        businessCategory: vendor.vendorProfile?.businessCategory || '',
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching vendor', error: error.message })
+  }
+}
+
 module.exports = {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
+  listPublicVendors, getPublicVendorProfile,
 }

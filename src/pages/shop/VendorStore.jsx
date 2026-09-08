@@ -10,9 +10,25 @@ function VendorStore() {
   const { vendorId } = useParams()
   const [products, setProducts] = useState([])
   const [vendorName, setVendorName] = useState('')
+  const [vendorBio, setVendorBio] = useState('')
+  const [vendorPhoto, setVendorPhoto] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // ✅ Fetched independently of products — a freshly-approved vendor
+    // with zero products yet still has a real shop name/bio/photo that
+    // should show up, not a blank header.
+    fetch(`${BASE_URL}/sellers/public/${vendorId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setVendorName(data.vendor.shopName)
+          setVendorBio(data.vendor.bio)
+          setVendorPhoto(data.vendor.shopPhotoUrl)
+        }
+      })
+      .catch((err) => console.error('Failed to load vendor profile:', err))
+
     const fetchProducts = async () => {
       setLoading(true)
       try {
@@ -20,13 +36,6 @@ function VendorStore() {
         const data = await res.json()
         if (data.success) {
           setProducts(data.products)
-          // Vendor name comes along with the first product's populated
-          // vendor field if your API returns it — falling back to a
-          // generic label if not.
-          if (data.products[0]?.vendorId?.firstName) {
-            const vendor = data.products[0].vendorId
-            setVendorName(vendor.vendorProfile?.shopName || `${vendor.firstName} ${vendor.lastName}`)
-          }
         }
       } catch (err) {
         console.error('Failed to load vendor products:', err)
@@ -51,12 +60,17 @@ function VendorStore() {
           </Link>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Store size={28} className="text-orange-400" />
+              <div className="w-16 h-16 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {vendorPhoto ? (
+                  <img src={vendorPhoto} alt={vendorName} className="w-full h-full object-cover" />
+                ) : (
+                  <Store size={28} className="text-orange-400" />
+                )}
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-black text-white">{vendorName || 'Vendor Store'}</h1>
-                <p className="text-gray-400 text-sm mt-1">{products.length} product{products.length !== 1 ? 's' : ''} available</p>
+                {vendorBio && <p className="text-gray-400 text-sm mt-1 max-w-lg">{vendorBio}</p>}
+                <p className="text-gray-500 text-xs mt-1">{products.length} product{products.length !== 1 ? 's' : ''} available</p>
               </div>
             </div>
             <ShareLink

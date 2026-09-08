@@ -1,20 +1,42 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Search, ShoppingBag, Store, ArrowRight, Sparkles, Plus, Info,
 } from 'lucide-react'
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const MIN_SLOTS = 6 // keeps the "open slots" CTA grid feeling active even with few real vendors
+
 function Shop() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [liveVendors, setLiveVendors] = useState([])
   const location = useLocation()
   const flashMessage = location.state?.message
 
-  // ✅ Vendors — Ultimate Shop is live (UTL's own shopping-assistant service,
-  // fills the marketplace while real sellers onboard). Everything after it
-  // is a placeholder slot until a seller application is approved.
-  // When a seller goes live, replace a placeholder object with:
-  // { id, name, tagline, path: `/shop/${slug}`, status: 'live' }
-  const vendors = [
+  // ✅ Real approved vendors — this used to be a fully hardcoded array
+  // with only the "Ultimate Concepts" placeholder, so a newly-approved
+  // vendor with live products never appeared here no matter what they
+  // did. Fetched once on mount; only vendors with at least one active
+  // product come back (see listPublicVendors in sellerController.js),
+  // so an approved-but-empty shop doesn't show up with nothing to sell.
+  useEffect(() => {
+    fetch(`${BASE_URL}/sellers/public`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success) setLiveVendors(data.vendors) })
+      .catch((err) => console.error('Failed to load vendors:', err))
+  }, [])
+
+  // ✅ Ultimate Concepts stays hardcoded — it's not a real vendor
+  // document, it's UTL's own sourcing service (see UTLShopStore.jsx).
+  const realVendors = liveVendors.map((v) => ({
+    id: v.id,
+    name: v.shopName || 'Vendor Store',
+    tagline: v.bio || v.businessCategory,
+    path: `/shop/vendor/${v.id}`,
+    status: 'live',
+  }))
+
+  const staticVendors = [
     {
       id: 'utl-shop',
       name: 'Ultimate Concepts',
@@ -22,12 +44,16 @@ function Shop() {
       path: '/shop/ultimate',
       status: 'live',
     },
-    { id: 'slot-2', name: 'Next Vendor', status: 'coming-soon' },
-    { id: 'slot-3', name: 'Next Vendor', status: 'coming-soon' },
-    { id: 'slot-4', name: 'Next Vendor', status: 'coming-soon' },
-    { id: 'slot-5', name: 'Next Vendor', status: 'coming-soon' },
-    { id: 'slot-6', name: 'Next Vendor', status: 'coming-soon' },
   ]
+
+  const openSlotCount = Math.max(0, MIN_SLOTS - staticVendors.length - realVendors.length)
+  const openSlots = Array.from({ length: openSlotCount }, (_, i) => ({
+    id: `slot-${i}`,
+    name: 'Next Vendor',
+    status: 'coming-soon',
+  }))
+
+  const vendors = [...staticVendors, ...realVendors, ...openSlots]
 
   const filteredVendors = vendors.filter((v) =>
     v.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -113,8 +139,16 @@ function Shop() {
                     <Sparkles size={11} /> Live
                   </span>
 
-                  <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-orange-100 transition-colors">
-                    <ShoppingBag size={30} className="text-orange-600" />
+                  <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-orange-100 transition-colors overflow-hidden">
+                    {vendor.id !== 'utl-shop' && liveVendors.find((v) => v.id === vendor.id)?.shopPhotoUrl ? (
+                      <img
+                        src={liveVendors.find((v) => v.id === vendor.id).shopPhotoUrl}
+                        alt={vendor.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ShoppingBag size={30} className="text-orange-600" />
+                    )}
                   </div>
                   <h3 className="text-gray-900 font-black text-2xl mb-2">{vendor.name}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed mb-6">{vendor.tagline}</p>
