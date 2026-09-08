@@ -34,8 +34,8 @@ export async function handleGoogleCredential(response, navigate, onError) {
     const data = await res.json()
 
     if (!data.success) {
-      console.error('Google sign-in failed:', data.message)
-      if (onError) onError(data.message || 'Google sign-in failed. Please try again.')
+      console.error('Google sign-in failed:', data.message, data.error)
+      if (onError) onError(data.error ? `${data.message}: ${data.error}` : (data.message || 'Google sign-in failed. Please try again.'))
       return
     }
 

@@ -54,15 +54,22 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
   },
 
+  // ✅ NO `default: null` here — that was the actual bug. A sparse
+  // unique index only skips documents where the field is genuinely
+  // ABSENT, not documents where it's explicitly set to null. With
+  // `default: null`, every new user (Google, Facebook, or plain email
+  // signup) got this field written as null, and the second such user
+  // ever created collided with the first on a duplicate-key error —
+  // "E11000 duplicate key error ... facebookId_1 ... { facebookId: null }".
+  // Simply never setting the field at all (undefined) is what sparse
+  // indexes are actually designed to skip.
   googleId: {
     type: String,
-    default: null,
     unique: true,
     sparse: true,
   },
   facebookId: {
     type: String,
-    default: null,
     unique: true,
     sparse: true,
   },
