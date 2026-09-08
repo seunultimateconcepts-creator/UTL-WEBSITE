@@ -93,11 +93,17 @@ function Dashboard() {
 
     setUser(parsed)
 
-    // ✅ localStorage only ever holds the flat login-response shape
-    // (id, name, email, sellerStatus, etc.) — vendorProfile (including
-    // bankDetails) was never part of that and is never otherwise
-    // fetched. This hydrates it in without disrupting the fast
-    // localStorage-first render above.
+    // ✅ localStorage only ever holds a SNAPSHOT of the user from the
+    // moment they logged in — sellerStatus, dashboardUnlocked, and
+    // vendorProfile can all change server-side afterward (admin
+    // approves/rejects a seller, bank details get added, etc.) with
+    // nothing to tell this cached copy to update. Previously this only
+    // hydrated vendorProfile, which meant an approved seller's sidebar,
+    // pending-banner, and "My Shop" tab all kept showing stale
+    // 'pending' data until they logged out and back in — exactly what
+    // was reported. Now the full authoritative object from the backend
+    // replaces the stale fields, and localStorage is updated too so a
+    // plain page refresh doesn't fall back to the old snapshot either.
     const token = localStorage.getItem('utl_token')
     if (token) {
       const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -105,7 +111,19 @@ function Dashboard() {
         .then((r) => r.json())
         .then((data) => {
           if (data.success && data.user) {
-            setUser((prev) => ({ ...prev, vendorProfile: data.user.vendorProfile }))
+            const refreshed = {
+              ...parsed,
+              firstName: data.user.firstName,
+              lastName: data.user.lastName,
+              phone: data.user.phone,
+              sellerStatus: data.user.sellerStatus,
+              dashboardUnlocked: data.user.dashboardUnlocked,
+              isVerified: data.user.isVerified,
+              avatar: data.user.avatar,
+              vendorProfile: data.user.vendorProfile,
+            }
+            setUser(refreshed)
+            localStorage.setItem('utl_current_user', JSON.stringify(refreshed))
           }
         })
         .catch((err) => console.error('Failed to hydrate full profile:', err))

@@ -2,6 +2,8 @@
 const { OAuth2Client } = require('google-auth-library')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const sendEmail = require('../utils/sendEmail')
+const { welcomeEmail } = require('../utils/emailTemplates')
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
@@ -35,6 +37,7 @@ const googleAuth = async (req, res) => {
     const { sub: googleId, email, given_name, family_name, picture } = payload
 
     let user = await User.findOne({ $or: [{ googleId }, { email }] })
+    let isNewUser = false
 
     if (user) {
       if (!user.googleId) {
@@ -51,6 +54,23 @@ const googleAuth = async (req, res) => {
         avatar: picture,
         isVerified: true,
       })
+      isNewUser = true
+    }
+
+    // ✅ Google already verifies the email address, so no separate
+    // verification email needed here (unlike the plain signup flow in
+    // authController.js) — just the welcome email, and only for an
+    // actual new account, not an existing user signing back in.
+    if (isNewUser) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Ultimate Tech Lab! 🎉',
+          html: welcomeEmail(user.firstName),
+        })
+      } catch (emailError) {
+        console.error('Google signup welcome email failed (account still created):', emailError.message)
+      }
     }
 
     const token = generateToken(user._id)
@@ -111,6 +131,7 @@ const facebookAuth = async (req, res) => {
     }
 
     let user = await User.findOne({ $or: [{ facebookId }, { email }] })
+    let isNewUser = false
 
     if (user) {
       if (!user.facebookId) {
@@ -127,6 +148,19 @@ const facebookAuth = async (req, res) => {
         avatar: picture?.data?.url || null,
         isVerified: true,
       })
+      isNewUser = true
+    }
+
+    if (isNewUser) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Ultimate Tech Lab! 🎉',
+          html: welcomeEmail(user.firstName),
+        })
+      } catch (emailError) {
+        console.error('Facebook signup welcome email failed (account still created):', emailError.message)
+      }
     }
 
     const token = generateToken(user._id)
