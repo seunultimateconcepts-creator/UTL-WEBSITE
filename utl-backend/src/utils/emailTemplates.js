@@ -419,10 +419,33 @@ const sourcingRequestStatusEmail = (firstName, request) => {
   `
 }
 
+// ✅ Tier upgrade confirmed — sent when admin confirms a manual bank
+// transfer for a plan upgrade (see confirmTierUpgrade in
+// sellerController.js). Same manual-transfer-then-admin-confirms
+// pattern as orders/sourcing requests, applied to subscriptions since
+// Paystack verification wasn't going through.
+const tierUpgradeConfirmedEmail = (firstName, tierLabel, maxListings) => `
+  <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; background: #0a0f2c; padding: 32px; border-radius: 16px;">
+    <h1 style="color: #ffffff; font-size: 22px; margin-bottom: 8px;">You're on ${tierLabel} now! 🎉</h1>
+    <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+      Hi ${firstName}, your payment has been confirmed and your shop is now upgraded to the <strong style="color:#f5a623;">${tierLabel}</strong> plan.
+    </p>
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+      <p style="color: #ffffff; font-size: 14px;">
+        <strong>Listing limit:</strong> ${isFinite(maxListings) ? maxListings : 'Unlimited'}
+      </p>
+    </div>
+    <a href="${process.env.CLIENT_URL}/dashboard?tab=myshop" style="display: inline-block; background: #f5a623; color: #0a0f2c; font-weight: bold; font-size: 14px; padding: 12px 24px; border-radius: 10px; text-decoration: none;">
+      Go to My Shop →
+    </a>
+  </div>
+`
+
 module.exports = {
   welcomeEmail, verificationEmail, passwordResetEmail,
   bookingRequestedEmail, bookingStatusUpdateEmail,
   orderStatusUpdateEmail, sellerNewOrderEmail,
   sellerApprovedEmail, sellerVerificationSubmittedEmail,
   sourcingRequestReceivedEmail, sourcingRequestStatusEmail,
+  tierUpgradeConfirmedEmail,
 }

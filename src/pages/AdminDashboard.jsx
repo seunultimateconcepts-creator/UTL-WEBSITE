@@ -16,6 +16,7 @@ function AdminDashboard() {
   const [bookings, setBookings] = useState([])
   const [sourcingRequests, setSourcingRequests] = useState([])
   const [vendors, setVendors] = useState([])
+  const [pendingUpgrades, setPendingUpgrades] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionMessage, setActionMessage] = useState('')
   const [lightboxImage, setLightboxImage] = useState(null) // { src, label } | null
@@ -32,13 +33,14 @@ function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [sellersRes, productsRes, ordersRes, bookingsRes, requestsRes, vendorsRes] = await Promise.all([
+      const [sellersRes, productsRes, ordersRes, bookingsRes, requestsRes, vendorsRes, upgradesRes] = await Promise.all([
         fetch(`${BASE_URL}/sellers/pending`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/products/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/orders/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/bookings/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/sourcing-requests/all`, { headers: { 'x-admin-key': adminKey } }),
         fetch(`${BASE_URL}/sellers/vendors`, { headers: { 'x-admin-key': adminKey } }),
+        fetch(`${BASE_URL}/sellers/pending-upgrades`, { headers: { 'x-admin-key': adminKey } }),
       ])
       const sellersData = await sellersRes.json()
       const productsData = await productsRes.json()
@@ -46,9 +48,10 @@ function AdminDashboard() {
       const bookingsData = await bookingsRes.json()
       const requestsData = await requestsRes.json()
       const vendorsData = await vendorsRes.json()
+      const upgradesData = await upgradesRes.json()
 
       // ✅ A 403 here means the stored key is wrong — bounce back to login
-      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403 || requestsRes.status === 403 || vendorsRes.status === 403) {
+      if (sellersRes.status === 403 || productsRes.status === 403 || ordersRes.status === 403 || bookingsRes.status === 403 || requestsRes.status === 403 || vendorsRes.status === 403 || upgradesRes.status === 403) {
         sessionStorage.removeItem('utl_admin_key')
         navigate('/admin-login')
         return
@@ -60,6 +63,7 @@ function AdminDashboard() {
       if (bookingsData.success) setBookings(bookingsData.bookings)
       if (requestsData.success) setSourcingRequests(requestsData.requests)
       if (vendorsData.success) setVendors(vendorsData.vendors)
+      if (upgradesData.success) setPendingUpgrades(upgradesData.pending)
     } catch (err) {
       console.error('Admin data fetch failed:', err)
     } finally {
@@ -200,6 +204,23 @@ function AdminDashboard() {
       }
     } catch (err) {
       console.error('Tier update failed:', err)
+    }
+  }
+
+  const handleConfirmUpgrade = async (vendorId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/${vendorId}/confirm-upgrade`, {
+        method: 'PATCH',
+        headers: { 'x-admin-key': adminKey },
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Upgrade confirmed')
+        setPendingUpgrades(prev => prev.filter(v => v._id !== vendorId))
+        setVendors(prev => prev.map(v => v._id === vendorId ? { ...v, subscription: data.subscription } : v))
+      }
+    } catch (err) {
+      console.error('Upgrade confirmation failed:', err)
     }
   }
 
@@ -400,6 +421,31 @@ function AdminDashboard() {
             limit before they even ask about upgrading. */}
         {!loading && activeTab === 'vendors' && (
           <div className="space-y-3">
+            {pendingUpgrades.length > 0 && (
+              <div className="mb-2">
+                <p className="text-gray-500 text-xs font-bold uppercase mb-2">Pending Upgrade Confirmations</p>
+                <div className="space-y-2">
+                  {pendingUpgrades.map(v => (
+                    <div key={v._id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
+                      <div>
+                        <p className="text-gray-900 font-bold text-sm">{v.vendorProfile?.shopName || `${v.firstName} ${v.lastName}`}</p>
+                        <p className="text-gray-500 text-xs">{v.email}</p>
+                        <p className="text-amber-700 text-xs font-semibold mt-1 capitalize">
+                          Requested {v.subscription.pendingTier} · since {new Date(v.subscription.pendingSince).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleConfirmUpgrade(v._id)}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors flex-shrink-0"
+                      >
+                        Confirm Payment
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {vendors.length === 0 && (
               <p className="text-gray-400 text-sm text-center py-12">No approved vendors yet.</p>
             )}

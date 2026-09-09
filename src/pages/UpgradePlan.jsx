@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Check, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { Check, ArrowLeft, Landmark, Clock } from 'lucide-react'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
 
 const TIERS = [
   { id: 'silver', name: 'Silver', price: 20000, features: ['Up to 40 products', 'Everything in Free'] },
@@ -12,12 +11,23 @@ const TIERS = [
   { id: 'platinum', name: 'Platinum', price: 100000, features: ['Unlimited products', 'Product videos', 'Everything in Gold'] },
 ]
 
+/**
+ * UpgradePlan
+ *
+ * Replaces the old Paystack Inline flow — verification wasn't going
+ * through reliably, so this uses the same manual-bank-transfer-then-
+ * admin-confirms pattern already proven for vendor-customer orders
+ * and sourcing requests. The vendor picks a tier, sees UTL's own bank
+ * account (config/ultimateShopBank.js on the backend), transfers, and
+ * waits for admin to confirm — at which point the tier activates
+ * automatically and they get a notification + email.
+ */
 function UpgradePlan() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const [paying, setPaying] = useState(null) // which tier id is mid-payment
+  const [requesting, setRequesting] = useState(null) // which tier id is mid-request
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(null)
+  const [pending, setPending] = useState(null) // { tier, amount, bankDetails } once requested
 
   useEffect(() => {
     const currentUser = localStorage.getItem('utl_current_user')
@@ -27,64 +37,47 @@ function UpgradePlan() {
     }
     const parsed = JSON.parse(currentUser)
     if (parsed.sellerStatus !== 'approved') {
-      // ✅ This is the sequencing rule — payment only exists AFTER
-      // verification, never before
       navigate('/dashboard')
       return
     }
     setUser(parsed)
 
-    // Load Paystack Inline JS once
-    if (!document.getElementById('paystack-inline-script')) {
-      const script = document.createElement('script')
-      script.id = 'paystack-inline-script'
-      script.src = 'https://js.paystack.co/v1/inline.js'
-      document.body.appendChild(script)
+    if (parsed.subscription?.pendingTier) {
+      setPending({ tier: parsed.subscription.pendingTier, amount: null, bankDetails: null })
     }
   }, [navigate])
 
-  const handlePay = (tier) => {
-    if (!window.PaystackPop) {
-      setError('Payment system is still loading — please try again in a moment')
-      return
-    }
+  const handleRequestUpgrade = async (tier) => {
     setError('')
-    setPaying(tier.id)
-
-    const handler = window.PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: user.email,
-      amount: tier.price * 100, // Paystack expects kobo
-      metadata: { tier: tier.id, userId: user.id || user._id },
-      callback: (response) => verifyPayment(response.reference, tier),
-      onClose: () => setPaying(null),
-    })
-    handler.openIframe()
-  }
-
-  const verifyPayment = async (reference, tier) => {
+    setRequesting(tier.id)
     try {
       const token = localStorage.getItem('utl_token')
-      const res = await fetch(`${BASE_URL}/sellers/verify-payment`, {
+      const res = await fetch(`${BASE_URL}/sellers/request-upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reference }),
+        body: JSON.stringify({ tier: tier.id }),
       })
       const data = await res.json()
       if (!data.success) {
-        setError(data.message || 'Payment could not be verified — contact support if you were charged')
+        setError(data.message || 'Something went wrong. Please try again.')
         return
       }
-      setSuccess(tier)
+      setPending({ tier: tier.id, amount: data.amount, bankDetails: data.bankDetails })
+
+      const currentUser = JSON.parse(localStorage.getItem('utl_current_user'))
+      const updated = { ...currentUser, subscription: { ...currentUser.subscription, pendingTier: tier.id } }
+      localStorage.setItem('utl_current_user', JSON.stringify(updated))
     } catch (err) {
-      console.error('Verification failed:', err)
-      setError('Network error verifying payment — contact support if you were charged')
+      console.error('Upgrade request failed:', err)
+      setError('Network error — please check your connection and try again.')
     } finally {
-      setPaying(null)
+      setRequesting(null)
     }
   }
 
   if (!user) return null
+
+  const pendingTierInfo = pending ? TIERS.find((t) => t.id === pending.tier) : null
 
   return (
     <div className="pt-16 min-h-screen bg-gray-50">
@@ -94,16 +87,45 @@ function UpgradePlan() {
           <ArrowLeft size={14} /> Back to Dashboard
         </Link>
 
-        {success ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check size={28} className="text-green-500" />
+        {pending ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+            <div className="flex items-center gap-2 text-amber-600 mb-4">
+              <Clock size={18} />
+              <span className="font-bold text-sm">Awaiting payment confirmation</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mb-2">You're on {success.name}!</h1>
-            <p className="text-gray-500 mb-6">Your new listing limit is active immediately.</p>
+            <h1 className="text-2xl font-black text-gray-900 mb-2">
+              Upgrade to {pendingTierInfo?.name || pending.tier} requested
+            </h1>
+            <p className="text-gray-500 mb-6">
+              Transfer the amount below, then wait for confirmation — your plan activates automatically the moment it's confirmed, with a notification and email.
+            </p>
+
+            {pending.bankDetails?.accountNumber ? (
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Landmark size={16} className="text-blue-600" />
+                  <span className="text-blue-900 font-bold text-sm">Transfer To</span>
+                </div>
+                <div className="bg-white rounded-xl p-4 space-y-1.5">
+                  <p className="text-gray-900 text-sm"><span className="text-gray-400">Bank:</span> <span className="font-semibold">{pending.bankDetails.bankName}</span></p>
+                  <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Number:</span> <span className="font-semibold">{pending.bankDetails.accountNumber}</span></p>
+                  <p className="text-gray-900 text-sm"><span className="text-gray-400">Account Name:</span> <span className="font-semibold">{pending.bankDetails.accountName}</span></p>
+                  {pending.amount && (
+                    <p className="text-gray-900 text-sm pt-1.5 border-t border-gray-100 mt-1.5">
+                      <span className="text-gray-400">Amount:</span> <span className="font-bold text-amber-600">₦{pending.amount.toLocaleString()}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-2">
+                <p className="text-gray-500 text-sm">Bank details aren't available right now — please contact support to complete this upgrade.</p>
+              </div>
+            )}
+
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors"
+              className="w-full mt-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors"
             >
               Back to Dashboard
             </button>
@@ -137,22 +159,22 @@ function UpgradePlan() {
                     ))}
                   </ul>
                   <button
-                    onClick={() => handlePay(tier)}
-                    disabled={paying === tier.id}
+                    onClick={() => handleRequestUpgrade(tier)}
+                    disabled={requesting === tier.id}
                     className={`w-full py-3 font-bold rounded-xl text-sm transition-colors ${
                       tier.featured
                         ? 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]'
                         : 'bg-gray-800 hover:bg-gray-700 text-white'
                     } disabled:opacity-60`}
                   >
-                    {paying === tier.id ? 'Processing...' : `Pay ₦${tier.price.toLocaleString()}`}
+                    {requesting === tier.id ? 'Requesting...' : `Upgrade to ${tier.name}`}
                   </button>
                 </div>
               ))}
             </div>
 
             <div className="flex items-center gap-2 justify-center mt-8 text-gray-400 text-xs">
-              <ShieldCheck size={14} /> Secured by Paystack
+              <Landmark size={14} /> Paid by direct bank transfer, confirmed manually
             </div>
           </>
         )}

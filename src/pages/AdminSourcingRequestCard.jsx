@@ -93,6 +93,30 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
     }
   }
 
+  // ✅ UTL is the "vendor" here (no vendor User document to attach
+  // bank details to for Ultimate Shop), so only admin confirms this —
+  // same manual-transfer-then-admin-confirms pattern as orders, just
+  // against UTL's own account (config/ultimateShopBank.js).
+  const confirmPayment = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/sourcing-requests/${request._id}/confirm-payment`, {
+        method: 'PATCH',
+        headers: { 'x-admin-key': adminKey },
+      })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Payment confirmed')
+        onUpdated(data.request)
+      }
+    } catch (err) {
+      console.error('Payment confirmation failed:', err)
+    }
+  }
+
+  // ✅ Not known until items are actually sourced — see
+  // requestItemSchema.sourcingProof.actualPrice on the backend.
+  const total = request.items.reduce((sum, item) => sum + (item.sourcingProof?.actualPrice || 0), 0)
+
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5">
       <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
@@ -209,6 +233,28 @@ export default function AdminSourcingRequestCard({ request, adminKey, onUpdated,
           <Package size={12} /> Save Fulfillment Details
         </button>
       </div>
+
+      {/* Payment — only meaningful once at least one item has a real price */}
+      {total > 0 && (
+        <div className="border-t border-gray-100 pt-4 mt-4 flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase mb-0.5">Total (sourced so far)</p>
+            <p className="text-gray-900 font-bold text-sm">₦{total.toLocaleString()}</p>
+          </div>
+          {request.paymentStatus === 'confirmed' ? (
+            <span className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+              Paid {request.paymentConfirmedAt && `· ${new Date(request.paymentConfirmedAt).toLocaleDateString()}`}
+            </span>
+          ) : (
+            <button
+              onClick={confirmPayment}
+              className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors"
+            >
+              Confirm Payment Received
+            </button>
+          )}
+        </div>
+      )}
 
       {chatConversation && (
         <ChatWindow

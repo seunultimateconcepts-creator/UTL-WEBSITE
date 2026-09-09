@@ -173,16 +173,22 @@ const userSchema = new mongoose.Schema({
     verifyCiphertext: { type: String, default: null },
     verifyIv: { type: String, default: null },
   },
-  // ✅ Vendor subscription tier. Manually set by admin for now (until
-  // Paystack collection is built) — mirrors the same "manual for now,
-  // automate once it's proven" pattern used elsewhere in this build.
-  // expiresAt is the yearly anniversary date — pay Sept 20 2026, next
-  // payment due Sept 20 2027, not a rolling 365-day window from
-  // "whenever we happened to check."
+  // ✅ Vendor subscription tier. Manually confirmed by admin via bank
+  // transfer (see requestTierUpgrade/confirmTierUpgrade in
+  // sellerController.js) — Paystack verification wasn't going
+  // through, so this uses the same manual-transfer-then-admin-
+  // confirms pattern already proven for vendor-customer orders and
+  // sourcing requests. expiresAt is the yearly anniversary date — pay
+  // Sept 20 2026, next payment due Sept 20 2027, not a rolling
+  // 365-day window from "whenever we happened to check."
   subscription: {
     tier: { type: String, enum: ['free', 'silver', 'gold', 'platinum'], default: 'free' },
     startedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
+    // Set when a vendor requests an upgrade, cleared once admin
+    // confirms the transfer (applyPaidTier) or the vendor cancels.
+    pendingTier: { type: String, enum: ['silver', 'gold', 'platinum', null], default: null },
+    pendingSince: { type: Date, default: null },
   },
 }, {
   timestamps: true,

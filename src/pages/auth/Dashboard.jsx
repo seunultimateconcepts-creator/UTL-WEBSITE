@@ -43,6 +43,7 @@ function Dashboard() {
   const [bookings, setBookings] = useState([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
   const [sourcingRequests, setSourcingRequests] = useState([])
+  const [utlBankDetails, setUtlBankDetails] = useState(null)
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [activeConversation, setActiveConversation] = useState(null)
@@ -443,6 +444,17 @@ function Dashboard() {
     if (!user) return
     fetchNotifications()
   }, [user])
+
+  // ✅ UTL's own bank account — public, no auth needed. Used to show
+  // payment instructions on a sourcing request once it has a real
+  // price (see getBankDetails in sourcingRequestController.js).
+  useEffect(() => {
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    fetch(`${BASE_URL}/sourcing-requests/bank-details`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success && data.available) setUtlBankDetails(data.bankDetails) })
+      .catch((err) => console.error('Failed to load UTL bank details:', err))
+  }, [])
 
   const fetchNotifications = async () => {
     try {
@@ -996,33 +1008,70 @@ function Dashboard() {
             {!isApprovedSeller && sourcingRequests.length > 0 && (
               <>
                 <h3 className="text-gray-900 font-bold text-sm pt-4 pb-1">Sourcing Requests (Ultimate Concepts)</h3>
-                {sourcingRequests.map((request) => (
+                {sourcingRequests.map((request) => {
+                  const total = request.items?.reduce((sum, item) => sum + (item.sourcingProof?.actualPrice || 0), 0) || 0
+                  return (
                   <div key={request._id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
                       <p className="text-gray-400 text-xs">
                         {request.requestNumber} · {new Date(request.createdAt).toLocaleDateString()}
                       </p>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
-                        request.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        request.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                        request.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                        'bg-amber-100 text-amber-700'
-                      }`}>
-                        {request.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {total > 0 && (
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                            request.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+                          }`}>
+                            {request.paymentStatus === 'confirmed' ? 'Paid' : 'Payment Pending'}
+                          </span>
+                        )}
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                          request.status === 'completed' ? 'bg-green-100 text-green-700' :
+                          request.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          request.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {request.status}
+                        </span>
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       {request.items?.map((item, i) => (
-                        <p key={i} className="text-sm">
-                          <span className="text-orange-600 font-semibold">{item.platform}:</span>{' '}
-                          <span className="text-gray-700">{item.description}</span>
-                        </p>
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <p>
+                            <span className="text-orange-600 font-semibold">{item.platform}:</span>{' '}
+                            <span className="text-gray-700">{item.description}</span>
+                          </p>
+                          {item.sourcingProof?.actualPrice > 0 && (
+                            <span className="text-gray-500 flex-shrink-0 ml-2">₦{item.sourcingProof.actualPrice.toLocaleString()}</span>
+                          )}
+                        </div>
                       ))}
                     </div>
+                    {total > 0 && (
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-50">
+                        <span className="text-gray-500 text-xs font-semibold uppercase">Total</span>
+                        <span className="text-amber-600 font-bold text-sm">₦{total.toLocaleString()}</span>
+                      </div>
+                    )}
                     {request.status === 'ready' && request.fulfillment?.details && (
-                      <div className="mt-3 pt-3 border-t border-gray-50 bg-orange-50 -mx-5 -mb-5 px-5 py-3 rounded-b-2xl">
+                      <div className="mt-3 pt-3 border-t border-gray-50 bg-orange-50 -mx-5 px-5 py-3">
                         <p className="text-orange-700 text-xs font-semibold uppercase mb-0.5">How to get it</p>
                         <p className="text-orange-900 text-sm">{request.fulfillment.details}</p>
+                      </div>
+                    )}
+                    {total > 0 && request.paymentStatus !== 'confirmed' && utlBankDetails?.accountNumber && (
+                      <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <p className="text-blue-900 font-bold text-xs mb-2 flex items-center gap-1.5">
+                          <Icon name="Landmark" className="w-3.5 h-3.5" /> Complete Payment by Bank Transfer
+                        </p>
+                        <div className="bg-white rounded-lg p-3 space-y-1">
+                          <p className="text-gray-900 text-xs"><span className="text-gray-400">Bank:</span> <span className="font-semibold">{utlBankDetails.bankName}</span></p>
+                          <p className="text-gray-900 text-xs"><span className="text-gray-400">Account Number:</span> <span className="font-semibold">{utlBankDetails.accountNumber}</span></p>
+                          <p className="text-gray-900 text-xs"><span className="text-gray-400">Account Name:</span> <span className="font-semibold">{utlBankDetails.accountName}</span></p>
+                        </div>
+                        <p className="text-blue-700 text-[10px] mt-2">
+                          We'll confirm and update this request once your transfer is received.
+                        </p>
                       </div>
                     )}
                     <button
@@ -1032,7 +1081,8 @@ function Dashboard() {
                       <Icon name="MessageCircle" className="w-3.5 h-3.5" /> Message Support
                     </button>
                   </div>
-                ))}
+                  )
+                })}
               </>
             )}
           </div>

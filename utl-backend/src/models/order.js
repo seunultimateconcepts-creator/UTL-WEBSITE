@@ -99,7 +99,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'processing', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'processing', 'delivered', 'completed', 'cancelled'],
     default: 'pending',
   },
   // ✅ Manual bank-transfer flow — see utils/notify.js and
@@ -117,6 +117,26 @@ const orderSchema = new mongoose.Schema({
   paymentConfirmedAt: {
     type: Date,
     default: null,
+  },
+  // ✅ Set by the BUYER via confirmDelivery — separate from
+  // status:'delivered' (which the vendor/admin sets when they ship
+  // it). This is the customer's own "yes, I received it" signal.
+  customerConfirmedAt: {
+    type: Date,
+    default: null,
+  },
+  // ✅ Return request — buyer-initiated (requestReturn), vendor/admin
+  // resolved (resolveReturn). Deliberately simple: one return request
+  // per order, no partial-item returns, no refund processing (UTL
+  // doesn't hold the money — same no-payment-mediation principle as
+  // everywhere else — so a refund is a conversation between buyer and
+  // vendor, this just tracks that a request was made and its outcome).
+  returnRequest: {
+    requested: { type: Boolean, default: false },
+    reason: { type: String, default: '' },
+    status: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+    requestedAt: { type: Date, default: null },
+    resolvedAt: { type: Date, default: null },
   },
   notes: {
     type: String,

@@ -5,6 +5,7 @@ const {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
   listPublicVendors, getPublicVendorProfile,
+  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade,
 } = require('../controllers/sellerController')
 const { protect } = require('../middleware/authMiddleware')
 
@@ -18,8 +19,9 @@ router.get('/public/:vendorId', getPublicVendorProfile)             // GET /api/
 // protected (protect), NOT admin-key protected — the applicant/vendor
 // acting on their own account.
 router.post('/apply', protect, submitSellerApplication)             // POST /api/sellers/apply
-router.post('/verify-payment', protect, verifySubscriptionPayment)  // POST /api/sellers/verify-payment
+router.post('/verify-payment', protect, verifySubscriptionPayment)  // POST /api/sellers/verify-payment — Paystack, kept but no longer used by the frontend (verification wasn't going through — see requestTierUpgrade below for the replacement)
 router.patch('/bank-details', protect, updateBankDetails)           // PATCH /api/sellers/bank-details
+router.post('/request-upgrade', protect, requestTierUpgrade)        // POST /api/sellers/request-upgrade — manual bank-transfer upgrade flow
 
 // ✅ Paystack calls this directly — no user session exists here at
 // all. Verified via HMAC signature inside the controller instead.
@@ -29,8 +31,10 @@ router.post('/paystack-webhook', paystackWebhook)                   // POST /api
 // header, not user auth. See sellerController.js.
 router.get('/pending', listPendingSellers)          // GET /api/sellers/pending
 router.get('/vendors', listApprovedVendors)         // GET /api/sellers/vendors
+router.get('/pending-upgrades', listPendingTierUpgrades) // GET /api/sellers/pending-upgrades
 router.patch('/:userId/approve', approveSeller)      // PATCH /api/sellers/:userId/approve
 router.patch('/:userId/reject', rejectSeller)        // PATCH /api/sellers/:userId/reject
 router.patch('/:userId/tier', updateVendorTier)      // PATCH /api/sellers/:userId/tier
+router.patch('/:userId/confirm-upgrade', confirmTierUpgrade) // PATCH /api/sellers/:userId/confirm-upgrade
 
 module.exports = router

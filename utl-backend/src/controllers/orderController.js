@@ -307,17 +307,17 @@ const getNigeriaLGAs = async (req, res) => {
 // updateBookingStatus in bookingController.js). This didn't exist
 // before — Orders were admin-viewable but not admin-manageable, so
 // status could never move past 'pending' anywhere in the system.
+// ✅ UPDATE STATUS — admin key (any order) OR the owning vendor's JWT
+// (their own orders only). Previously admin-only, which meant a
+// vendor had no way to mark their own order "processing" or
+// "delivered" from their own dashboard — same dual-auth shape as
+// confirmOrderPayment/getOrderById below.
 const updateOrderStatus = async (req, res) => {
   try {
-    const adminKey = req.headers['x-admin-key']
-    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
-      return res.status(403).json({ success: false, message: 'Unauthorized' })
-    }
-
     const { orderId } = req.params
     const { status } = req.body
 
-    const validStatuses = ['pending', 'confirmed', 'processing', 'delivered', 'cancelled']
+    const validStatuses = ['pending', 'confirmed', 'processing', 'delivered', 'completed', 'cancelled']
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' })
     }
@@ -325,6 +325,34 @@ const updateOrderStatus = async (req, res) => {
     const order = await Order.findById(orderId)
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+
+    const adminKey = req.headers['x-admin-key']
+    const isAdmin = adminKey && adminKey === process.env.ADMIN_SECRET
+
+    let isOwningVendor = false
+    if (!isAdmin) {
+      const authHeader = req.headers.authorization
+      if (authHeader?.startsWith('Bearer')) {
+        try {
+          const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET)
+          isOwningVendor = order.vendorId && String(order.vendorId) === String(decoded.id)
+        } catch {
+          // invalid/expired token — falls through to the 403 below
+        }
+      }
+    }
+
+    if (!isAdmin && !isOwningVendor) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    // ✅ 'completed' is set by the BUYER confirming receipt (see
+    // confirmDelivery below), not by a vendor/admin status change —
+    // stops a vendor from marking their own sale "completed" without
+    // the customer actually saying so.
+    if (status === 'completed' && !isAdmin) {
+      return res.status(403).json({ success: false, message: "Only the customer can confirm an order as completed" })
     }
 
     order.status = status
@@ -495,4 +523,163 @@ const getOrderById = async (req, res) => {
   }
 }
 
-module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, getBookedDates, getOrderById, getDeliveryZones, getLastAddress, getNigeriaLGAs }
+// ✅ CONFIRM DELIVERY — buyer-only (protect middleware at the route),
+// scoped to their own order. This is the customer's "yes, I received
+// it" — separate from status:'delivered' which the vendor/admin sets
+// when THEY ship it. Moves status to 'completed'.
+const confirmDelivery = async (req, res) => {
+  try {
+    const { orderId } = req.params
+    const order = await Order.findById(orderId)
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+    if (String(order.buyerId) !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ success: false, message: 'This order has not been marked delivered yet' })
+    }
+
+    order.customerConfirmedAt = new Date()
+    order.status = 'completed'
+    await order.save()
+
+    try {
+      if (order.vendorId) {
+        await createNotification({
+          userId: order.vendorId,
+          type: 'order',
+          title: 'Delivery confirmed',
+          message: `The customer confirmed receipt of order ${order.orderNumber}.`,
+          link: '/dashboard?tab=orders',
+        })
+      }
+    } catch (notifyError) {
+      console.error('Delivery confirmation notification failed (still confirmed):', notifyError.message)
+    }
+
+    res.status(200).json({ success: true, order })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error confirming delivery', error: error.message })
+  }
+}
+
+// ✅ REQUEST RETURN — buyer-only, scoped to their own order. Only
+// allowed once delivered or completed — a return is about something
+// already received, not a cancellation of something still in transit
+// (that's what status: 'cancelled' is for, set by admin/vendor before
+// delivery). One return request per order, no partial-item returns.
+const requestReturn = async (req, res) => {
+  try {
+    const { orderId } = req.params
+    const { reason } = req.body
+    if (!reason?.trim()) {
+      return res.status(400).json({ success: false, message: 'Please describe the reason for the return' })
+    }
+
+    const order = await Order.findById(orderId)
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+    if (String(order.buyerId) !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    if (!['delivered', 'completed'].includes(order.status)) {
+      return res.status(400).json({ success: false, message: 'Returns can only be requested after delivery' })
+    }
+    if (order.returnRequest.requested) {
+      return res.status(400).json({ success: false, message: 'A return has already been requested for this order' })
+    }
+
+    order.returnRequest = {
+      requested: true,
+      reason: reason.trim(),
+      status: 'pending',
+      requestedAt: new Date(),
+      resolvedAt: null,
+    }
+    await order.save()
+
+    try {
+      if (order.vendorId) {
+        await createNotification({
+          userId: order.vendorId,
+          type: 'order',
+          title: 'Return requested',
+          message: `A return was requested for order ${order.orderNumber}.`,
+          link: '/dashboard?tab=orders',
+        })
+      }
+    } catch (notifyError) {
+      console.error('Return-request notification failed (still recorded):', notifyError.message)
+    }
+
+    res.status(200).json({ success: true, order })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error requesting return', error: error.message })
+  }
+}
+
+// ✅ RESOLVE RETURN — admin key OR the owning vendor's JWT, same
+// dual-auth shape as updateOrderStatus/confirmOrderPayment. Approving
+// or rejecting is just a recorded decision — UTL doesn't process the
+// actual refund/exchange (no payment mediation, same as everywhere
+// else); that happens directly between buyer and vendor.
+const resolveReturn = async (req, res) => {
+  try {
+    const { orderId } = req.params
+    const { decision } = req.body // 'approved' | 'rejected'
+    if (!['approved', 'rejected'].includes(decision)) {
+      return res.status(400).json({ success: false, message: 'Invalid decision' })
+    }
+
+    const order = await Order.findById(orderId)
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+
+    const adminKey = req.headers['x-admin-key']
+    const isAdmin = adminKey && adminKey === process.env.ADMIN_SECRET
+    let isOwningVendor = false
+    if (!isAdmin) {
+      const authHeader = req.headers.authorization
+      if (authHeader?.startsWith('Bearer')) {
+        try {
+          const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET)
+          isOwningVendor = order.vendorId && String(order.vendorId) === String(decoded.id)
+        } catch {
+          // falls through to the 403 below
+        }
+      }
+    }
+    if (!isAdmin && !isOwningVendor) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    if (order.returnRequest.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'This return request has already been resolved' })
+    }
+
+    order.returnRequest.status = decision
+    order.returnRequest.resolvedAt = new Date()
+    await order.save()
+
+    try {
+      await createNotification({
+        userId: order.buyerId,
+        type: 'order',
+        title: `Return request ${decision}`,
+        message: `Your return request for order ${order.orderNumber} was ${decision}.`,
+        link: '/dashboard?tab=orders',
+      })
+    } catch (notifyError) {
+      console.error('Return-resolution notification failed (still recorded):', notifyError.message)
+    }
+
+    res.status(200).json({ success: true, order })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error resolving return', error: error.message })
+  }
+}
+
+module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, getBookedDates, getOrderById, confirmDelivery, requestReturn, resolveReturn, getDeliveryZones, getLastAddress, getNigeriaLGAs }

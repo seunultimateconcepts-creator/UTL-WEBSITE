@@ -2,8 +2,9 @@
 const User = require('../models/user')
 const Product = require('../models/product')
 const sendEmail = require('../utils/sendEmail')
-const { sellerApprovedEmail, sellerVerificationSubmittedEmail } = require('../utils/emailTemplates')
+const { sellerApprovedEmail, sellerVerificationSubmittedEmail, tierUpgradeConfirmedEmail } = require('../utils/emailTemplates')
 const { createNotification } = require('../utils/notify')
+const { getUltimateShopBankDetails } = require('../config/ultimateShopBank')
 const { SUBSCRIPTION_TIERS, DELETE_COOLDOWN_DAYS } = require('../config/subscriptionTiers')
 const crypto = require('crypto')
 
@@ -527,8 +528,126 @@ const getPublicVendorProfile = async (req, res) => {
   }
 }
 
+// ✅ REQUEST TIER UPGRADE — vendor-only (protect at the route). Sets
+// pendingTier + pendingSince and hands back UTL's own bank details
+// (see config/ultimateShopBank.js — same account used for Ultimate
+// Shop / sourcing-request payments) plus the price, so the vendor
+// knows exactly what to transfer and where. Replaces the Paystack
+// flow, which wasn't verifying successfully — this is the same
+// manual-transfer-then-admin-confirms pattern already proven for
+// vendor-customer orders and sourcing requests.
+const requestTierUpgrade = async (req, res) => {
+  try {
+    const { tier } = req.body
+    if (!['silver', 'gold', 'platinum'].includes(tier)) {
+      return res.status(400).json({ success: false, message: 'Invalid tier' })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    if (user.sellerStatus !== 'approved') {
+      return res.status(403).json({ success: false, message: 'Only approved sellers can upgrade their plan' })
+    }
+    if (user.subscription.tier === tier) {
+      return res.status(400).json({ success: false, message: `You're already on the ${SUBSCRIPTION_TIERS[tier].label} plan` })
+    }
+
+    user.subscription.pendingTier = tier
+    user.subscription.pendingSince = new Date()
+    await user.save()
+
+    const bankDetails = getUltimateShopBankDetails()
+
+    res.status(200).json({
+      success: true,
+      pendingTier: tier,
+      amount: SUBSCRIPTION_TIERS[tier].price,
+      bankDetails,
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error requesting upgrade', error: error.message })
+  }
+}
+
+// ✅ LIST PENDING TIER UPGRADES — admin key. Powers an admin-panel
+// view of who's waiting on a manual transfer confirmation, so admin
+// knows who to check bank alerts against.
+const listPendingTierUpgrades = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const pending = await User.find({ 'subscription.pendingTier': { $ne: null } })
+      .select('firstName lastName email vendorProfile.shopName subscription')
+      .sort({ 'subscription.pendingSince': 1 })
+
+    res.status(200).json({ success: true, pending })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching pending upgrades', error: error.message })
+  }
+}
+
+// ✅ CONFIRM TIER UPGRADE — admin key. Confirms the bank transfer was
+// received and actually applies the tier via the existing
+// applyPaidTier helper (same one the old Paystack flow used), then
+// notifies + emails the vendor. Replacing the whole subscription
+// object via applyPaidTier naturally clears pendingTier/pendingSince
+// back to their schema defaults — no separate cleanup needed.
+const confirmTierUpgrade = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const { userId } = req.params
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    const tier = user.subscription.pendingTier
+    if (!tier) {
+      return res.status(400).json({ success: false, message: 'This vendor has no pending upgrade request' })
+    }
+
+    const subscription = await applyPaidTier(userId, tier)
+    const tierConfig = SUBSCRIPTION_TIERS[tier]
+
+    try {
+      await createNotification({
+        userId: user._id,
+        type: 'seller-status',
+        title: `You're on ${tierConfig.label} now! 🎉`,
+        message: `Your payment was confirmed and your plan was upgraded to ${tierConfig.label}.`,
+        link: '/dashboard?tab=myshop',
+      })
+    } catch (notifyError) {
+      console.error('Tier upgrade notification failed (upgrade still applied):', notifyError.message)
+    }
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: `You're on ${tierConfig.label} now! 🎉`,
+        html: tierUpgradeConfirmedEmail(user.firstName, tierConfig.label, tierConfig.maxListings),
+      })
+    } catch (emailError) {
+      console.error('Tier upgrade email failed (upgrade still applied):', emailError.message)
+    }
+
+    res.status(200).json({ success: true, subscription })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error confirming upgrade', error: error.message })
+  }
+}
+
 module.exports = {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
   listPublicVendors, getPublicVendorProfile,
+  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade,
 }
