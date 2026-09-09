@@ -50,6 +50,35 @@ const createOrder = async (req, res) => {
       }
     }
 
+    // ✅ HARDENING — now that checkout can carry multiple items (a real
+    // cart, not just single-product "Place Order"), two things needed
+    // verifying that didn't matter as much for one item at a time:
+    // (1) price/name/currency were previously taken straight from
+    // whatever the client sent — trivially tamperable. Every item with
+    // a productId now gets its price, name, and currency overwritten
+    // from the actual Product record, never the client's copy.
+    // (2) nothing stopped items from different vendors being mixed
+    // into one order (an Order has exactly one vendorId) — this
+    // rejects the whole request if any item's real vendor doesn't
+    // match the declared vendorId, or if requested quantity exceeds
+    // real stock.
+    for (const item of items) {
+      if (!item.productId) continue
+      const product = await Product.findOne({ _id: item.productId, deletedAt: null })
+      if (!product) {
+        return res.status(404).json({ success: false, message: `A product in your cart is no longer available.` })
+      }
+      if (vendorId && product.vendorId.toString() !== vendorId) {
+        return res.status(400).json({ success: false, message: 'All items in one order must be from the same vendor.' })
+      }
+      if ((item.quantity || 1) > product.stock) {
+        return res.status(409).json({ success: false, message: `Only ${product.stock} left of "${product.name}" — please adjust the quantity.` })
+      }
+      item.name = product.name
+      item.price = product.price
+      item.currency = product.currency
+    }
+
     // ✅ Exactly one of deliveryAddress (physical goods) or
     // bookingDetails (hotel stay / property viewing / event date /
     // travel booking) is required — never both, never neither. Which

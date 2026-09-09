@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Store, ShoppingBag, ArrowLeft, PackageX } from 'lucide-react'
+import { Store, ShoppingBag, ArrowLeft, PackageX, ShoppingCart, Plus } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
+import VendorCartDrawer from '../../components/VendorCartDrawer'
+import { useVendorCart } from '../../context/VendorCartContext'
 import { getCategoryHighlights } from '../../utils/categoryHighlights'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -13,6 +15,25 @@ function VendorStore() {
   const [vendorBio, setVendorBio] = useState('')
   const [vendorPhoto, setVendorPhoto] = useState('')
   const [loading, setLoading] = useState(true)
+  const [cartOpen, setCartOpen] = useState(false)
+  const [justAdded, setJustAdded] = useState(null)
+  const { addItem, getVendorCartCount } = useVendorCart()
+
+  const handleAddToCart = (e, product) => {
+    e.preventDefault() // card is a <Link> — don't navigate when adding to cart
+    e.stopPropagation()
+    addItem(vendorId, vendorName, {
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      currency: product.currency,
+      image: product.images?.[0] || '',
+      stock: product.stock,
+      category: product.category,
+    }, 1)
+    setJustAdded(product._id)
+    setTimeout(() => setJustAdded(null), 1200)
+  }
 
   useEffect(() => {
     // ✅ Fetched independently of products — a freshly-approved vendor
@@ -132,8 +153,19 @@ function VendorStore() {
                   <p className="text-amber-600 font-black text-lg">
                     {product.currency} {product.price.toLocaleString()}
                   </p>
-                  {product.stock === 0 && (
+                  {product.stock === 0 ? (
                     <p className="text-red-500 text-xs font-semibold mt-1">Out of stock</p>
+                  ) : (
+                    <button
+                      onClick={(e) => handleAddToCart(e, product)}
+                      className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                        justAdded === product._id
+                          ? 'bg-green-500 text-white'
+                          : 'bg-orange-50 hover:bg-orange-100 text-orange-700'
+                      }`}
+                    >
+                      {justAdded === product._id ? 'Added ✓' : <><Plus size={13} /> Add to Cart</>}
+                    </button>
                   )}
                 </div>
               </Link>
@@ -141,6 +173,19 @@ function VendorStore() {
           </div>
         </div>
       </section>
+
+      {/* Floating cart button — only shows once something's been added */}
+      {getVendorCartCount(vendorId) > 0 && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 pl-4 pr-5 py-3.5 bg-[#0a0f2c] hover:bg-[#0a0f2c]/90 text-white font-bold rounded-full shadow-xl transition-all hover:-translate-y-0.5"
+        >
+          <ShoppingCart size={18} />
+          <span className="text-sm">{getVendorCartCount(vendorId)}</span>
+        </button>
+      )}
+
+      <VendorCartDrawer vendorId={vendorId} open={cartOpen} onClose={() => setCartOpen(false)} />
 
     </div>
   )

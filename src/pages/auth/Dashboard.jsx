@@ -71,6 +71,7 @@ function Dashboard() {
     }
   }
   const [myProducts, setMyProducts] = useState([])
+  const [planUsage, setPlanUsage] = useState(null)
   const [myProductsLoading, setMyProductsLoading] = useState(false)
 
   // ✅ Check login AND dashboard-unlock status.
@@ -121,6 +122,7 @@ function Dashboard() {
               isVerified: data.user.isVerified,
               avatar: data.user.avatar,
               vendorProfile: data.user.vendorProfile,
+              subscription: data.user.subscription,
             }
             setUser(refreshed)
             localStorage.setItem('utl_current_user', JSON.stringify(refreshed))
@@ -403,6 +405,25 @@ function Dashboard() {
       }
     }
     fetchMyProducts()
+
+    // ✅ Authoritative plan/listing-limit numbers — see getMyPlanUsage
+    // in productController.js for why this isn't just approximated
+    // from myProducts.length client-side (the real cap includes a
+    // deleted-but-in-cooldown rule the frontend can't otherwise see).
+    const fetchPlanUsage = async () => {
+      try {
+        const token = localStorage.getItem('utl_token')
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${BASE_URL}/products/my-plan-usage`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success) setPlanUsage(data)
+      } catch (err) {
+        console.error('Failed to fetch plan usage:', err)
+      }
+    }
+    fetchPlanUsage()
   }, [activeTab, user])
 
   // ✅ Keeps the tab in sync when a notification link like
@@ -1032,6 +1053,25 @@ function Dashboard() {
                 >
                   Add Bank Details
                 </button>
+              </div>
+            )}
+
+            {planUsage && (
+              <div className="flex items-center justify-between gap-3 bg-white border border-gray-100 rounded-2xl p-4 flex-wrap">
+                <div>
+                  <p className="text-gray-900 text-sm font-bold">{planUsage.tierLabel} Plan</p>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    {planUsage.activeSlots} of {planUsage.maxListings === null || !isFinite(planUsage.maxListings) ? 'unlimited' : planUsage.maxListings} listings used
+                  </p>
+                </div>
+                {planUsage.tier !== 'platinum' && (
+                  <Link
+                    to="/upgrade-plan"
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold rounded-lg transition-colors flex-shrink-0"
+                  >
+                    Upgrade Plan
+                  </Link>
+                )}
               </div>
             )}
 

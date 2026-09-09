@@ -53,6 +53,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import { CartProvider } from './context/CartContext'
+import { VendorCartProvider } from './context/VendorCartContext'
 import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
 import UltimateConcepts from './pages/UltimateConcepts'
@@ -84,6 +85,7 @@ function App() {
     
     <ErrorBoundary>
       <CartProvider>
+      <VendorCartProvider>
         <div>
           <ScrollToTop />
           <GoogleOneTap />
@@ -146,6 +148,7 @@ function App() {
           {!isAuthPage && <Footer />}
           {!isAuthPage && <ChatBot />}
         </div>
+      </VendorCartProvider>
       </CartProvider>
     </ErrorBoundary>
   )

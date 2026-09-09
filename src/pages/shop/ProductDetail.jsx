@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle, Pencil } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle, Pencil, ShoppingCart } from 'lucide-react'
 import ProductChat from '../../components/ProductChat'
 import ShareLink from '../../components/ShareLink'
 import OrderConfirmation from '../../components/OrderConfirmation'
 import AddressForm from '../../components/AddressForm'
 import BookingDateForm from '../../components/BookingDateForm'
 import ChatWindow from '../../components/ChatWindow'
+import VendorCartDrawer from '../../components/VendorCartDrawer'
+import { useVendorCart } from '../../context/VendorCartContext'
 import { BOOKING_CATEGORIES, RANGE_DATE_CATEGORIES } from '../../config/listingCategoryFields'
 import { getCategoryHighlights } from '../../utils/categoryHighlights'
 
@@ -26,6 +28,9 @@ function ProductDetail() {
   const [bookedDates, setBookedDates] = useState([])
   const [activeConversation, setActiveConversation] = useState(null)
   const [startingChat, setStartingChat] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
+  const { addItem, getVendorCartCount } = useVendorCart()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -89,6 +94,20 @@ function ProductDetail() {
       return
     }
     setShowAddressForm(true)
+  }
+
+  const handleAddToCart = () => {
+    addItem(vendorId, vendor ? (vendor.shopName || `${vendor.firstName} ${vendor.lastName}`) : '', {
+      productId,
+      name: product.name,
+      price: product.price,
+      currency: product.currency,
+      image: product.images?.[0] || '',
+      stock: product.stock,
+      category: product.category,
+    }, 1)
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 1200)
   }
 
   const needsBooking = BOOKING_CATEGORIES.includes(product?.category)
@@ -263,8 +282,26 @@ function ProductDetail() {
             )}
 
             {(() => {
+              // ✅ SECURITY FIX: this used to compare cachedUser.id to
+              // vendor._id, but the backend never actually sent
+              // vendor._id at all — so vendor._id was ALWAYS undefined,
+              // and this check silently became `cachedUser.id ===
+              // undefined`. Any visitor whose cached user object
+              // happened to lack a defined .id (any logged-out state,
+              // or a malformed/stale cache) got treated as if they
+              // owned EVERY product on the site, and shown the "Edit
+              // It" button. Both the missing vendor._id (see
+              // productController.js getById) and this check are now
+              // fixed — the check requires BOTH ids to be real,
+              // non-empty values before ever calling it a match, so
+              // undefined can never accidentally equal undefined here.
+              // The actual save action was always safe regardless —
+              // updateMyProduct enforces this server-side too — this
+              // was a misleading-UI bug, not a data-tampering one.
               const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
-              const isOwnProduct = vendor && (cachedUser.id === vendor._id || cachedUser._id === vendor._id)
+              const currentUserId = cachedUser.id || cachedUser._id
+              const vendorId = vendor?._id
+              const isOwnProduct = !!currentUserId && !!vendorId && String(currentUserId) === String(vendorId)
 
               if (isOwnProduct) {
                 return (
@@ -278,13 +315,26 @@ function ProductDetail() {
               }
 
               return (
-                <button
-                  onClick={handleOrderClick}
-                  disabled={product.stock === 0 || placing}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 mb-6"
-                >
-                  <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : needsBooking ? 'Book Now' : 'Place Order'}
-                </button>
+                <div className="flex gap-2 mb-6">
+                  <button
+                    onClick={handleOrderClick}
+                    disabled={product.stock === 0 || placing}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+                  >
+                    <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : needsBooking ? 'Book Now' : 'Place Order'}
+                  </button>
+                  {product.stock > 0 && (
+                    <button
+                      onClick={handleAddToCart}
+                      className={`flex-shrink-0 flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-bold transition-all ${
+                        justAdded ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                      title="Add to cart"
+                    >
+                      <ShoppingCart size={16} /> {justAdded && 'Added'}
+                    </button>
+                  )}
+                </div>
               )
             })()}
 
@@ -334,7 +384,12 @@ function ProductDetail() {
       {activeConversation && (() => {
         const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
         const currentUserId = cachedUser.id || cachedUser._id
-        const isBuyer = activeConversation.buyerId._id === currentUserId
+        // ✅ buyerId._id is a populated Mongoose ObjectId, currentUserId
+        // is a plain string from localStorage — strict equality (===)
+        // never coerces types, so this always evaluated false
+        // regardless of whether they actually matched. String(...) on
+        // both sides fixes it.
+        const isBuyer = String(activeConversation.buyerId._id) === String(currentUserId)
         const otherParty = isBuyer ? activeConversation.vendorId : activeConversation.buyerId
         return (
           <ChatWindow
@@ -389,6 +444,19 @@ function ProductDetail() {
           </div>
         </div>
       )}
+
+      {/* Floating cart button — only shows once something's been added */}
+      {getVendorCartCount(vendorId) > 0 && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 pl-4 pr-5 py-3.5 bg-[#0a0f2c] hover:bg-[#0a0f2c]/90 text-white font-bold rounded-full shadow-xl transition-all hover:-translate-y-0.5"
+        >
+          <ShoppingCart size={18} />
+          <span className="text-sm">{getVendorCartCount(vendorId)}</span>
+        </button>
+      )}
+
+      <VendorCartDrawer vendorId={vendorId} open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   )
 }

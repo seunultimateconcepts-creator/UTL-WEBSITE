@@ -12,6 +12,7 @@ router.get('/all', productController.listAll)         // GET /api/products/all (
 // ✅ Seller's own products — MUST come before /:productId, or Express
 // would try to treat "my-products" as a productId value
 router.get('/my-products', protect, productController.getMyProducts)          // GET /api/products/my-products
+router.get('/my-plan-usage', protect, productController.getMyPlanUsage)       // GET /api/products/my-plan-usage
 router.put('/my-products/:productId', protect, productController.updateMyProduct)   // PUT /api/products/my-products/:productId
 router.delete('/my-products/:productId', protect, productController.deleteMyProduct) // DELETE /api/products/my-products/:productId
 

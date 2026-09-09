@@ -50,12 +50,12 @@ const getById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' })
     }
 
-    const vendor = await User.findById(product.vendorId).select('firstName lastName vendorProfile.bankDetails')
+    const vendor = await User.findById(product.vendorId).select('firstName lastName vendorProfile.bankDetails vendorProfile.shopName')
 
     res.status(200).json({
       success: true,
       product,
-      vendor: vendor ? { firstName: vendor.firstName, lastName: vendor.lastName, bankDetails: vendor.vendorProfile?.bankDetails || null } : null,
+      vendor: vendor ? { _id: vendor._id, firstName: vendor.firstName, lastName: vendor.lastName, shopName: vendor.vendorProfile?.shopName || '', bankDetails: vendor.vendorProfile?.bankDetails || null } : null,
     })
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching product', error: error.message })
@@ -242,4 +242,30 @@ const deleteMyProduct = async (req, res) => {
   }
 }
 
-module.exports = { listByVendor, getById, create, listAll, deleteProduct, getMyProducts, updateMyProduct, deleteMyProduct }
+// ✅ GET MY PLAN USAGE — powers the plan/listing-limit display in the
+// Dashboard's My Shop tab. Deliberately a dedicated endpoint rather
+// than having the frontend approximate this from its own product
+// list — countActiveSlots's real rule (deleted-but-in-cooldown
+// products still count against the cap, see DELETE_COOLDOWN_DAYS)
+// isn't something the frontend can see from getMyProducts alone,
+// since that query excludes deleted products entirely.
+const getMyPlanUsage = async (req, res) => {
+  try {
+    const vendor = await User.findById(req.user.id).select('subscription')
+    const tier = vendor?.subscription?.tier || 'free'
+    const tierConfig = SUBSCRIPTION_TIERS[tier]
+    const activeSlots = await countActiveSlots(req.user.id)
+
+    res.status(200).json({
+      success: true,
+      tier,
+      tierLabel: tierConfig.label,
+      maxListings: tierConfig.maxListings,
+      activeSlots,
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching plan usage', error: error.message })
+  }
+}
+
+module.exports = { listByVendor, getById, create, listAll, deleteProduct, getMyProducts, updateMyProduct, deleteMyProduct, getMyPlanUsage }
