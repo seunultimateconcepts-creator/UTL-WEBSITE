@@ -44,6 +44,9 @@ function Dashboard() {
   const [bookingsLoading, setBookingsLoading] = useState(false)
   const [sourcingRequests, setSourcingRequests] = useState([])
   const [utlBankDetails, setUtlBankDetails] = useState(null)
+  const [returnModalOrder, setReturnModalOrder] = useState(null) // orderId | null
+  const [returnReason, setReturnReason] = useState('')
+  const [returnError, setReturnError] = useState('')
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [activeConversation, setActiveConversation] = useState(null)
@@ -200,6 +203,83 @@ function Dashboard() {
       }
     } catch (err) {
       console.error('Failed to confirm payment:', err)
+    }
+  }
+
+  // ✅ Vendor updating their OWN order's status — updateOrderStatus on
+  // the backend accepts a vendor's own JWT for their own orders, not
+  // just the admin key.
+  const handleUpdateOrderStatus = async (orderId, status) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, status } : o))
+      }
+    } catch (err) {
+      console.error('Failed to update order status:', err)
+    }
+  }
+
+  // ✅ Buyer confirming they actually received the order — separate
+  // from the vendor marking it "delivered".
+  const handleConfirmDelivery = async (orderId) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/confirm-delivery`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, status: 'completed' } : o))
+      }
+    } catch (err) {
+      console.error('Failed to confirm delivery:', err)
+    }
+  }
+
+  const handleRequestReturn = async (orderId, reason) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/return`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, returnRequest: data.order.returnRequest } : o))
+        setReturnModalOrder(null)
+      } else {
+        setReturnError(data.message || 'Something went wrong. Please try again.')
+      }
+    } catch (err) {
+      console.error('Failed to request return:', err)
+      setReturnError('Network error — please try again.')
+    }
+  }
+
+  // ✅ Vendor/admin resolving a return request the buyer filed.
+  const handleResolveReturn = async (orderId, decision) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/return/resolve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ decision }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, returnRequest: data.order.returnRequest } : o))
+      }
+    } catch (err) {
+      console.error('Failed to resolve return:', err)
     }
   }
 
@@ -944,13 +1024,35 @@ function Dashboard() {
                     }`}>
                       {order.paymentStatus === 'confirmed' ? 'Paid' : 'Payment Pending'}
                     </span>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
-                      order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                      order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {order.status}
-                    </span>
+                    {/* ✅ Vendor gets an editable status dropdown once payment is
+                        confirmed. 'completed' is excluded — that's the
+                        customer's own confirmation, not something a vendor
+                        sets on their behalf. */}
+                    {isApprovedSeller && order.paymentStatus === 'confirmed' ? (
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+                        className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full capitalize border-0 cursor-pointer ${
+                          order.status === 'delivered' || order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {['pending', 'confirmed', 'processing', 'delivered', 'cancelled'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                        {order.status === 'completed' && <option value="completed">completed</option>}
+                      </select>
+                    ) : (
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                        order.status === 'delivered' || order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {order.status}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1.5 mb-3">
@@ -982,6 +1084,35 @@ function Dashboard() {
                     {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
                   </p>
                 )}
+
+                {/* Return request status/actions — shown to both sides once one exists */}
+                {order.returnRequest?.requested && (
+                  <div className={`mt-3 p-3 rounded-lg text-xs ${
+                    order.returnRequest.status === 'approved' ? 'bg-green-50 text-green-700' :
+                    order.returnRequest.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                    'bg-amber-50 text-amber-700'
+                  }`}>
+                    <p className="font-bold capitalize mb-0.5">Return {order.returnRequest.status}</p>
+                    <p>{order.returnRequest.reason}</p>
+                    {isApprovedSeller && order.returnRequest.status === 'pending' && (
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => handleResolveReturn(order._id, 'approved')}
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded-lg transition-colors"
+                        >
+                          Approve Return
+                        </button>
+                        <button
+                          onClick={() => handleResolveReturn(order._id, 'rejected')}
+                          className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] font-bold rounded-lg transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {isApprovedSeller && order.paymentStatus !== 'confirmed' && (
                   <button
                     onClick={() => handleConfirmPayment(order._id)}
@@ -997,6 +1128,24 @@ function Dashboard() {
                   >
                     View Receipt
                   </Link>
+                )}
+                {/* Buyer-only: confirm receipt once vendor marks it delivered */}
+                {!isApprovedSeller && order.status === 'delivered' && (
+                  <button
+                    onClick={() => handleConfirmDelivery(order._id)}
+                    className="w-full mt-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Confirm I Received This
+                  </button>
+                )}
+                {/* Buyer-only: request a return, once delivered/completed and no return exists yet */}
+                {!isApprovedSeller && ['delivered', 'completed'].includes(order.status) && !order.returnRequest?.requested && (
+                  <button
+                    onClick={() => { setReturnModalOrder(order._id); setReturnReason(''); setReturnError('') }}
+                    className="w-full mt-2 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Request a Return
+                  </button>
                 )}
               </div>
             ))}
@@ -1286,6 +1435,40 @@ function Dashboard() {
         )}
 
       </div>
+
+      {/* Return request modal */}
+      {returnModalOrder && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setReturnModalOrder(null)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-gray-900 font-bold text-lg mb-4">Request a Return</h3>
+            <textarea
+              rows={4}
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+              placeholder="Tell the vendor why you'd like to return this order..."
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:border-amber-400 resize-none"
+            />
+            {returnError && <p className="text-red-600 text-xs mb-3">{returnError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setReturnModalOrder(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRequestReturn(returnModalOrder, returnReason)}
+                disabled={!returnReason.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white text-sm font-bold"
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings modals — Edit Profile, Change Password, Delete Account */}
       {settingsModal && (

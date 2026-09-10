@@ -178,7 +178,7 @@ function VendorStore() {
       {getVendorCartCount(vendorId) > 0 && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 pl-4 pr-5 py-3.5 bg-[#0a0f2c] hover:bg-[#0a0f2c]/90 text-white font-bold rounded-full shadow-xl transition-all hover:-translate-y-0.5"
+          className="fixed bottom-6 left-6 z-40 flex items-center gap-2 pl-4 pr-5 py-3.5 bg-[#0a0f2c] hover:bg-[#0a0f2c]/90 text-white font-bold rounded-full shadow-xl transition-all hover:-translate-y-0.5"
         >
           <ShoppingCart size={18} />
           <span className="text-sm">{getVendorCartCount(vendorId)}</span>

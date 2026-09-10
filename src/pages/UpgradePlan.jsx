@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -42,10 +43,36 @@ function UpgradePlan() {
     }
     setUser(parsed)
 
+    // ✅ BUG FIX: this used to set bankDetails: null here and never
+    // fetch the real thing — so a seller who requested an upgrade,
+    // then simply refreshed the page (or navigated away and back),
+    // would see "bank details aren't available" forever, even though
+    // they genuinely are configured. request-upgrade is safe to call
+    // again with the same tier — it just re-confirms the pending
+    // request and hands back the real bank details, same as the first
+    // time.
     if (parsed.subscription?.pendingTier) {
-      setPending({ tier: parsed.subscription.pendingTier, amount: null, bankDetails: null })
+      refreshPendingDetails(parsed.subscription.pendingTier)
     }
   }, [navigate])
+
+  const refreshPendingDetails = async (tier) => {
+    setPending({ tier, amount: null, bankDetails: null }) // show the pending screen immediately, fill in details once fetched
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/sellers/request-upgrade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tier }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setPending({ tier, amount: data.amount, bankDetails: data.bankDetails })
+      }
+    } catch (err) {
+      console.error('Failed to refresh pending upgrade details:', err)
+    }
+  }
 
   const handleRequestUpgrade = async (tier) => {
     setError('')
