@@ -95,7 +95,7 @@ function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f2c] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-4">
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 bg-[#111827] rounded-3xl overflow-hidden shadow-2xl border border-white/10">
 
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600/20 to-transparent relative overflow-hidden">
