@@ -30,6 +30,8 @@ function ProductDetail() {
   const [startingChat, setStartingChat] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
+  const [selectedVariants, setSelectedVariants] = useState({})
+  const [variantError, setVariantError] = useState('')
   const { addItem, getVendorCartCount } = useVendorCart()
 
   useEffect(() => {
@@ -86,7 +88,15 @@ function ProductDetail() {
     }
   }
 
+  const variantsIncomplete = product?.variants?.length > 0 &&
+    product.variants.some(v => !selectedVariants[v.name])
+
   const handleOrderClick = () => {
+    if (variantsIncomplete) {
+      setVariantError('Please select an option for all choices above')
+      return
+    }
+    setVariantError('')
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
       localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${vendorId}/product/${productId}`)
@@ -97,6 +107,11 @@ function ProductDetail() {
   }
 
   const handleAddToCart = () => {
+    if (variantsIncomplete) {
+      setVariantError('Please select an option for all choices above')
+      return
+    }
+    setVariantError('')
     addItem(vendorId, vendor ? (vendor.shopName || `${vendor.firstName} ${vendor.lastName}`) : '', {
       productId,
       name: product.name,
@@ -105,6 +120,7 @@ function ProductDetail() {
       image: product.images?.[0] || '',
       stock: product.stock,
       category: product.category,
+      selectedVariants,
     }, 1)
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 1200)
@@ -136,6 +152,7 @@ function ProductDetail() {
             currency: product.currency,
             store: vendor ? `${vendor.firstName} ${vendor.lastName}` : '',
             quantity: 1,
+            selectedVariants,
           }],
           ...(needsBooking ? { bookingDetails: formData } : { deliveryAddress: formData }),
         }),
@@ -254,6 +271,33 @@ function ProductDetail() {
               <span className="inline-block text-sm font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mb-4">Out of stock</span>
             ) : (
               <span className="inline-block text-sm font-semibold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg mb-4">In stock</span>
+            )}
+
+            {product.variants?.length > 0 && (
+              <div className="space-y-3 mb-4">
+                {product.variants.map((variant) => (
+                  <div key={variant.name}>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">{variant.name}</label>
+                    <div className="flex flex-wrap gap-2">
+                      {variant.options.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => { setSelectedVariants(prev => ({ ...prev, [variant.name]: option })); setVariantError('') }}
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+                            selectedVariants[variant.name] === option
+                              ? 'bg-orange-500 border-orange-500 text-white'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-orange-300'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {variantError && <p className="text-red-600 text-xs">{variantError}</p>}
+              </div>
             )}
 
             <p className="text-gray-600 text-sm leading-relaxed mb-6">{product.description}</p>
@@ -440,6 +484,7 @@ function ProductDetail() {
               onContinue={() => setConfirmedOrder(null)}
               continueLabel="Keep Browsing"
               vendorBankDetails={vendor?.bankDetails}
+              vendorPhone={vendor?.phone}
             />
           </div>
         </div>

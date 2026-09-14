@@ -28,6 +28,16 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // ✅ Optional, retail-only sub-classification (e.g. "Phones &
+  // Tablets") — NOT the same as `category` above, which is always the
+  // vendor's real registered business type (Hotel & Short-Let
+  // Accommodation, Property & Real Estate, etc.) and is what every
+  // category-aware feature (booking checkout, double-booking
+  // prevention, storefront highlights) actually keys off.
+  subCategory: {
+    type: String,
+    default: '',
+  },
   stock: {
     type: Number,
     default: 0,
@@ -74,6 +84,18 @@ const productSchema = new mongoose.Schema({
   // Local Services, etc. Deliberately flexible (not a rigid schema per
   // category) — see listingCategoryFields.js on the frontend for what
   // renders per category, and it maps straight onto this.
+  // ✅ Lightweight, informational variants (Size: S/M/L, Color: Red/
+  // Blue) — a customer picks one option per variant type before
+  // ordering (see ProductDetail.jsx). Deliberately NOT a full
+  // per-combination inventory matrix — one price and one stock count
+  // for the whole product regardless of which options are picked, not
+  // separate stock for "Red-M" vs "Blue-L". That's a real limitation
+  // worth knowing about (can't tell you're out of just one color), not
+  // something to silently pretend isn't there.
+  variants: [{
+    name: { type: String, required: true }, // e.g. "Size"
+    options: [{ type: String }],            // e.g. ["S", "M", "L"]
+  }],
   attributes: {
     type: Map,
     of: mongoose.Schema.Types.Mixed,

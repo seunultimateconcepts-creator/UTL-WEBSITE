@@ -7,24 +7,29 @@ import { Link } from 'react-router-dom'
  * Replaces the old "auto-redirect to WhatsApp" pattern. The order is
  * already saved server-side by the time this renders.
  *
- * ✅ No WhatsApp link here on purpose — this app already runs a
- * site-wide AI chatbot (see ChatBot.jsx, the floating "Ask me
- * anything!" bubble) for the AI-first support tier. A raw WhatsApp
- * link would reopen the exact off-platform-negotiation risk that
- * ProductChat's contact filtering was built to close. If someone
- * genuinely needs a human, they get ONE centralized phone number to
- * CALL — not a chat channel, which is much easier to steer toward an
- * off-platform arrangement than a live phone call is.
+ * ✅ No WhatsApp link here on purpose — same off-platform-negotiation
+ * reasoning as ProductChat's contact filtering.
+ *
+ * `vendorPhone` — when this order has a real vendor (not Ultimate
+ * Shop), their own number is shown for order questions instead of the
+ * centralized UTL line. Worth knowing: this is a deliberate reversal
+ * of an earlier decision to keep buyer/vendor contact centralized —
+ * showing each vendor's real number makes off-platform arrangement
+ * for FUTURE orders easier than a single shared line did. Falls back
+ * to SUPPORT_PHONE when there's no vendor (Ultimate Shop) or no phone
+ * on file.
  *
  * Usage:
- * <OrderConfirmation order={order} onContinue={() => ...} />
+ * <OrderConfirmation order={order} onContinue={() => ...} vendorPhone={vendor?.phone} />
  */
 
 // ⚠️ TODO: move this to a real settings/admin field once there's a
 // designated support person — hardcoded for now since it's just you.
 const SUPPORT_PHONE = '+2348038786037'
 
-export default function OrderConfirmation({ order, onContinue, continueLabel = 'Continue Shopping', vendorBankDetails }) {
+export default function OrderConfirmation({ order, onContinue, continueLabel = 'Continue Shopping', vendorBankDetails, vendorPhone }) {
+  const displayPhone = vendorPhone || SUPPORT_PHONE
+  const isVendorLine = !!vendorPhone
   return (
     <div className="text-center py-6 px-4">
       <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -45,7 +50,14 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
         <div className="space-y-2 mb-4">
           {order.items?.map((item, i) => (
             <div key={i} className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">{item.name} {item.quantity > 1 && `× ${item.quantity}`}</span>
+              <span className="text-gray-600">
+                {item.name} {item.quantity > 1 && `× ${item.quantity}`}
+                {item.selectedVariants && Object.keys(item.selectedVariants).length > 0 && (
+                  <span className="text-gray-400 text-xs block">
+                    {Object.entries(item.selectedVariants).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                  </span>
+                )}
+              </span>
               <span className="text-gray-900 font-medium">
                 {item.currency} {(item.price * item.quantity).toLocaleString()}
               </span>
@@ -129,10 +141,10 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
           <LayoutDashboard size={15} /> View My Orders
         </Link>
         <a
-          href={`tel:${SUPPORT_PHONE}`}
+          href={`tel:${displayPhone}`}
           className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-sm"
         >
-          <Phone size={15} /> Call Support: {SUPPORT_PHONE}
+          <Phone size={15} /> {isVendorLine ? `Call Seller: ${displayPhone}` : `Call Support: ${displayPhone}`}
         </a>
         {onContinue && (
           <button

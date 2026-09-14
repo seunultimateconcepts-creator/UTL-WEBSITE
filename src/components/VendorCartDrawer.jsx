@@ -27,6 +27,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
   const [error, setError] = useState('')
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [vendorBankDetails, setVendorBankDetails] = useState(null)
+  const [vendorPhone, setVendorPhone] = useState('')
 
   // ✅ Simplification worth knowing about: if a vendor's cart somehow
   // mixes a booking-category item (hotel/property/event/travel) with
@@ -42,7 +43,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
     if (step === 'checkout' && cart.items[0]?.productId && !vendorBankDetails) {
       fetch(`${BASE_URL}/products/${cart.items[0].productId}`)
         .then((r) => r.json())
-        .then((data) => { if (data.success) setVendorBankDetails(data.vendor?.bankDetails) })
+        .then((data) => { if (data.success) { setVendorBankDetails(data.vendor?.bankDetails); setVendorPhone(data.vendor?.phone || '') } })
         .catch((err) => console.error('Failed to load vendor bank details:', err))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,6 +96,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
     setError('')
     setConfirmedOrder(null)
     setVendorBankDetails(null)
+    setVendorPhone('')
     onClose()
   }
 
@@ -122,6 +124,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
               onContinue={handleClose}
               continueLabel="Keep Browsing"
               vendorBankDetails={vendorBankDetails}
+              vendorPhone={vendorPhone}
             />
           </div>
         )}
@@ -148,6 +151,11 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-gray-900 text-sm font-semibold line-clamp-1">{item.name}</p>
+                    {item.selectedVariants && Object.keys(item.selectedVariants).length > 0 && (
+                      <p className="text-gray-400 text-[11px]">
+                        {Object.entries(item.selectedVariants).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                      </p>
+                    )}
                     <p className="text-amber-600 text-sm font-bold mt-0.5">
                       {item.currency} {item.price.toLocaleString()}
                     </p>

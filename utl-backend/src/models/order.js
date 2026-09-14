@@ -29,6 +29,15 @@ const orderItemSchema = new mongoose.Schema({
   currency: { type: String, default: 'NGN' },
   store: { type: String, default: '' }, // e.g. 'Jumia' for Ultimate Shop items
   quantity: { type: Number, default: 1 },
+  // ✅ e.g. { Size: 'M', Color: 'Red' } — which variant options the
+  // buyer picked, if the product has any (see Product.variants). Pure
+  // record-keeping; doesn't affect stock or price (see the note on
+  // Product.variants about why).
+  selectedVariants: {
+    type: Map,
+    of: String,
+    default: {},
+  },
 }, { _id: false })
 
 const orderSchema = new mongoose.Schema({

@@ -3,10 +3,22 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, X, Package, PartyPopper, Trash2 } from 'lucide-react'
 import { CATEGORY_FIELDS } from '../config/listingCategoryFields'
+import ImageUpload from '../components/ImageUpload'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-const CATEGORIES = [
+// ✅ RENAMED from CATEGORIES — this was previously (incorrectly) the
+// product's actual `category` field, completely disconnected from the
+// vendor's real registered business type. That meant product.category
+// could never equal 'Hotel & Short-Let Accommodation' or any other
+// real business category for ANY vendor — silently breaking every
+// category-aware feature built on that field (booking-date checkout,
+// double-booking prevention, category highlights on the storefront)
+// for every single vendor, not just one. Now this is just an optional
+// SUB-category, shown only for Product Seller vendors, purely for
+// their own catalog organization — product.category itself is always
+// the vendor's real businessCategory, set automatically below.
+const RETAIL_SUBCATEGORIES = [
   'Phones & Tablets', 'Laptops & Computers', 'Fashion & Clothing',
   'Electronics', 'Home & Kitchen', 'Gaming', 'Beauty & Personal Care',
   'Food & Groceries', 'Sports & Fitness', 'Books & Stationery', 'Other',
@@ -27,13 +39,17 @@ function AddProduct() {
     name: '',
     description: '',
     price: '',
-    category: '',
+    subCategory: '',
     stock: '',
     deliveryPolicy: '',
     returnsPolicy: '',
   })
   const [images, setImages] = useState([''])
   const [faqs, setFaqs] = useState([{ question: '', answer: '' }])
+  // ✅ Each variant: { name: 'Size', optionsText: 'S, M, L' } while
+  // editing — optionsText is split into a real array only on submit,
+  // so the input can hold a normal comma-separated typing flow.
+  const [variants, setVariants] = useState([])
   const [vendorCategory, setVendorCategory] = useState('Product Seller')
   const [attributeValues, setAttributeValues] = useState({})
 
@@ -70,13 +86,14 @@ function AddProduct() {
           name: p.name || '',
           description: p.description || '',
           price: p.price?.toString() || '',
-          category: p.category || '',
+          subCategory: p.subCategory || '',
           stock: p.stock?.toString() || '',
           deliveryPolicy: p.policies?.delivery || '',
           returnsPolicy: p.policies?.returns || '',
         })
         setImages(p.images?.length ? p.images : [''])
         setFaqs(p.faqs?.length ? p.faqs : [{ question: '', answer: '' }])
+        setVariants(p.variants?.length ? p.variants.map(v => ({ name: v.name, optionsText: v.options.join(', ') })) : [])
         setAttributeValues(p.attributes ? Object.fromEntries(Object.entries(p.attributes)) : {})
       } catch (err) {
         console.error('Failed to load product:', err)
@@ -104,11 +121,17 @@ function AddProduct() {
   const addFaqField = () => setFaqs(prev => [...prev, { question: '', answer: '' }])
   const removeFaqField = (index) => setFaqs(prev => prev.filter((_, i) => i !== index))
 
+  const updateVariant = (index, field, value) => {
+    setVariants(prev => prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)))
+  }
+  const addVariant = () => setVariants(prev => [...prev, { name: '', optionsText: '' }])
+  const removeVariant = (index) => setVariants(prev => prev.filter((_, i) => i !== index))
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (!formData.name || !formData.description || !formData.price || !formData.category) {
+    if (!formData.name || !formData.description || !formData.price) {
       setError('Please fill in all required fields')
       return
     }
@@ -120,7 +143,12 @@ function AddProduct() {
         name: formData.name,
         description: formData.description,
         price: Number(formData.price),
-        category: formData.category,
+        // ✅ Always the vendor's real registered business category —
+        // never user-selected. This is what BOOKING_CATEGORIES,
+        // getCategoryHighlights, and the whole booking-checkout flow
+        // actually key off; it must match exactly.
+        category: vendorCategory,
+        subCategory: formData.subCategory || '',
         stock: Number(formData.stock) || 0,
         images: images.filter(img => img.trim()),
         faqs: faqs.filter(f => f.question.trim() && f.answer.trim()),
@@ -129,6 +157,9 @@ function AddProduct() {
           returns: formData.returnsPolicy,
         },
         attributes: attributeValues,
+        variants: variants
+          .filter(v => v.name.trim() && v.optionsText.trim())
+          .map(v => ({ name: v.name.trim(), options: v.optionsText.split(',').map(o => o.trim()).filter(Boolean) })),
       }
 
       const url = isEditMode ? `${BASE_URL}/products/my-products/${productId}` : `${BASE_URL}/products`
@@ -205,7 +236,7 @@ function AddProduct() {
             </button>
             {!isEditMode && (
               <button
-                onClick={() => { setSuccess(null); setFormData({ name: '', description: '', price: '', category: '', stock: '', deliveryPolicy: '', returnsPolicy: '' }); setImages(['']); setFaqs([{ question: '', answer: '' }]) }}
+                onClick={() => { setSuccess(null); setFormData({ name: '', description: '', price: '', subCategory: '', stock: '', deliveryPolicy: '', returnsPolicy: '' }); setImages(['']); setFaqs([{ question: '', answer: '' }]); setVariants([]) }}
                 className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-sm"
               >
                 Add Another Product
@@ -286,13 +317,26 @@ function AddProduct() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Category *</label>
-              <select name="category" value={formData.category} onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors">
-                <option value="">Select a category</option>
-                {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Category</label>
+              <div className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500">
+                {vendorCategory} <span className="text-gray-400">(from your seller profile)</span>
+              </div>
             </div>
+
+            {/* ✅ Sub-category — only meaningful for Product Seller's
+                general retail catalog. A Hotel or Property vendor's
+                real category IS their listing type; there's no
+                sensible "Phones & Tablets"-style sub-split for them. */}
+            {vendorCategory === 'Product Seller' && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Product Type</label>
+                <select name="subCategory" value={formData.subCategory} onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors">
+                  <option value="">Select a type (optional)</option>
+                  {RETAIL_SUBCATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Category-specific fields — only shown when this vendor's
@@ -335,23 +379,53 @@ function AddProduct() {
           {/* Images */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
             <h3 className="text-gray-900 font-bold text-sm">Product Images</h3>
-            <p className="text-gray-400 text-xs -mt-2">Paste image URLs for now — direct upload is coming later.</p>
-            {images.map((img, i) => (
-              <div key={i} className="flex gap-2">
-                <input type="text" value={img} onChange={(e) => updateImage(i, e.target.value)}
-                  placeholder="https://..."
-                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
-                {images.length > 1 && (
-                  <button type="button" onClick={() => removeImageField(i)}
-                    className="w-10 h-10 flex-shrink-0 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
+            <p className="text-gray-400 text-xs -mt-2">Add as many photos as you'd like — the first one is used as the main image.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {images.map((img, i) => (
+                <div key={i} className="relative">
+                  <ImageUpload
+                    value={img}
+                    onChange={(url) => updateImage(i, url)}
+                    label={i === 0 ? 'Main photo' : `Photo ${i + 1}`}
+                  />
+                  {images.length > 1 && (
+                    <button type="button" onClick={() => removeImageField(i)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-gray-200 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center shadow-sm transition-colors">
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
             <button type="button" onClick={addImageField}
               className="flex items-center gap-1.5 text-orange-600 text-xs font-semibold hover:text-orange-700">
-              <Plus size={14} /> Add another image
+              <Plus size={14} /> Add another photo
+            </button>
+          </div>
+
+          {/* Variants — Size, Color, etc. */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
+            <h3 className="text-gray-900 font-bold text-sm">Options (optional)</h3>
+            <p className="text-gray-400 text-xs -mt-2">
+              e.g. Size: S, M, L — buyers pick one option per type before ordering. One price and stock count applies across all options.
+            </p>
+            {variants.map((variant, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <input type="text" value={variant.name} onChange={(e) => updateVariant(i, 'name', e.target.value)}
+                  placeholder="Size"
+                  className="w-28 flex-shrink-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                <input type="text" value={variant.optionsText} onChange={(e) => updateVariant(i, 'optionsText', e.target.value)}
+                  placeholder="S, M, L, XL"
+                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                <button type="button" onClick={() => removeVariant(i)}
+                  className="w-10 h-10 flex-shrink-0 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={addVariant}
+              className="flex items-center gap-1.5 text-orange-600 text-xs font-semibold hover:text-orange-700">
+              <Plus size={14} /> Add an option type
             </button>
           </div>
 

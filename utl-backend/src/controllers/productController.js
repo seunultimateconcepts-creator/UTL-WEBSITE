@@ -50,12 +50,12 @@ const getById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' })
     }
 
-    const vendor = await User.findById(product.vendorId).select('firstName lastName vendorProfile.bankDetails vendorProfile.shopName')
+    const vendor = await User.findById(product.vendorId).select('firstName lastName phone vendorProfile.bankDetails vendorProfile.shopName')
 
     res.status(200).json({
       success: true,
       product,
-      vendor: vendor ? { _id: vendor._id, firstName: vendor.firstName, lastName: vendor.lastName, shopName: vendor.vendorProfile?.shopName || '', bankDetails: vendor.vendorProfile?.bankDetails || null } : null,
+      vendor: vendor ? { _id: vendor._id, firstName: vendor.firstName, lastName: vendor.lastName, phone: vendor.phone || '', shopName: vendor.vendorProfile?.shopName || '', bankDetails: vendor.vendorProfile?.bankDetails || null } : null,
     })
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching product', error: error.message })
@@ -83,7 +83,15 @@ const create = async (req, res) => {
       })
     }
 
-    const { name, description, price, category, stock, images, faqs, policies, videoUrl, attributes } = req.body
+    const { name, description, price, subCategory, stock, images, faqs, policies, videoUrl, attributes, variants } = req.body
+
+    // ✅ HARDENING: category is never taken from the client — it's
+    // always the vendor's own registered vendorProfile.businessCategory.
+    // This is what BOOKING_CATEGORIES, getCategoryHighlights, and the
+    // whole booking-checkout flow key off; letting the client set it
+    // arbitrarily would let a "Product Seller" list something that
+    // silently behaves like a hotel booking, or vice versa.
+    const category = vendor.vendorProfile?.businessCategory || 'Product Seller'
 
     // ✅ Video is Platinum-only — silently dropped for anyone else,
     // not an error, since a downgraded vendor's old form data shouldn't
@@ -96,12 +104,14 @@ const create = async (req, res) => {
       description,
       price,
       category,
+      subCategory: subCategory || '',
       stock,
       images,
       faqs,
       policies,
       videoUrl: finalVideoUrl,
       attributes: attributes || {},
+      variants: variants || [],
     })
 
     res.status(201).json({ success: true, product })
@@ -182,12 +192,16 @@ const updateMyProduct = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You can only edit your own products' })
     }
 
-    const { name, description, price, category, stock, images, faqs, policies, status, videoUrl, attributes } = req.body
+    const { name, description, price, subCategory, stock, images, faqs, policies, status, videoUrl, attributes, variants } = req.body
 
     if (name !== undefined) product.name = name
     if (description !== undefined) product.description = description
     if (price !== undefined) product.price = price
-    if (category !== undefined) product.category = category
+    // ✅ HARDENING: category is deliberately NOT editable via this
+    // endpoint at all — same reasoning as create() above. If a
+    // vendor's own registered business category ever changes, that's
+    // an admin-level action, not something toggled per-product.
+    if (subCategory !== undefined) product.subCategory = subCategory
     if (stock !== undefined) product.stock = stock
     if (images !== undefined) product.images = images
     if (faqs !== undefined) product.faqs = faqs
@@ -195,6 +209,7 @@ const updateMyProduct = async (req, res) => {
     if (status !== undefined) product.status = status
 
     if (attributes !== undefined) product.attributes = attributes
+    if (variants !== undefined) product.variants = variants
 
     // ✅ Same tier check as creation — re-verified here in case the
     // vendor's tier changed (e.g. downgraded) since the product was made
