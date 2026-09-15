@@ -1,3 +1,21 @@
+import { lazy, Suspense } from 'react'
+
+// WINDOWS 7 FIX - these two pages import pdfjs-dist, which ships a
+// broken feature-detect: typeof Iterator.prototype.join !== 'function'.
+// Evaluating Iterator.prototype throws outright on Chrome <=121 (the
+// newest Chrome that Windows 7 can run), so the reference itself
+// crashes before the guard can protect anything. Statically imported,
+// that code landed in the MAIN bundle and ran on every page load -
+// taking the whole site down with a blank page, not just these tools.
+// Lazy-loading moves pdfjs into its own chunk that only downloads when
+// someone actually opens one of these tools, so the rest of the site
+// works normally on old browsers. (The tools themselves still won't run
+// there - pdfjs genuinely needs a newer engine - but that is one broken
+// feature instead of a broken site.)
+// Bonus: this also splits ~1MB out of the main bundle for everyone.
+const CVBuilder = lazy(() => import('./pages/tools/CVBuilder'))
+const ImagePdfConverter = lazy(() => import('./pages/tools/ImagePdfConverter'))
+
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -33,7 +51,6 @@ import ScrollToTop from './components/ScrollToTop'
 import PasswordGenerator from './pages/tools/PasswordGenerator'
 import WordCounter from './pages/tools/WordCounter'
 import QRGenerator from './pages/tools/QRGenerator'
-import CVBuilder from './pages/tools/CVBuilder'
 import UnitConverter from './pages/tools/UnitConverter'
 import Base64Tool from './pages/tools/Base64Tool'
 import CurrencyConverter from './pages/tools/CurrencyConverter'
@@ -41,7 +58,6 @@ import HashUuidGenerator from './pages/tools/HashUuidGenerator'
 import PercentageVatCalculator from './pages/tools/PercentageVatCalculator'
 import ColorConverter from './pages/tools/ColorConverter'
 import ImageCompressor from './pages/tools/ImageCompressor'
-import ImagePdfConverter from './pages/tools/ImagePdfConverter'
 import PdfToolkit from './pages/tools/PdfToolkit'
 import CompleteProfile from './pages/auth/CompleteProfile'
 import GoogleOneTap from './components/GoogleOneTap'
@@ -90,6 +106,7 @@ function App() {
           <ScrollToTop />
           <GoogleOneTap />
           {!isAuthPage && <Navbar />}
+          <Suspense fallback={<div className="pt-24 text-center text-gray-400 text-sm">Loading...</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -145,6 +162,7 @@ function App() {
             <Route path="/shop/ultimate" element={<UltimateConcepts />} />
             <Route path="/upgrade-plan" element={<UpgradePlan />} />
           </Routes>
+          </Suspense>
           {!isAuthPage && <Footer />}
           {!isAuthPage && <ChatBot />}
         </div>
