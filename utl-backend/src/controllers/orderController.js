@@ -25,7 +25,7 @@ const generateOrderNumber = async () => {
 const createOrder = async (req, res) => {
   try {
     const buyerId = req.user.id
-    const { vendorId, items, notes, deliveryAddress, bookingDetails } = req.body
+    const { vendorId, items, notes, deliveryAddress, bookingDetails, serviceRequestDetails } = req.body
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one item is required' })
@@ -79,45 +79,66 @@ const createOrder = async (req, res) => {
       item.currency = product.currency
     }
 
-    // ✅ Exactly one of deliveryAddress (physical goods) or
-    // bookingDetails (hotel stay / property viewing / event date /
-    // travel booking) is required — never both, never neither. Which
-    // one the frontend sends is decided by the product's category
-    // (see BOOKING_CATEGORIES in listingCategoryFields.js on the
-    // frontend); the backend just enforces one is genuinely present.
-    const hasBookingDetails = bookingDetails?.startDate
-    const hasDeliveryAddress = deliveryAddress?.fullName && deliveryAddress?.phone && deliveryAddress?.coverageZone && deliveryAddress?.address
+    // ✅ Exactly one of deliveryAddress / bookingDetails / 
+    // serviceRequestDetails is required — never more than one, never
+    // none. Which one the frontend sends is decided by
+    // getCheckoutMode(product) in listingCategoryFields.js; the
+    // backend just enforces one is genuinely present and valid for
+    // its own mode.
+    const hasBookingDetails = !!bookingDetails?.startDate
+    const hasDeliveryAddress = !!(deliveryAddress?.fullName && deliveryAddress?.phone && deliveryAddress?.coverageZone && deliveryAddress?.address)
+    const hasServiceRequest = !!serviceRequestDetails?.description?.trim()
 
-    if (!hasBookingDetails && !hasDeliveryAddress) {
-      return res.status(400).json({ success: false, message: 'A complete delivery address or booking date is required' })
+    if (!hasBookingDetails && !hasDeliveryAddress && !hasServiceRequest) {
+      return res.status(400).json({ success: false, message: 'A complete delivery address, booking date, or service request description is required' })
     }
 
     // ✅ DOUBLE-BOOKING PREVENTION — checked here, authoritatively,
-    // never trusting the frontend's own disabled-dates display (that's
-    // just a UX convenience, easy to bypass by editing the request).
-    // A range counts as "taken" for any order on the SAME product that
-    // isn't cancelled — deliberately not scoped to paymentStatus, so a
-    // still-unpaid-but-pending booking already blocks the slot (same
-    // reserve-on-order-not-on-payment principle as stock decrementing
-    // for physical goods below). endDate falls back to startDate for
-    // single-day categories (Property viewing, Event date, Travel).
+    // never trusting the frontend's own disabled-dates/slots display
+    // (that's just a UX convenience, easy to bypass by editing the
+    // request). Two shapes:
+    // (1) Date-range bookings (Hotel/Property/Events/Travel) — a
+    //     range counts as "taken" for any non-cancelled order on the
+    //     SAME product. endDate falls back to startDate for
+    //     single-day categories.
+    // (2) Time-slot bookings (Home & Local Services appointments) —
+    //     an EXACT match on the same day + same slot string counts as
+    //     taken; there's no range overlap concept for a fixed slot.
+    // Neither check is scoped to paymentStatus, so a still-unpaid-but-
+    // pending booking already blocks the slot (same reserve-on-order-
+    // not-on-payment principle as stock decrementing below).
     if (hasBookingDetails) {
-      const requestedStart = new Date(bookingDetails.startDate)
-      const requestedEnd = bookingDetails.endDate ? new Date(bookingDetails.endDate) : requestedStart
       const productId = items[0]?.productId
 
-      if (productId) {
-        const conflicting = await Order.findOne({
-          'items.productId': productId,
-          status: { $ne: 'cancelled' },
-          'bookingDetails.startDate': { $lte: requestedEnd },
-          $or: [
-            { 'bookingDetails.endDate': { $gte: requestedStart } },
-            { 'bookingDetails.endDate': null, 'bookingDetails.startDate': { $gte: requestedStart } },
-          ],
-        })
-        if (conflicting) {
-          return res.status(409).json({ success: false, message: 'Those dates are no longer available. Please choose different dates.' })
+      if (bookingDetails.timeSlot) {
+        if (productId) {
+          const conflicting = await Order.findOne({
+            'items.productId': productId,
+            status: { $ne: 'cancelled' },
+            'bookingDetails.startDate': new Date(bookingDetails.startDate),
+            'bookingDetails.timeSlot': bookingDetails.timeSlot,
+          })
+          if (conflicting) {
+            return res.status(409).json({ success: false, message: 'That time slot is no longer available. Please choose a different one.' })
+          }
+        }
+      } else {
+        const requestedStart = new Date(bookingDetails.startDate)
+        const requestedEnd = bookingDetails.endDate ? new Date(bookingDetails.endDate) : requestedStart
+
+        if (productId) {
+          const conflicting = await Order.findOne({
+            'items.productId': productId,
+            status: { $ne: 'cancelled' },
+            'bookingDetails.startDate': { $lte: requestedEnd },
+            $or: [
+              { 'bookingDetails.endDate': { $gte: requestedStart } },
+              { 'bookingDetails.endDate': null, 'bookingDetails.startDate': { $gte: requestedStart } },
+            ],
+          })
+          if (conflicting) {
+            return res.status(409).json({ success: false, message: 'Those dates are no longer available. Please choose different dates.' })
+          }
         }
       }
     }
@@ -148,6 +169,7 @@ const createOrder = async (req, res) => {
       totalAmount,
       deliveryAddress: hasDeliveryAddress ? deliveryAddress : undefined,
       bookingDetails: hasBookingDetails ? bookingDetails : undefined,
+      serviceRequestDetails: hasServiceRequest ? serviceRequestDetails : undefined,
       deliveryFee,
       estimatedDeliveryDays,
       grandTotal,
@@ -472,12 +494,26 @@ const getBookedDates = async (req, res) => {
       'bookingDetails.startDate': { $ne: null },
     }).select('bookingDetails')
 
-    const bookedDates = orders.map(o => ({
-      startDate: o.bookingDetails.startDate,
-      endDate: o.bookingDetails.endDate || o.bookingDetails.startDate,
-    }))
+    // ✅ Date-range bookings — used by BookingDateForm to grey out
+    // unavailable ranges.
+    const bookedDates = orders
+      .filter(o => !o.bookingDetails.timeSlot)
+      .map(o => ({
+        startDate: o.bookingDetails.startDate,
+        endDate: o.bookingDetails.endDate || o.bookingDetails.startDate,
+      }))
 
-    res.status(200).json({ success: true, bookedDates })
+    // ✅ Time-slot bookings — used by TimeSlotForm to disable
+    // already-taken slots on the selected day. Shape:
+    // [{ date: '2026-09-20', slot: '14:00' }]
+    const bookedSlots = orders
+      .filter(o => o.bookingDetails.timeSlot)
+      .map(o => ({
+        date: o.bookingDetails.startDate.toISOString().split('T')[0],
+        slot: o.bookingDetails.timeSlot,
+      }))
+
+    res.status(200).json({ success: true, bookedDates, bookedSlots })
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching booked dates', error: error.message })
   }

@@ -35,6 +35,7 @@ export const CATEGORY_FIELDS = {
   ],
 
   'Home & Local Services': [
+    { key: 'serviceMode', label: 'How do customers book this?', type: 'select', options: ['Scheduled Appointment', 'Request a Callout'] },
     { key: 'serviceArea', label: 'Service Area / Coverage', type: 'text', placeholder: 'e.g. Lagos Mainland, Benin City' },
     { key: 'rateType', label: 'Rate Type', type: 'select', options: ['Fixed Price', 'Per Hour', 'Quote on Request'] },
   ],
@@ -63,13 +64,76 @@ export const CATEGORY_FIELDS = {
 }
 
 /**
+ * CHECKOUT MODES
+ *
+ * ✅ Every category checks out one of four ways. This replaces the
+ * older BOOKING_CATEGORIES-only split (kept below for anything still
+ * importing it directly) with a single function every checkout
+ * surface (ProductDetail.jsx, VendorCartDrawer.jsx, AddProduct.jsx)
+ * calls instead of re-deriving the same category list in three
+ * places — one source of truth for "what kind of listing is this."
+ *
+ * - 'buy-now'         — quantity + delivery address (physical goods)
+ * - 'book-dates'      — a date or date range + guests (a stay, a
+ *                        viewing, an event, a trip)
+ * - 'time-slot'       — a specific day + a fixed time slot (a
+ *                        haircut, a fitting, a table)
+ * - 'service-request' — no fixed date/time at all — a description of
+ *                        what's needed + location + urgency, the
+ *                        vendor responds directly (a callout, a
+ *                        freelance gig, a delivery pickup)
+ *
+ * 'Home & Local Services' is genuinely two different businesses under
+ * one category label — a barber who takes appointments and a
+ * plumber who takes callouts check out completely differently. That
+ * split is a vendor-chosen field (serviceMode, above), not something
+ * the category name alone can decide — see getCheckoutMode below.
+ */
+export const CHECKOUT_MODES = {
+  BUY_NOW: 'buy-now',
+  BOOK_DATES: 'book-dates',
+  TIME_SLOT: 'time-slot',
+  SERVICE_REQUEST: 'service-request',
+}
+
+const CATEGORY_MODE_MAP = {
+  'Product Seller': CHECKOUT_MODES.BUY_NOW,
+  'Restaurant & Food': CHECKOUT_MODES.BUY_NOW,
+  'Other': CHECKOUT_MODES.BUY_NOW,
+  'Hotel & Short-Let Accommodation': CHECKOUT_MODES.BOOK_DATES,
+  'Property & Real Estate': CHECKOUT_MODES.BOOK_DATES,
+  'Events & Entertainment': CHECKOUT_MODES.BOOK_DATES,
+  'Travel & Tour Booking': CHECKOUT_MODES.BOOK_DATES,
+  'Digital & Freelance Services': CHECKOUT_MODES.SERVICE_REQUEST,
+  'Transportation & Logistics': CHECKOUT_MODES.SERVICE_REQUEST,
+  // 'Home & Local Services' deliberately absent — resolved below by
+  // serviceMode, not by category alone.
+}
+
+/**
+ * getCheckoutMode(product)
+ *
+ * Takes a Product (needs `category` and `attributes`) and returns one
+ * of CHECKOUT_MODES. This is THE function every checkout surface
+ * should call — never re-check BOOKING_CATEGORIES.includes(category)
+ * directly, since that only covers one of the four modes.
+ */
+export function getCheckoutMode(product) {
+  const category = product?.category
+  if (category === 'Home & Local Services') {
+    const mode = product?.attributes?.serviceMode
+    return mode === 'Scheduled Appointment' ? CHECKOUT_MODES.TIME_SLOT : CHECKOUT_MODES.SERVICE_REQUEST
+  }
+  return CATEGORY_MODE_MAP[category] || CHECKOUT_MODES.BUY_NOW
+}
+
+/**
  * BOOKING_CATEGORIES
  *
- * ✅ Categories where checkout needs DATES (a stay, a viewing, an
- * event date) instead of a delivery address. ProductDetail.jsx reads
- * this to decide which form to show — BookingDateForm vs AddressForm
- * — and which field (bookingDetails vs deliveryAddress) to send to
- * POST /orders. See Order.bookingDetails in the backend model.
+ * ✅ Kept for backward compatibility with anything still importing it
+ * directly — but prefer getCheckoutMode(product) === CHECKOUT_MODES.BOOK_DATES
+ * for new code, since this list alone can't express the
+ * Home & Local Services split.
  */
 export const BOOKING_CATEGORIES = [
   'Hotel & Short-Let Accommodation',
@@ -82,3 +146,14 @@ export const BOOKING_CATEGORIES = [
 // need one date (a viewing, an event day, a departure). Read by
 // BookingDateForm.jsx to decide whether to show the second date field.
 export const RANGE_DATE_CATEGORIES = ['Hotel & Short-Let Accommodation']
+
+// ✅ Simple fixed daily slots — NOT vendor-configurable availability.
+// A real scheduling system (per-vendor working hours, breaks, existing
+// bookings blocking specific slots) is a distinctly bigger feature;
+// this is the honest MVP version: one shared set of hourly slots,
+// double-booking prevention still applies per exact slot (see
+// TimeSlotForm.jsx and the booked-slots check in orderController.js).
+export const DAILY_TIME_SLOTS = [
+  '09:00', '10:00', '11:00', '12:00', '13:00',
+  '14:00', '15:00', '16:00', '17:00', '18:00',
+]

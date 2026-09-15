@@ -1079,10 +1079,23 @@ function Dashboard() {
                 )}
                 {order.bookingDetails?.startDate && (
                   <p className="text-gray-400 text-[10px] mt-1.5">
-                    Booked for {new Date(order.bookingDetails.startDate).toLocaleDateString()}
-                    {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
-                    {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                    {order.bookingDetails.timeSlot
+                      ? `Appointment ${new Date(order.bookingDetails.startDate).toLocaleDateString()} at ${order.bookingDetails.timeSlot}`
+                      : <>
+                          Booked for {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+                          {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
+                          {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                        </>}
                   </p>
+                )}
+                {order.serviceRequestDetails?.description && (
+                  <div className="mt-2 p-2.5 bg-gray-50 rounded-lg">
+                    <p className="text-gray-600 text-xs">{order.serviceRequestDetails.description}</p>
+                    <p className="text-gray-400 text-[10px] mt-1">
+                      {order.serviceRequestDetails.location}
+                      {order.serviceRequestDetails.urgency === 'urgent' && ' · Urgent'}
+                    </p>
+                  </div>
                 )}
 
                 {/* Return request status/actions — shown to both sides once one exists */}

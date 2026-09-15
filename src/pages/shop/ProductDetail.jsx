@@ -9,7 +9,9 @@ import BookingDateForm from '../../components/BookingDateForm'
 import ChatWindow from '../../components/ChatWindow'
 import VendorCartDrawer from '../../components/VendorCartDrawer'
 import { useVendorCart } from '../../context/VendorCartContext'
-import { BOOKING_CATEGORIES, RANGE_DATE_CATEGORIES } from '../../config/listingCategoryFields'
+import TimeSlotForm from '../../components/TimeSlotForm'
+import ServiceRequestForm from '../../components/ServiceRequestForm'
+import { RANGE_DATE_CATEGORIES, CHECKOUT_MODES, getCheckoutMode } from '../../config/listingCategoryFields'
 import { getCategoryHighlights } from '../../utils/categoryHighlights'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -26,6 +28,7 @@ function ProductDetail() {
   const [orderError, setOrderError] = useState('')
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [bookedDates, setBookedDates] = useState([])
+  const [bookedSlots, setBookedSlots] = useState([])
   const [activeConversation, setActiveConversation] = useState(null)
   const [startingChat, setStartingChat] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -43,10 +46,16 @@ function ProductDetail() {
         if (data.success) {
           setProduct(data.product)
           setVendor(data.vendor)
-          if (BOOKING_CATEGORIES.includes(data.product.category)) {
+          const mode = getCheckoutMode(data.product)
+          if (mode === CHECKOUT_MODES.BOOK_DATES || mode === CHECKOUT_MODES.TIME_SLOT) {
             fetch(`${BASE_URL}/orders/booked-dates/${productId}`)
               .then((r) => r.json())
-              .then((d) => { if (d.success) setBookedDates(d.bookedDates) })
+              .then((d) => {
+                if (d.success) {
+                  setBookedDates(d.bookedDates || [])
+                  setBookedSlots(d.bookedSlots || [])
+                }
+              })
               .catch((err) => console.error('Failed to load booked dates:', err))
           }
         }
@@ -126,14 +135,35 @@ function ProductDetail() {
     setTimeout(() => setJustAdded(false), 1200)
   }
 
-  const needsBooking = BOOKING_CATEGORIES.includes(product?.category)
+  // ✅ One source of truth for which of the four checkout modes this
+  // listing uses — never re-derive it from category lists inline.
+  const checkoutMode = product ? getCheckoutMode(product) : CHECKOUT_MODES.BUY_NOW
   const isRangeBooking = RANGE_DATE_CATEGORIES.includes(product?.category)
+  // Only physical-goods listings belong in a multi-item cart — a
+  // hotel stay, an appointment, or a callout each carry their own
+  // date/slot/description and can't be batched behind one shared
+  // checkout form.
+  const isCartable = checkoutMode === CHECKOUT_MODES.BUY_NOW
+
+  const ctaLabel = {
+    [CHECKOUT_MODES.BUY_NOW]: 'Place Order',
+    [CHECKOUT_MODES.BOOK_DATES]: 'Book Now',
+    [CHECKOUT_MODES.TIME_SLOT]: 'Book Appointment',
+    [CHECKOUT_MODES.SERVICE_REQUEST]: 'Request Service',
+  }[checkoutMode]
 
   const handlePlaceOrder = async (formData) => {
     const currentUser = localStorage.getItem('utl_current_user')
     const user = JSON.parse(currentUser)
     setPlacing(true)
     setOrderError('')
+
+    // Each mode sends its own payload field — the backend validates
+    // that exactly one of the three is present and valid.
+    const modePayload =
+      checkoutMode === CHECKOUT_MODES.SERVICE_REQUEST ? { serviceRequestDetails: formData }
+      : checkoutMode === CHECKOUT_MODES.BUY_NOW ? { deliveryAddress: formData }
+      : { bookingDetails: formData } // BOOK_DATES and TIME_SLOT both use bookingDetails
 
     try {
       const token = localStorage.getItem('utl_token')
@@ -154,7 +184,7 @@ function ProductDetail() {
             quantity: 1,
             selectedVariants,
           }],
-          ...(needsBooking ? { bookingDetails: formData } : { deliveryAddress: formData }),
+          ...modePayload,
         }),
       })
       const data = await res.json()
@@ -365,9 +395,9 @@ function ProductDetail() {
                     disabled={product.stock === 0 || placing}
                     className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
                   >
-                    <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : needsBooking ? 'Book Now' : 'Place Order'}
+                    <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : ctaLabel}
                   </button>
-                  {product.stock > 0 && (
+                  {product.stock > 0 && isCartable && (
                     <button
                       onClick={handleAddToCart}
                       className={`flex-shrink-0 flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-bold transition-all ${
@@ -447,7 +477,7 @@ function ProductDetail() {
         )
       })()}
 
-      {/* Address or booking-date modal — shown before order creation */}
+      {/* Checkout modal — renders whichever of the four mode forms applies */}
       {showAddressForm && !confirmedOrder && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
@@ -456,7 +486,7 @@ function ProductDetail() {
                 <p className="text-red-600 text-sm">{orderError}</p>
               </div>
             )}
-            {needsBooking ? (
+            {checkoutMode === CHECKOUT_MODES.BOOK_DATES && (
               <BookingDateForm
                 isRange={isRangeBooking}
                 bookedDates={bookedDates}
@@ -464,7 +494,23 @@ function ProductDetail() {
                 submitting={placing}
                 submitLabel="Book Now"
               />
-            ) : (
+            )}
+            {checkoutMode === CHECKOUT_MODES.TIME_SLOT && (
+              <TimeSlotForm
+                bookedSlots={bookedSlots}
+                onSubmit={handlePlaceOrder}
+                submitting={placing}
+                submitLabel="Book Appointment"
+              />
+            )}
+            {checkoutMode === CHECKOUT_MODES.SERVICE_REQUEST && (
+              <ServiceRequestForm
+                onSubmit={handlePlaceOrder}
+                submitting={placing}
+                submitLabel="Send Request"
+              />
+            )}
+            {checkoutMode === CHECKOUT_MODES.BUY_NOW && (
               <AddressForm
                 onSubmit={handlePlaceOrder}
                 submitting={placing}

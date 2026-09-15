@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react'
 import { X, Trash2, ShoppingBag, Minus, Plus } from 'lucide-react'
 import { useVendorCart } from '../context/VendorCartContext'
 import AddressForm from './AddressForm'
-import BookingDateForm from './BookingDateForm'
 import OrderConfirmation from './OrderConfirmation'
-import { BOOKING_CATEGORIES, RANGE_DATE_CATEGORIES } from '../config/listingCategoryFields'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -29,15 +27,12 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
   const [vendorBankDetails, setVendorBankDetails] = useState(null)
   const [vendorPhone, setVendorPhone] = useState('')
 
-  // ✅ Simplification worth knowing about: if a vendor's cart somehow
-  // mixes a booking-category item (hotel/property/event/travel) with
-  // a regular physical item, checkout goes with whichever the FIRST
-  // item needs. In practice a vendor's businessCategory keeps their
-  // whole catalog one type, so this basically never comes up — but
-  // it's not enforced at the schema level, so noting it rather than
-  // silently guessing wrong for an edge case.
-  const needsBooking = cart.items.some((i) => BOOKING_CATEGORIES.includes(i.category))
-  const isRangeBooking = cart.items.some((i) => RANGE_DATE_CATEGORIES.includes(i.category))
+  // ✅ Carts only ever hold 'buy-now' (physical goods) listings now —
+  // ProductDetail.jsx only renders Add to Cart for that mode, since a
+  // hotel stay, an appointment, and a callout each carry their own
+  // date/slot/description and can't share one checkout form. That
+  // removes the old "what if the cart mixes a booking with a product"
+  // ambiguity rather than guessing at it.
 
   useEffect(() => {
     if (step === 'checkout' && cart.items[0]?.productId && !vendorBankDetails) {
@@ -72,7 +67,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
             currency: i.currency,
             quantity: i.quantity,
           })),
-          ...(needsBooking ? { bookingDetails: formData } : { deliveryAddress: formData }),
+          deliveryAddress: formData,
         }),
       })
       const data = await res.json()
@@ -207,11 +202,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
                 <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
-            {needsBooking ? (
-              <BookingDateForm isRange={isRangeBooking} onSubmit={handleCheckout} submitting={placing} submitLabel="Place Order" />
-            ) : (
-              <AddressForm onSubmit={handleCheckout} submitting={placing} submitLabel="Place Order" />
-            )}
+            <AddressForm onSubmit={handleCheckout} submitting={placing} submitLabel="Place Order" />
             <button
               onClick={() => setStep('cart')}
               className="w-full mt-3 py-2.5 text-gray-500 hover:text-gray-700 text-sm font-semibold"

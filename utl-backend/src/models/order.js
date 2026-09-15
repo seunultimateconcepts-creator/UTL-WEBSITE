@@ -91,6 +91,21 @@ const orderSchema = new mongoose.Schema({
     endDate: { type: Date, default: null },
     guests: { type: Number, default: null },
     details: { type: String, default: '' },
+    // ✅ Used by the 'time-slot' checkout mode (Home & Local Services
+    // vendors with serviceMode: 'Scheduled Appointment') — startDate
+    // is the day, timeSlot is one of DAILY_TIME_SLOTS (e.g. "14:00").
+    // A plain string, not a Date, since it's always relative to the
+    // vendor's own day, not a timezone-aware instant.
+    timeSlot: { type: String, default: null },
+  },
+  // ✅ Used by the 'service-request' checkout mode (Digital &
+  // Freelance Services, Transportation & Logistics, and Home & Local
+  // Services vendors with serviceMode: 'Request a Callout') — no
+  // fixed date or address, just what the buyer needs and where.
+  serviceRequestDetails: {
+    description: { type: String, default: '' },
+    location: { type: String, default: '' },
+    urgency: { type: String, enum: ['normal', 'urgent', null], default: null },
   },
   deliveryFee: {
     type: Number,

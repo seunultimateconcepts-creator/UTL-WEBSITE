@@ -5,6 +5,7 @@ import ShareLink from '../../components/ShareLink'
 import VendorCartDrawer from '../../components/VendorCartDrawer'
 import { useVendorCart } from '../../context/VendorCartContext'
 import { getCategoryHighlights } from '../../utils/categoryHighlights'
+import { CHECKOUT_MODES, getCheckoutMode } from '../../config/listingCategoryFields'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -120,14 +121,14 @@ function VendorStore() {
             </div>
           )}
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {products.map((product) => (
               <Link
                 key={product._id}
                 to={`/shop/vendor/${vendorId}/product/${product._id}`}
                 className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+                <div className="h-44 bg-gray-100 flex items-center justify-center overflow-hidden">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -138,27 +139,27 @@ function VendorStore() {
                     <ShoppingBag size={32} className="text-gray-300" />
                   )}
                 </div>
-                <div className="p-4">
-                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-2.5">
+                <div className="p-5">
+                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-3">
                     {product.category}
                   </span>
-                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-1.5 line-clamp-2 min-h-[2.5rem]">
+                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-2 line-clamp-2">
                     {product.name}
                   </h3>
                   {getCategoryHighlights(product).length > 0 && (
-                    <p className="text-gray-500 text-xs mb-2 line-clamp-1">
+                    <p className="text-gray-500 text-xs mb-2">
                       {getCategoryHighlights(product).join(' · ')}
                     </p>
                   )}
-                  <p className="text-amber-600 font-black text-base">
+                  <p className="text-amber-600 font-black text-lg">
                     {product.currency} {product.price.toLocaleString()}
                   </p>
                   {product.stock === 0 ? (
                     <p className="text-red-500 text-xs font-semibold mt-1">Out of stock</p>
-                  ) : (
+                  ) : getCheckoutMode(product) === CHECKOUT_MODES.BUY_NOW ? (
                     <button
                       onClick={(e) => handleAddToCart(e, product)}
-                      className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2 text-xs font-bold rounded-lg transition-colors ${
+                      className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 text-xs font-bold rounded-lg transition-colors ${
                         justAdded === product._id
                           ? 'bg-green-500 text-white'
                           : 'bg-orange-50 hover:bg-orange-100 text-orange-700'
@@ -166,6 +167,16 @@ function VendorStore() {
                     >
                       {justAdded === product._id ? 'Added ✓' : <><Plus size={13} /> Add to Cart</>}
                     </button>
+                  ) : (
+                    /* ✅ Bookings, appointments, and service requests each
+                       need their own details captured at checkout, so they
+                       can't go in a shared cart — the card links through to
+                       the product page where the right form renders. */
+                    <span className="block w-full text-center mt-3 py-2.5 text-xs font-bold rounded-lg bg-orange-50 text-orange-700">
+                      {getCheckoutMode(product) === CHECKOUT_MODES.BOOK_DATES ? 'Book Now'
+                        : getCheckoutMode(product) === CHECKOUT_MODES.TIME_SLOT ? 'Book Appointment'
+                        : 'Request Service'} →
+                    </span>
                   )}
                 </div>
               </Link>

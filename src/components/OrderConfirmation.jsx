@@ -77,13 +77,25 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
         {order.bookingDetails?.startDate && (
           <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mb-3">
             <p className="font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
-              <Calendar size={12} /> Booking date{order.bookingDetails.endDate ? 's' : ''}
+              <Calendar size={12} /> {order.bookingDetails.timeSlot ? 'Appointment' : `Booking date${order.bookingDetails.endDate ? 's' : ''}`}
             </p>
             <p>
               {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+              {order.bookingDetails.timeSlot && ` at ${order.bookingDetails.timeSlot}`}
               {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
             </p>
             {order.bookingDetails.guests && <p>{order.bookingDetails.guests} guest{order.bookingDetails.guests > 1 ? 's' : ''}</p>}
+          </div>
+        )}
+
+        {order.serviceRequestDetails?.description && (
+          <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mb-3">
+            <p className="font-semibold text-gray-700 mb-0.5">Your request</p>
+            <p>{order.serviceRequestDetails.description}</p>
+            <p className="text-gray-400 mt-0.5">
+              {order.serviceRequestDetails.location}
+              {order.serviceRequestDetails.urgency === 'urgent' && ' · Urgent'}
+            </p>
           </div>
         )}
 

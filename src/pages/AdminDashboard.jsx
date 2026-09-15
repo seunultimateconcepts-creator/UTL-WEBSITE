@@ -559,9 +559,22 @@ function AdminDashboard() {
                 )}
                 {order.bookingDetails?.startDate && (
                   <p className="text-gray-500 text-xs mb-2">
-                    <span className="font-semibold">Booked for:</span> {new Date(order.bookingDetails.startDate).toLocaleDateString()}
-                    {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
-                    {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                    {order.bookingDetails.timeSlot ? (
+                      <><span className="font-semibold">Appointment:</span> {new Date(order.bookingDetails.startDate).toLocaleDateString()} at {order.bookingDetails.timeSlot}</>
+                    ) : (
+                      <>
+                        <span className="font-semibold">Booked for:</span> {new Date(order.bookingDetails.startDate).toLocaleDateString()}
+                        {order.bookingDetails.endDate && ` — ${new Date(order.bookingDetails.endDate).toLocaleDateString()}`}
+                        {order.bookingDetails.guests && ` · ${order.bookingDetails.guests} guest${order.bookingDetails.guests > 1 ? 's' : ''}`}
+                      </>
+                    )}
+                  </p>
+                )}
+                {order.serviceRequestDetails?.description && (
+                  <p className="text-gray-500 text-xs mb-2">
+                    <span className="font-semibold">Service request:</span> {order.serviceRequestDetails.description}
+                    {order.serviceRequestDetails.location && ` — ${order.serviceRequestDetails.location}`}
+                    {order.serviceRequestDetails.urgency === 'urgent' && ' · Urgent'}
                   </p>
                 )}
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
