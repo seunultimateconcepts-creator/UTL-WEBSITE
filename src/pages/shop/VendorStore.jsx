@@ -120,14 +120,14 @@ function VendorStore() {
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {products.map((product) => (
               <Link
                 key={product._id}
                 to={`/shop/vendor/${vendorId}/product/${product._id}`}
                 className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="h-44 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -138,19 +138,19 @@ function VendorStore() {
                     <ShoppingBag size={32} className="text-gray-300" />
                   )}
                 </div>
-                <div className="p-5">
-                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-3">
+                <div className="p-4">
+                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-2.5">
                     {product.category}
                   </span>
-                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-2 line-clamp-2">
+                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-1.5 line-clamp-2 min-h-[2.5rem]">
                     {product.name}
                   </h3>
                   {getCategoryHighlights(product).length > 0 && (
-                    <p className="text-gray-500 text-xs mb-2">
+                    <p className="text-gray-500 text-xs mb-2 line-clamp-1">
                       {getCategoryHighlights(product).join(' · ')}
                     </p>
                   )}
-                  <p className="text-amber-600 font-black text-lg">
+                  <p className="text-amber-600 font-black text-base">
                     {product.currency} {product.price.toLocaleString()}
                   </p>
                   {product.stock === 0 ? (
@@ -158,7 +158,7 @@ function VendorStore() {
                   ) : (
                     <button
                       onClick={(e) => handleAddToCart(e, product)}
-                      className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                      className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2 text-xs font-bold rounded-lg transition-colors ${
                         justAdded === product._id
                           ? 'bg-green-500 text-white'
                           : 'bg-orange-50 hover:bg-orange-100 text-orange-700'
