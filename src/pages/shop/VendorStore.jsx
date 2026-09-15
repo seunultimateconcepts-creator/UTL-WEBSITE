@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Store, ShoppingBag, ArrowLeft, PackageX, ShoppingCart, Plus } from 'lucide-react'
+import { Store, ShoppingBag, ArrowLeft, PackageX, ShoppingCart, Plus, Search } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
 import VendorCartDrawer from '../../components/VendorCartDrawer'
 import { useVendorCart } from '../../context/VendorCartContext'
@@ -18,7 +18,22 @@ function VendorStore() {
   const [loading, setLoading] = useState(true)
   const [cartOpen, setCartOpen] = useState(false)
   const [justAdded, setJustAdded] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const { addItem, getVendorCartCount } = useVendorCart()
+
+  // ✅ Client-side filter — the vendor's full catalog is already
+  // loaded, so there's no need for a server round-trip per keystroke.
+  // Matches name, description, and sub-category so "blender", "2L",
+  // or "kitchen" all find the same product.
+  const filteredProducts = products.filter((p) => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      p.name?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q) ||
+      p.subCategory?.toLowerCase().includes(q)
+    )
+  })
 
   const handleAddToCart = (e, product) => {
     e.preventDefault() // card is a <Link> — don't navigate when adding to cart
@@ -113,6 +128,19 @@ function VendorStore() {
             </div>
           )}
 
+          {!loading && products.length > 0 && (
+            <div className="relative mb-6 max-w-md">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Search ${vendorName || 'this store'}...`}
+                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+              />
+            </div>
+          )}
+
           {!loading && products.length === 0 && (
             <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
               <PackageX size={40} className="mx-auto mb-4 text-gray-300" />
@@ -121,8 +149,16 @@ function VendorStore() {
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {products.map((product) => (
+          {!loading && products.length > 0 && filteredProducts.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+              <PackageX size={40} className="mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-900 font-bold mb-2">No matches</p>
+              <p className="text-gray-500 text-sm">Nothing here matches "{searchQuery}".</p>
+            </div>
+          )}
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredProducts.map((product) => (
               <Link
                 key={product._id}
                 to={`/shop/vendor/${vendorId}/product/${product._id}`}

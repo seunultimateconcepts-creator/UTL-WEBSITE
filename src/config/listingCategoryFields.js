@@ -64,6 +64,74 @@ export const CATEGORY_FIELDS = {
 }
 
 /**
+ * BUSINESS_CATEGORIES
+ *
+ * ✅ The authoritative list of business types, derived directly from
+ * CATEGORY_FIELDS so there's exactly ONE place categories are
+ * defined. BecomeSeller.jsx's dropdown is generated from this —
+ * previously that dropdown had its own hardcoded list with different
+ * wording, so a vendor registering as "Hotel / Accommodation" never
+ * matched the system's "Hotel & Short-Let Accommodation" and silently
+ * fell back to plain retail checkout. Adding a category now means
+ * editing CATEGORY_FIELDS only.
+ */
+export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_FIELDS)
+
+/**
+ * CATEGORY_HELP
+ *
+ * Plain-language examples shown under each category, since the formal
+ * names don't obviously tell a barber or a tailor where they belong.
+ * UTL is for everyday businesses — the labels should read that way.
+ */
+export const CATEGORY_HELP = {
+  'Product Seller': 'Shops selling physical goods — clothes, electronics, groceries, anything shipped or picked up',
+  'Hotel & Short-Let Accommodation': 'Hotels, guest houses, short-lets, Airbnb-style rooms',
+  'Restaurant & Food': 'Restaurants, eateries, bars, bakeries, food vendors',
+  'Property & Real Estate': 'Houses and land for rent or sale, agents, property managers',
+  'Home & Local Services': 'Salons, barbers, tailors, cleaners, plumbers, electricians, car wash, repairs',
+  'Digital & Freelance Services': 'Designers, developers, writers, printing, photography, social media',
+  'Transportation & Logistics': 'Dispatch riders, haulage, car hire, interstate transport',
+  'Events & Entertainment': 'Event halls, DJs, MCs, decorators, photographers, catering',
+  'Travel & Tour Booking': 'Travel agents, tour operators, flight and holiday booking',
+  'Other': "Anything that doesn't fit the categories above",
+}
+
+/**
+ * LEGACY_CATEGORY_MAP
+ *
+ * ⚠️ MIGRATION: BecomeSeller.jsx's dropdown used to have its own
+ * hardcoded category names that did NOT match CATEGORY_FIELDS' keys.
+ * Any vendor who registered before that was fixed has one of these
+ * old values stored in vendorProfile.businessCategory, and every
+ * category-aware lookup silently missed for them.
+ *
+ * normalizeCategory() below maps old → new so existing vendors work
+ * immediately without a database migration. New registrations can
+ * only produce correct values (the dropdown is generated from
+ * CATEGORY_FIELDS now), so this is purely for already-stored data —
+ * safe to delete once no vendor has an old value left.
+ */
+const LEGACY_CATEGORY_MAP = {
+  'Hotel / Accommodation': 'Hotel & Short-Let Accommodation',
+  'Restaurant / Eatery': 'Restaurant & Food',
+  'Property (Rent/Sale)': 'Property & Real Estate',
+  'Service Provider': 'Home & Local Services',
+  'Printing & Documents': 'Digital & Freelance Services',
+}
+
+/**
+ * normalizeCategory(category)
+ *
+ * Always call this before looking a category up in CATEGORY_FIELDS
+ * or CATEGORY_MODE_MAP — it translates legacy stored values and
+ * passes current ones through untouched.
+ */
+export function normalizeCategory(category) {
+  return LEGACY_CATEGORY_MAP[category] || category
+}
+
+/**
  * CHECKOUT MODES
  *
  * ✅ Every category checks out one of four ways. This replaces the
@@ -119,7 +187,7 @@ const CATEGORY_MODE_MAP = {
  * directly, since that only covers one of the four modes.
  */
 export function getCheckoutMode(product) {
-  const category = product?.category
+  const category = normalizeCategory(product?.category)
   if (category === 'Home & Local Services') {
     const mode = product?.attributes?.serviceMode
     return mode === 'Scheduled Appointment' ? CHECKOUT_MODES.TIME_SLOT : CHECKOUT_MODES.SERVICE_REQUEST

@@ -563,6 +563,54 @@ const getOrderById = async (req, res) => {
 // scoped to their own order. This is the customer's "yes, I received
 // it" — separate from status:'delivered' which the vendor/admin sets
 // when THEY ship it. Moves status to 'completed'.
+// ✅ MARK AS PAID — buyer-only, scoped to their own order. This is
+// the buyer SAYING they've sent the bank transfer; it notifies the
+// vendor to go check their bank alerts. It deliberately does NOT set
+// paymentStatus to 'confirmed' — only the vendor can do that, since
+// only they can actually see the money land. Keeping the two states
+// separate stops a vendor from being misled into shipping on a
+// buyer's word alone (mistaken or otherwise).
+const markOrderPaid = async (req, res) => {
+  try {
+    const { orderId } = req.params
+    const order = await Order.findById(orderId)
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+    if (String(order.buyerId) !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    if (order.paymentStatus === 'confirmed') {
+      return res.status(400).json({ success: false, message: 'This order is already confirmed as paid' })
+    }
+    if (order.paymentStatus === 'buyer-marked-paid') {
+      return res.status(400).json({ success: false, message: "You've already marked this as paid — waiting on the vendor to confirm" })
+    }
+
+    order.paymentStatus = 'buyer-marked-paid'
+    order.buyerMarkedPaidAt = new Date()
+    await order.save()
+
+    try {
+      if (order.vendorId) {
+        await createNotification({
+          userId: order.vendorId,
+          type: 'order',
+          title: 'Customer marked an order as paid',
+          message: `The customer says they've sent payment for order ${order.orderNumber}. Check your bank and confirm receipt.`,
+          link: '/dashboard?tab=orders',
+        })
+      }
+    } catch (notifyError) {
+      console.error('Buyer-marked-paid notification failed (still recorded):', notifyError.message)
+    }
+
+    res.status(200).json({ success: true, order })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error marking order paid', error: error.message })
+  }
+}
+
 const confirmDelivery = async (req, res) => {
   try {
     const { orderId } = req.params
@@ -718,4 +766,4 @@ const resolveReturn = async (req, res) => {
   }
 }
 
-module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, getBookedDates, getOrderById, confirmDelivery, requestReturn, resolveReturn, getDeliveryZones, getLastAddress, getNigeriaLGAs }
+module.exports = { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, markOrderPaid, getBookedDates, getOrderById, confirmDelivery, requestReturn, resolveReturn, getDeliveryZones, getLastAddress, getNigeriaLGAs }

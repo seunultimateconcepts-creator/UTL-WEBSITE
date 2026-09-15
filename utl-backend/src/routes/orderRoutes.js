@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 const express = require('express')
 const router = express.Router()
-const { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, getBookedDates, getOrderById, confirmDelivery, requestReturn, resolveReturn, getDeliveryZones, getLastAddress, getNigeriaLGAs } = require('../controllers/orderController')
+const { createOrder, getMyOrders, getVendorOrders, listAllOrders, updateOrderStatus, confirmOrderPayment, markOrderPaid, getBookedDates, getOrderById, confirmDelivery, requestReturn, resolveReturn, getDeliveryZones, getLastAddress, getNigeriaLGAs } = require('../controllers/orderController')
 const { protect } = require('../middleware/authMiddleware')
 const blockSellerCustomerActions = require('../middleware/blockSellerCustomerActions')
 
@@ -18,6 +18,7 @@ router.get('/booked-dates/:productId', getBookedDates) // GET /api/orders/booked
 router.post('/', protect, blockSellerCustomerActions, createOrder) // POST /api/orders
 router.patch('/:orderId/status', updateOrderStatus)    // PATCH /api/orders/:orderId/status (vendor JWT or admin key — checked inside the controller)
 router.patch('/:orderId/confirm-payment', confirmOrderPayment) // PATCH /api/orders/:orderId/confirm-payment (vendor JWT or admin key — checked inside the controller)
+router.patch('/:orderId/mark-paid', protect, markOrderPaid)          // PATCH /api/orders/:orderId/mark-paid (buyer only)
 router.patch('/:orderId/confirm-delivery', protect, confirmDelivery) // PATCH /api/orders/:orderId/confirm-delivery (buyer only)
 router.post('/:orderId/return', protect, requestReturn)        // POST /api/orders/:orderId/return (buyer only)
 router.patch('/:orderId/return/resolve', resolveReturn)        // PATCH /api/orders/:orderId/return/resolve (vendor JWT or admin key — checked inside the controller)

@@ -206,6 +206,22 @@ function Dashboard() {
     }
   }
 
+  const handleMarkPaid = async (orderId) => {
+    try {
+      const token = localStorage.getItem('utl_token')
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/mark-paid`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setOrders((prev) => prev.map((o) => o._id === orderId ? { ...o, paymentStatus: 'buyer-marked-paid' } : o))
+      }
+    } catch (err) {
+      console.error('Failed to mark order paid:', err)
+    }
+  }
+
   // ✅ Vendor updating their OWN order's status — updateOrderStatus on
   // the backend accepts a vendor's own JWT for their own orders, not
   // just the admin key.
@@ -1020,9 +1036,13 @@ function Dashboard() {
                   </p>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
-                      order.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+                      order.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700'
+                      : order.paymentStatus === 'buyer-marked-paid' ? 'bg-blue-50 text-blue-600'
+                      : 'bg-red-50 text-red-600'
                     }`}>
-                      {order.paymentStatus === 'confirmed' ? 'Paid' : 'Payment Pending'}
+                      {order.paymentStatus === 'confirmed' ? 'Paid'
+                        : order.paymentStatus === 'buyer-marked-paid' ? (isApprovedSeller ? 'Customer Says Paid' : 'Awaiting Confirmation')
+                        : 'Payment Pending'}
                     </span>
                     {/* ✅ Vendor gets an editable status dropdown once payment is
                         confirmed. 'completed' is excluded — that's the
@@ -1133,6 +1153,22 @@ function Dashboard() {
                   >
                     Confirm Payment Received
                   </button>
+                )}
+                {/* Buyer-only: tell the vendor the transfer has been sent.
+                    Doesn't confirm payment itself — only the vendor can,
+                    since only they see the money arrive. */}
+                {!isApprovedSeller && order.paymentStatus === 'unpaid' && (
+                  <button
+                    onClick={() => handleMarkPaid(order._id)}
+                    className="w-full mt-3 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    I've Sent the Payment
+                  </button>
+                )}
+                {!isApprovedSeller && order.paymentStatus === 'buyer-marked-paid' && (
+                  <p className="text-center text-blue-600 text-xs font-semibold mt-3 py-2.5 bg-blue-50 rounded-lg">
+                    Waiting for the vendor to confirm your payment
+                  </p>
                 )}
                 {!isApprovedSeller && order.paymentStatus === 'confirmed' && (
                   <Link

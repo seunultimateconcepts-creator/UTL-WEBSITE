@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle, Pencil, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, RotateCcw, Send, MessageCircle, Pencil, ShoppingCart, ZoomIn, X as XIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductChat from '../../components/ProductChat'
 import ShareLink from '../../components/ShareLink'
 import OrderConfirmation from '../../components/OrderConfirmation'
@@ -23,6 +23,7 @@ function ProductDetail() {
   const [vendor, setVendor] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeImage, setActiveImage] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const [placing, setPlacing] = useState(false)
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [orderError, setOrderError] = useState('')
@@ -241,21 +242,33 @@ function ProductDetail() {
 
           {/* Left — Images */}
           <div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden h-80 flex items-center justify-center mb-3">
+            <button
+              type="button"
+              onClick={() => product.images?.length > 0 && setLightboxOpen(true)}
+              className="w-full bg-white rounded-2xl border border-gray-100 overflow-hidden aspect-square flex items-center justify-center mb-3 relative group cursor-zoom-in"
+            >
               {product.images?.length > 0 ? (
-                <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
+                <>
+                  {/* object-contain, not object-cover — a product photo
+                      shouldn't get its edges cropped off just to fill a
+                      square. The neutral background fills any gap. */}
+                  <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-contain" />
+                  <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <ZoomIn size={12} /> Click to enlarge
+                  </span>
+                </>
               ) : (
                 <ShoppingBag size={48} className="text-gray-300" />
               )}
-            </div>
+            </button>
             {product.images?.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {product.images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
-                      activeImage === i ? 'border-orange-500' : 'border-transparent'
+                      activeImage === i ? 'border-orange-500' : 'border-gray-100 hover:border-gray-300'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
@@ -304,10 +317,17 @@ function ProductDetail() {
             )}
 
             {product.variants?.length > 0 && (
-              <div className="space-y-3 mb-4">
+              <div className="space-y-4 mb-5">
                 {product.variants.map((variant) => (
                   <div key={variant.name}>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">{variant.name}</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                      {variant.name}
+                      {selectedVariants[variant.name] && (
+                        <span className="ml-2 text-orange-600 font-semibold normal-case tracking-normal">
+                          {selectedVariants[variant.name]}
+                        </span>
+                      )}
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {variant.options.map((option) => (
                         <button
@@ -533,6 +553,54 @@ function ProductDetail() {
               vendorPhone={vendor?.phone}
             />
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen image lightbox */}
+      {lightboxOpen && product.images?.length > 0 && (
+        <div
+          onClick={() => setLightboxOpen(false)}
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+          >
+            <XIcon size={20} />
+          </button>
+
+          {product.images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setActiveImage((activeImage - 1 + product.images.length) % product.images.length) }}
+                className="absolute left-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setActiveImage((activeImage + 1) % product.images.length) }}
+                className="absolute right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </>
+          )}
+
+          <img
+            src={product.images[activeImage]}
+            alt={product.name}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[85vh] object-contain rounded-xl cursor-default"
+          />
+
+          {product.images.length > 1 && (
+            <p className="absolute bottom-6 text-white/70 text-xs font-semibold">
+              {activeImage + 1} / {product.images.length}
+            </p>
+          )}
         </div>
       )}
 

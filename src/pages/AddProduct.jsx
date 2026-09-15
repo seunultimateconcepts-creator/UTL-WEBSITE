@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, X, Package, PartyPopper, Trash2 } from 'lucide-react'
-import { CATEGORY_FIELDS } from '../config/listingCategoryFields'
+import { CATEGORY_FIELDS, normalizeCategory } from '../config/listingCategoryFields'
 import ImageUpload from '../components/ImageUpload'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -54,12 +54,16 @@ function AddProduct() {
   const [attributeValues, setAttributeValues] = useState({})
 
   // ✅ Pull the vendor's own businessCategory from their cached profile
-  // — decides which extra fields render below, per listingCategoryFields.js
+  // — decides which extra fields render below, per listingCategoryFields.js.
+  // normalizeCategory() translates legacy values stored before the
+  // registration dropdown was fixed (see LEGACY_CATEGORY_MAP), so an
+  // existing hotel vendor gets hotel fields instead of falling through
+  // to the generic retail form.
   useEffect(() => {
     const currentUser = localStorage.getItem('utl_current_user')
     if (currentUser) {
       const user = JSON.parse(currentUser)
-      setVendorCategory(user.vendorProfile?.businessCategory || 'Product Seller')
+      setVendorCategory(normalizeCategory(user.vendorProfile?.businessCategory) || 'Product Seller')
     }
   }, [])
 
@@ -407,13 +411,19 @@ function AddProduct() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
             <h3 className="text-gray-900 font-bold text-sm">Options (optional)</h3>
             <p className="text-gray-400 text-xs -mt-2">
-              e.g. Size: S, M, L — buyers pick one option per type before ordering. One price and stock count applies across all options.
+              Add one row per <strong>type</strong> of choice, with all its options separated by commas.
             </p>
+            <div className="bg-gray-50 rounded-xl p-3 -mt-1">
+              <p className="text-gray-500 text-[11px] font-semibold mb-1">Example — a shirt in 4 sizes and 3 colours is 2 rows:</p>
+              <p className="text-gray-400 text-[11px]">Size → <span className="text-gray-600">S, M, L, XL</span></p>
+              <p className="text-gray-400 text-[11px]">Colour → <span className="text-gray-600">Black, White, Navy</span></p>
+              <p className="text-gray-400 text-[11px] mt-1.5">Not one row per size — buyers pick one option from each row.</p>
+            </div>
             {variants.map((variant, i) => (
               <div key={i} className="flex gap-2 items-start">
                 <input type="text" value={variant.name} onChange={(e) => updateVariant(i, 'name', e.target.value)}
                   placeholder="Size"
-                  className="w-28 flex-shrink-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="w-32 flex-shrink-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
                 <input type="text" value={variant.optionsText} onChange={(e) => updateVariant(i, 'optionsText', e.target.value)}
                   placeholder="S, M, L, XL"
                   className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />

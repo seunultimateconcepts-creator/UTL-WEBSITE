@@ -133,10 +133,21 @@ const orderSchema = new mongoose.Schema({
   // 'unpaid' until the vendor (or admin, for Ultimate Shop orders)
   // explicitly confirms — there is no buyer-side "I've paid" click,
   // since the vendor is the one who can actually see their bank alert.
+  // ✅ 'buyer-marked-paid' sits between the two: the buyer says
+  // they've sent the transfer, which notifies the vendor to go check
+  // their bank alerts. It is NOT proof of payment — only the vendor
+  // moving it to 'confirmed' means money actually arrived. Keeping
+  // them distinct matters: a buyer could mark paid by mistake or
+  // dishonestly, and the vendor should never be misled into shipping
+  // on the buyer's word alone.
   paymentStatus: {
     type: String,
-    enum: ['unpaid', 'confirmed'],
+    enum: ['unpaid', 'buyer-marked-paid', 'confirmed'],
     default: 'unpaid',
+  },
+  buyerMarkedPaidAt: {
+    type: Date,
+    default: null,
   },
   paymentConfirmedAt: {
     type: Date,

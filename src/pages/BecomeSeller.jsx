@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import ImageUpload from '../components/ImageUpload'
 import { compressImageToBase64 } from '../utils/compressImageToBase64'
+import { BUSINESS_CATEGORIES, CATEGORY_HELP } from '../config/listingCategoryFields'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -462,14 +463,26 @@ function BecomeSeller() {
                           onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
                           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
                         >
-                          <option value="Product Seller">Product Seller</option>
-                          <option value="Hotel / Accommodation">Hotel / Accommodation</option>
-                          <option value="Restaurant / Eatery">Restaurant / Eatery</option>
-                          <option value="Property (Rent/Sale)">Property (Rent/Sale)</option>
-                          <option value="Printing & Documents">Printing & Documents</option>
-                          <option value="Service Provider">Service Provider (car wash, repairs, etc.)</option>
-                          <option value="Other">Other</option>
+                          {/* ✅ CRITICAL: options are generated from CATEGORY_FIELDS —
+                              the SAME source getCheckoutMode(), the listing form's
+                              extra fields, and the storefront highlights all read.
+                              These used to be hardcoded with DIFFERENT wording
+                              ("Hotel / Accommodation" vs the system's
+                              "Hotel & Short-Let Accommodation"), so every non-retail
+                              vendor's category silently matched nothing — which is
+                              why a verified hotel still showed "Add to Cart" instead
+                              of a booking form. Generating them here means the two
+                              can never drift apart again. */}
+                          {BUSINESS_CATEGORIES.map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
                         </select>
+                        <p className="text-gray-400 text-xs mt-1.5">
+                          {CATEGORY_HELP[formData.businessCategory]}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          This decides how customers order from you — a shop gets a cart, a hotel gets booking dates, a salon gets appointment times.
+                        </p>
                       </div>
                     </div>
 
