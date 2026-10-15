@@ -17,10 +17,13 @@ import { getCategoryHighlights } from '../../utils/categoryHighlights'
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 function ProductDetail() {
-  const { vendorId, productId } = useParams()
+  const { vendorId: urlVendorParam, productId } = useParams()
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [vendor, setVendor] = useState(null)
+  // The URL carries a slug OR a raw id; the REAL id comes from the loaded
+  // product/vendor, and is what cart keys and orders must use.
+  const vendorId = vendor?._id || product?.vendorId || null
   const [loading, setLoading] = useState(true)
   const [activeImage, setActiveImage] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -76,7 +79,7 @@ function ProductDetail() {
   const handleStartChat = async () => {
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
-      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${vendorId}/product/${productId}`)
+      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${urlVendorParam}/product/${productId}`)
       navigate('/login')
       return
     }
@@ -109,7 +112,7 @@ function ProductDetail() {
     setVariantError('')
     const currentUser = localStorage.getItem('utl_current_user')
     if (!currentUser) {
-      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${vendorId}/product/${productId}`)
+      localStorage.setItem('utl_redirect_after_login', `/shop/vendor/${urlVendorParam}/product/${productId}`)
       navigate('/login')
       return
     }
@@ -232,7 +235,7 @@ function ProductDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         <Link
-          to={`/shop/vendor/${vendorId}`}
+          to={`/shop/vendor/${urlVendorParam}`}
           className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-900 text-sm mb-6 transition-colors"
         >
           <ArrowLeft size={14} /> Back to store
@@ -291,7 +294,7 @@ function ProductDetail() {
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">{product.name}</h1>
             {vendor && (
-              <Link to={`/shop/vendor/${vendorId}`} className="text-gray-500 text-sm hover:text-orange-600 transition-colors">
+              <Link to={`/shop/vendor/${urlVendorParam}`} className="text-gray-500 text-sm hover:text-orange-600 transition-colors">
                 Sold by {vendor.firstName} {vendor.lastName}
               </Link>
             )}

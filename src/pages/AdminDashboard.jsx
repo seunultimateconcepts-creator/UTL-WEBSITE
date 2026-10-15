@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -224,6 +225,48 @@ function AdminDashboard() {
     }
   }
 
+  const handleRejectUpgrade = async (vendorId) => {
+    if (!window.confirm('Reject this upgrade request? Use this when no payment has come in after a few days.')) return
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/${vendorId}/reject-upgrade`, { method: 'PATCH', headers: { 'x-admin-key': adminKey } })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Upgrade request rejected')
+        setPendingUpgrades(prev => prev.filter(v => v._id !== vendorId))
+      }
+    } catch (err) {
+      console.error('Upgrade rejection failed:', err)
+    }
+  }
+
+  const handleResetToClient = async (vendorId) => {
+    if (!window.confirm('Reset this account back to a plain client? This removes their shop, seller status and plan - the account itself stays.')) return
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/${vendorId}/reset-to-client`, { method: 'PATCH', headers: { 'x-admin-key': adminKey } })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Vendor reset to client')
+        setVendors(prev => prev.filter(v => v._id !== vendorId))
+      }
+    } catch (err) {
+      console.error('Vendor reset failed:', err)
+    }
+  }
+
+  const handleDeleteUser = async (vendorId) => {
+    if (!window.confirm('Permanently delete this account? This cannot be undone.')) return
+    try {
+      const res = await fetch(`${BASE_URL}/sellers/${vendorId}`, { method: 'DELETE', headers: { 'x-admin-key': adminKey } })
+      const data = await res.json()
+      if (data.success) {
+        flashMessage('Account deleted')
+        setVendors(prev => prev.filter(v => v._id !== vendorId))
+      }
+    } catch (err) {
+      console.error('Account deletion failed:', err)
+    }
+  }
+
   const handleLogout = () => {
     sessionStorage.removeItem('utl_admin_key')
     navigate('/admin-login')
@@ -432,14 +475,26 @@ function AdminDashboard() {
                         <p className="text-gray-500 text-xs">{v.email}</p>
                         <p className="text-amber-700 text-xs font-semibold mt-1 capitalize">
                           Requested {v.subscription.pendingTier} · since {new Date(v.subscription.pendingSince).toLocaleDateString()}
+                          {Math.floor((Date.now() - new Date(v.subscription.pendingSince)) / 86400000) >= 3 && (
+                            <span className="ml-2 text-red-600 normal-case">· {Math.floor((Date.now() - new Date(v.subscription.pendingSince)) / 86400000)} days, no payment - consider rejecting</span>
+                          )}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleConfirmUpgrade(v._id)}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors flex-shrink-0"
-                      >
-                        Confirm Payment
-                      </button>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleConfirmUpgrade(v._id)}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors"
+                        >
+                          Confirm Payment
+                        </button>
+                        <button
+                          onClick={() => handleRejectUpgrade(v._id)}
+                          className="px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-bold rounded-lg transition-colors"
+                          title="No payment received - cancel this request"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -474,6 +529,20 @@ function AdminDashboard() {
                   <option value="gold">Gold (100) — ₦50k/yr</option>
                   <option value="platinum">Platinum (∞ + video) — ₦100k/yr</option>
                 </select>
+                <button
+                  onClick={() => handleResetToClient(vendor._id)}
+                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors"
+                  title="Remove seller status - keep the account as a plain client"
+                >
+                  Reset to Client
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(vendor._id)}
+                  className="px-3 py-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-bold rounded-lg transition-colors"
+                  title="Permanently delete this account"
+                >
+                  Delete
+                </button>
               </div>
             ))}
           </div>

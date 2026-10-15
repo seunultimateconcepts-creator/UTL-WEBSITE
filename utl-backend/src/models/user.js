@@ -125,6 +125,10 @@ const userSchema = new mongoose.Schema({
   // instead of hand-written per page.
   vendorProfile: {
     shopName: { type: String, default: '' },
+    // Friendly URL slug (e.g. "rosyfashion"). sparse + NO default on
+    // purpose — see the googleId/facebookId bug: an explicit null still
+    // gets indexed and collides, an absent field does not.
+    shopSlug: { type: String, unique: true, sparse: true },
     businessCategory: { type: String, default: 'Product Seller' },
     bio: { type: String, default: '' },
     shopAddress: { type: String, default: '' },

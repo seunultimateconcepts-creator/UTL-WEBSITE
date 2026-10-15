@@ -290,6 +290,27 @@ const updateVendorTier = async (req, res) => {
 // persisted here now (review-window only — see verification block in
 // user.js), plus emailed to ADMIN_EMAIL as a backup copy. Everything
 // in vendorProfile/verification is fine to store — see user.js.
+// Generates a URL-friendly slug from a shop name, e.g. "Rosy's Fashion
+// House" -> "rosys-fashion-house". Appends -2, -3 on collision.
+const generateUniqueSlug = async (shopName) => {
+  const base = shopName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 40)
+    .replace(/^-+|-+$/g, '') || 'shop'
+
+  let slug = base
+  let counter = 2
+  while (await User.findOne({ 'vendorProfile.shopSlug': slug })) {
+    slug = `${base}-${counter}`
+    counter++
+  }
+  return slug
+}
+
 const submitSellerApplication = async (req, res) => {
   try {
     const {
@@ -316,7 +337,8 @@ const submitSellerApplication = async (req, res) => {
       return res.status(400).json({ success: false, message: 'You are already an approved seller' })
     }
 
-    user.vendorProfile = { shopName, businessCategory: businessCategory || 'Product Seller', bio, shopAddress, shopPhotoUrl }
+    const shopSlug = await generateUniqueSlug(shopName)
+    user.vendorProfile = { shopName, shopSlug, businessCategory: businessCategory || 'Product Seller', bio, shopAddress, shopPhotoUrl }
     user.verification = {
       cacNumber: cacNumber || '',
       liveLocation: { lat, lng },
@@ -482,6 +504,7 @@ const listPublicVendors = async (req, res) => {
         })
         return {
           id: v._id,
+          shopSlug: v.vendorProfile?.shopSlug || '',
           shopName: v.vendorProfile?.shopName || '',
           bio: v.vendorProfile?.bio || '',
           shopPhotoUrl: v.vendorProfile?.shopPhotoUrl || '',
@@ -508,15 +531,28 @@ const listPublicVendors = async (req, res) => {
 const getPublicVendorProfile = async (req, res) => {
   try {
     const { vendorId } = req.params
-    const vendor = await User.findOne({ _id: vendorId, sellerStatus: 'approved' })
-      .select('firstName lastName vendorProfile')
+    // Accepts EITHER the real _id OR a shopSlug (a valid ObjectId is
+    // exactly 24 hex chars). The response always carries the REAL id,
+    // and every downstream call (products, cart key, orders) uses that.
+    const isObjectId = /^[a-f\d]{24}$/i.test(vendorId)
+    const vendor = await User.findOne({
+      ...(isObjectId ? { _id: vendorId } : { 'vendorProfile.shopSlug': vendorId }),
+      sellerStatus: 'approved',
+    }).select('firstName lastName vendorProfile')
     if (!vendor) {
       return res.status(404).json({ success: false, message: 'Vendor not found' })
+    }
+    // Vendors approved before slugs existed get one lazily on first visit.
+    let shopSlug = vendor.vendorProfile?.shopSlug || ''
+    if (!shopSlug && vendor.vendorProfile?.shopName) {
+      shopSlug = await generateUniqueSlug(vendor.vendorProfile.shopName)
+      await User.updateOne({ _id: vendor._id }, { $set: { 'vendorProfile.shopSlug': shopSlug } })
     }
     res.status(200).json({
       success: true,
       vendor: {
         id: vendor._id,
+        shopSlug,
         shopName: vendor.vendorProfile?.shopName || `${vendor.firstName} ${vendor.lastName}`,
         bio: vendor.vendorProfile?.bio || '',
         shopPhotoUrl: vendor.vendorProfile?.shopPhotoUrl || '',
@@ -645,9 +681,84 @@ const confirmTierUpgrade = async (req, res) => {
   }
 }
 
+// REJECT TIER UPGRADE - admin key. For a pending request where no payment
+// landed. Clears pendingTier/pendingSince, leaves the current tier alone,
+// and tells the vendor so they're not left wondering.
+const rejectTierUpgrade = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    const user = await User.findById(req.params.userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+    if (!user.subscription.pendingTier) {
+      return res.status(400).json({ success: false, message: 'This vendor has no pending upgrade request' })
+    }
+    const rejectedTier = user.subscription.pendingTier
+    user.subscription.pendingTier = null
+    user.subscription.pendingSince = null
+    await user.save()
+    try {
+      await createNotification({
+        userId: user._id,
+        type: 'seller-status',
+        title: 'Upgrade request cancelled',
+        message: `Your request to upgrade to ${SUBSCRIPTION_TIERS[rejectedTier]?.label || rejectedTier} was cancelled - no payment was received. You can request again anytime.`,
+        link: '/upgrade-plan',
+      })
+    } catch (notifyError) {
+      console.error('Upgrade rejection notification failed (still cleared):', notifyError.message)
+    }
+    res.status(200).json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error rejecting upgrade', error: error.message })
+  }
+}
+
+// RESET VENDOR TO CLIENT - admin key. For test accounts: keeps the account
+// (email/password/order history) but strips all seller state. Products are
+// deliberately left alone so this can't quietly wipe a real catalog.
+const resetVendorToClient = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    const user = await User.findById(req.params.userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+    user.sellerStatus = 'none'
+    user.vendorProfile = undefined
+    user.verification = undefined
+    user.subscription = undefined
+    await user.save()
+    res.status(200).json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error resetting vendor', error: error.message })
+  }
+}
+
+// ADMIN DELETE USER - admin key. Test-account cleanup. Removes the User
+// document only (same known limitation as self-delete): their orders and
+// products are left pointing at an id that no longer resolves.
+const adminDeleteUser = async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key']
+    if (!adminKey || adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' })
+    }
+    const user = await User.findByIdAndDelete(req.params.userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+    res.status(200).json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error deleting user', error: error.message })
+  }
+}
+
 module.exports = {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
   listPublicVendors, getPublicVendorProfile,
-  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade,
+  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade, rejectTierUpgrade,
+  resetVendorToClient, adminDeleteUser,
 }

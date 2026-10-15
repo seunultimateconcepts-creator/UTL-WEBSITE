@@ -5,7 +5,8 @@ const {
   approveSeller, rejectSeller, listPendingSellers, listApprovedVendors, updateVendorTier,
   submitSellerApplication, verifySubscriptionPayment, paystackWebhook, updateBankDetails,
   listPublicVendors, getPublicVendorProfile,
-  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade,
+  requestTierUpgrade, listPendingTierUpgrades, confirmTierUpgrade, rejectTierUpgrade,
+  resetVendorToClient, adminDeleteUser,
 } = require('../controllers/sellerController')
 const { protect } = require('../middleware/authMiddleware')
 
@@ -36,5 +37,8 @@ router.patch('/:userId/approve', approveSeller)      // PATCH /api/sellers/:user
 router.patch('/:userId/reject', rejectSeller)        // PATCH /api/sellers/:userId/reject
 router.patch('/:userId/tier', updateVendorTier)      // PATCH /api/sellers/:userId/tier
 router.patch('/:userId/confirm-upgrade', confirmTierUpgrade) // PATCH /api/sellers/:userId/confirm-upgrade
+router.patch('/:userId/reject-upgrade', rejectTierUpgrade)   // PATCH /api/sellers/:userId/reject-upgrade
+router.patch('/:userId/reset-to-client', resetVendorToClient) // PATCH /api/sellers/:userId/reset-to-client
+router.delete('/:userId', adminDeleteUser)                   // DELETE /api/sellers/:userId
 
 module.exports = router

@@ -88,8 +88,12 @@ function Dashboard() {
       return
     }
     const parsed = JSON.parse(currentUser)
+    // BUG FIX: dashboardUnlocked only tracks "has bought something as a
+    // customer" — irrelevant for sellers. Any seller status (pending,
+    // approved, rejected) must reach their own dashboard.
+    const hasSellerStatus = parsed.sellerStatus && parsed.sellerStatus !== 'none'
 
-    if (!parsed.dashboardUnlocked) {
+    if (!parsed.dashboardUnlocked && !hasSellerStatus) {
       navigate('/', {
         state: { message: 'Place your first order to unlock your dashboard!' },
       })
@@ -864,11 +868,11 @@ function Dashboard() {
             <div>
               <p className="text-gray-900 font-bold text-sm mb-1">Your store is live</p>
               <p className="text-gray-500 text-xs break-all">
-                {typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+                {typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.vendorProfile?.shopSlug || user.id}` : ''}
               </p>
             </div>
             <ShareLink
-              url={typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.id}` : ''}
+              url={typeof window !== 'undefined' ? `${window.location.origin}/shop/vendor/${user.vendorProfile?.shopSlug || user.id}` : ''}
               title={`${user.firstName}'s store on Ultimate Tech Lab`}
             />
           </div>

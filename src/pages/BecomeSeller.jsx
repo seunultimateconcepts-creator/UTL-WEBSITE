@@ -247,6 +247,10 @@ function BecomeSeller() {
         setSubmitError(data.message || 'Something went wrong — please try again')
         return
       }
+      // BUG FIX: keep the cached user in sync, otherwise Dashboard's
+      // mount-time gate reads a stale sellerStatus of 'none'.
+      const cachedUser = JSON.parse(localStorage.getItem('utl_current_user') || '{}')
+      localStorage.setItem('utl_current_user', JSON.stringify({ ...cachedUser, sellerStatus: data.sellerStatus }))
       setSubmitted(true)
     } catch (err) {
       console.error('Application submission failed:', err)

@@ -73,7 +73,7 @@ import { VendorCartProvider } from './context/VendorCartContext'
 import BookService from './pages/BookService'
 import Notepad from './pages/tools/Notepad'
 import UltimateConcepts from './pages/UltimateConcepts'
-import UpgradePlan from './pages/UpgradePlan'
+import UpgradePlan from './pages/Upgradeplan'
 import ErrorBoundary from './components/ErrorBoundary'
 
 // remove the old UTLShopStore import

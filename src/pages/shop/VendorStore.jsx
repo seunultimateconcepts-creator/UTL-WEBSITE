@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Store, ShoppingBag, ArrowLeft, PackageX, ShoppingCart, Plus, Search } from 'lucide-react'
 import ShareLink from '../../components/ShareLink'
 import VendorCartDrawer from '../../components/VendorCartDrawer'
@@ -10,7 +11,14 @@ import { CHECKOUT_MODES, getCheckoutMode } from '../../config/listingCategoryFie
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 function VendorStore() {
-  const { vendorId } = useParams()
+  // The URL param is EITHER a shopSlug ("rosyfashion") or a raw _id. It
+  // is resolved once to the REAL id (state below), and every downstream
+  // call - products, cart key, orders - uses that real id, so a vendor's
+  // cart can never fragment depending on which link a customer arrived by.
+  const { vendorId: urlParam } = useParams()
+  const navigate = useNavigate()
+  const [vendorId, setVendorId] = useState(null)
+  const [notFound, setNotFound] = useState(false)
   const [products, setProducts] = useState([])
   const [vendorName, setVendorName] = useState('')
   const [vendorBio, setVendorBio] = useState('')
@@ -51,21 +59,37 @@ function VendorStore() {
     setTimeout(() => setJustAdded(null), 1200)
   }
 
+  // Step 1 - resolve the URL to the real vendor. If we arrived by raw id
+  // but a slug exists, quietly upgrade the address bar to the friendly URL.
   useEffect(() => {
-    // ✅ Fetched independently of products — a freshly-approved vendor
-    // with zero products yet still has a real shop name/bio/photo that
-    // should show up, not a blank header.
-    fetch(`${BASE_URL}/sellers/public/${vendorId}`)
+    setLoading(true)
+    setNotFound(false)
+    fetch(`${BASE_URL}/sellers/public/${urlParam}`)
       .then((r) => r.json())
       .then((data) => {
-        if (data.success) {
-          setVendorName(data.vendor.shopName)
-          setVendorBio(data.vendor.bio)
-          setVendorPhoto(data.vendor.shopPhotoUrl)
+        if (!data.success) {
+          setNotFound(true)
+          setLoading(false)
+          return
+        }
+        setVendorId(data.vendor.id)
+        setVendorName(data.vendor.shopName)
+        setVendorBio(data.vendor.bio)
+        setVendorPhoto(data.vendor.shopPhotoUrl)
+        if (data.vendor.shopSlug && data.vendor.shopSlug !== urlParam) {
+          navigate(`/shop/vendor/${data.vendor.shopSlug}`, { replace: true })
         }
       })
-      .catch((err) => console.error('Failed to load vendor profile:', err))
+      .catch((err) => {
+        console.error('Failed to load vendor profile:', err)
+        setNotFound(true)
+        setLoading(false)
+      })
+  }, [navigate, urlParam])
 
+  // Step 2 - only fetch products once we have the REAL id.
+  useEffect(() => {
+    if (!vendorId) return
     const fetchProducts = async () => {
       setLoading(true)
       try {
@@ -82,6 +106,17 @@ function VendorStore() {
     }
     fetchProducts()
   }, [vendorId])
+
+  if (notFound) {
+    return (
+      <div className="pt-16 min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+        <PackageX size={40} className="text-gray-300 mb-4" />
+        <p className="text-gray-900 font-bold mb-2">Store not found</p>
+        <p className="text-gray-500 text-sm mb-4">This link may be wrong, or the store isn't live yet.</p>
+        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to U-Come</Link>
+      </div>
+    )
+  }
 
   return (
     <div className="pt-16">
@@ -161,10 +196,10 @@ function VendorStore() {
             {filteredProducts.map((product) => (
               <Link
                 key={product._id}
-                to={`/shop/vendor/${vendorId}/product/${product._id}`}
+                to={`/shop/vendor/${urlParam}/product/${product._id}`}
                 className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="h-44 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -179,7 +214,7 @@ function VendorStore() {
                   <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-3">
                     {product.category}
                   </span>
-                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-2 line-clamp-2">
+                  <h3 className="text-gray-900 font-bold text-sm leading-snug mb-1.5 line-clamp-2 min-h-[2.5rem]">
                     {product.name}
                   </h3>
                   {getCategoryHighlights(product).length > 0 && (

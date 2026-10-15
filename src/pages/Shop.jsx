@@ -32,7 +32,7 @@ function Shop() {
     id: v.id,
     name: v.shopName || 'Vendor Store',
     tagline: v.bio || v.businessCategory,
-    path: `/shop/vendor/${v.id}`,
+    path: `/shop/vendor/${v.shopSlug || v.id}`,
     status: 'live',
   }))
 

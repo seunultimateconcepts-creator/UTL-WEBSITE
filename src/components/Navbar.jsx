@@ -93,7 +93,7 @@ function Navbar() {
 
   const sellerNavLinks = [
     { name: 'Dashboard', path: '/dashboard' },
-    ...(user ? [{ name: 'My Shop', path: `/shop/vendor/${user.id || user._id}` }] : []),
+    ...(user ? [{ name: 'My Shop', path: `/shop/vendor/${user.vendorProfile?.shopSlug || user.id || user._id}` }] : []),
   ]
 
   const navLinks = isApprovedSeller ? sellerNavLinks : fullNavLinks
