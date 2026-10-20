@@ -75,9 +75,9 @@ export default function ImageUpload({ value, onChange, label = 'Upload Image' })
           </button>
         </div>
       ) : (
-        <label className="flex flex-col items-center justify-center gap-2 w-full h-32 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer transition-colors">
+        <label className="flex flex-col items-center justify-center gap-2 w-full h-32 rounded-xl border-2 border-dashed border-gray-200 hover:border-amber-300 hover:bg-amber-50/30 cursor-pointer transition-colors">
           {uploading ? (
-            <Loader2 size={22} className="text-orange-500 animate-spin" />
+            <Loader2 size={22} className="text-amber-500 animate-spin" />
           ) : (
             <>
               <Upload size={20} className="text-gray-400" />

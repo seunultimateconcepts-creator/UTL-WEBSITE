@@ -17,13 +17,13 @@ export default function SourcingRequestConfirmation({ request, onContinue }) {
 
       <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-5 text-left">
         <div className="flex items-center gap-2 mb-4">
-          <Package size={16} className="text-orange-500" />
+          <Package size={16} className="text-amber-500" />
           <span className="text-gray-900 font-bold text-sm">{request.requestNumber}</span>
         </div>
         <div className="space-y-2">
           {request.items?.map((item, i) => (
             <div key={i} className="text-sm">
-              <span className="text-orange-600 font-semibold">{item.platform}:</span>{' '}
+              <span className="text-amber-600 font-semibold">{item.platform}:</span>{' '}
               <span className="text-gray-700">{item.description}</span>
             </div>
           ))}

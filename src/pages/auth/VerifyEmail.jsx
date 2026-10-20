@@ -1,3 +1,4 @@
+import { goAfterAuth } from '../../utils/postAuthRedirect'
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
@@ -20,7 +21,7 @@ function VerifyEmail() {
           setStatus('success')
           setMessage(result.message)
           // Redirect to dashboard after 3 seconds
-          setTimeout(() => navigate('/dashboard'), 3000)
+          setTimeout(() => goAfterAuth(navigate), 3000)
         }
       } catch (err) {
         setStatus('error')
@@ -53,7 +54,7 @@ function VerifyEmail() {
             </div>
             <h2 className="text-xl font-black text-white mb-2">Email Verified!</h2>
             <p className="text-gray-400 text-sm mb-6">{message}</p>
-            <p className="text-green-400 text-xs mb-6">Redirecting to dashboard in 3 seconds...</p>
+            <p className="text-green-400 text-xs mb-6">Redirecting you in 3 seconds...</p>
             <Link to="/dashboard"
               className="block w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-all text-sm">
               Go to Dashboard Now →

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import UComeBannerCarousel from '../components/UComeBannerCarousel'
 import {
   Search, ShoppingBag, Store, ArrowRight, Sparkles, Plus, Info,
 } from 'lucide-react'
@@ -65,18 +66,18 @@ function Shop() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-16 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
-            <Store size={13} className="text-orange-300" />
-            <span className="text-orange-300 text-xs font-medium tracking-wide">U-COME</span>
+          <div className="inline-flex items-center gap-2 bg-amber-600/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+            <Store size={13} className="text-amber-300" />
+            <span className="text-amber-300 text-xs font-medium tracking-wide">U-COME</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             One Marketplace,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-400">
               Every Vendor
             </span>
           </h1>
@@ -93,7 +94,7 @@ function Shop() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search vendors..."
-                className="w-full pl-11 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                className="w-full pl-11 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <Link
@@ -106,6 +107,9 @@ function Shop() {
         </div>
       </section>
 
+      {/* Sliding promo banner */}
+      <UComeBannerCarousel />
+
       {/* Flash message (e.g. redirected here from a locked dashboard) */}
       {flashMessage && (
         <div className="bg-amber-50 border-b border-amber-100">
@@ -117,7 +121,7 @@ function Shop() {
       )}
 
       {/* Vendor Grid */}
-      <section className="py-16 bg-gray-50">
+      <section id="vendors" className="py-16 bg-gray-50 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="flex items-center justify-between mb-8">
@@ -132,14 +136,14 @@ function Shop() {
                 <Link
                   key={vendor.id}
                   to={vendor.path}
-                  className="group relative bg-white border-2 border-orange-200 rounded-2xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  className="group relative bg-white border-2 border-amber-200 rounded-2xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
                   {/* Live badge */}
                   <span className="absolute top-4 right-4 inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
                     <Sparkles size={11} /> Live
                   </span>
 
-                  <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-orange-100 transition-colors overflow-hidden">
+                  <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-amber-100 transition-colors overflow-hidden">
                     {vendor.id !== 'utl-shop' && liveVendors.find((v) => v.id === vendor.id)?.shopPhotoUrl ? (
                       <img
                         src={liveVendors.find((v) => v.id === vendor.id).shopPhotoUrl}
@@ -147,12 +151,12 @@ function Shop() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <ShoppingBag size={30} className="text-orange-600" />
+                      <ShoppingBag size={30} className="text-amber-600" />
                     )}
                   </div>
                   <h3 className="text-gray-900 font-black text-2xl mb-2">{vendor.name}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed mb-6">{vendor.tagline}</p>
-                  <span className="inline-flex items-center gap-2 text-orange-600 font-bold text-sm group-hover:gap-3 transition-all">
+                  <span className="inline-flex items-center gap-2 text-amber-600 font-bold text-sm group-hover:gap-3 transition-all">
                     Visit Store <ArrowRight size={16} />
                   </span>
                 </Link>
@@ -192,7 +196,7 @@ function Shop() {
           </p>
           <Link
             to="/become-seller"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5"
           >
             <Store size={18} /> Become a Vendor
           </Link>

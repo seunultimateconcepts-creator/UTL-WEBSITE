@@ -104,7 +104,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
       <div className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="flex items-center gap-2 font-black text-gray-900">
-            <ShoppingBag size={18} className="text-orange-500" />
+            <ShoppingBag size={18} className="text-amber-500" />
             {step === 'confirmed' ? 'Order Placed' : step === 'checkout' ? 'Checkout' : cart.vendorName || 'Your Cart'}
           </h2>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-900">
@@ -186,7 +186,7 @@ export default function VendorCartDrawer({ vendorId, open, onClose }) {
                 </div>
                 <button
                   onClick={() => setStep('checkout')}
-                  className="w-full py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all"
+                  className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all"
                 >
                   Checkout
                 </button>

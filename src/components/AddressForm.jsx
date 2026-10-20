@@ -104,7 +104,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="flex items-center gap-2 mb-1">
-        <MapPin size={16} className="text-orange-500" />
+        <MapPin size={16} className="text-amber-500" />
         <h3 className="text-gray-900 font-bold text-sm">Delivery Address</h3>
       </div>
 
@@ -120,7 +120,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
           <input
             type="text" name="fullName" value={form.fullName} onChange={handleChange}
             placeholder="Your full name"
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
           />
         </div>
         <div>
@@ -128,7 +128,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
           <input
             type="tel" name="phone" value={form.phone} onChange={handleChange}
             placeholder="+234 800 000 0000"
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
           />
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
           <label className="block text-xs font-semibold text-gray-500 mb-1.5">State *</label>
           <select
             name="coverageZone" value={form.coverageZone} onChange={handleStateChange}
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors"
           >
             <option value="">Select state</option>
             {zones.map((z) => (
@@ -153,7 +153,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
           <select
             value={selectedLGA} onChange={handleLGAChange}
             disabled={!form.coverageZone}
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">{form.coverageZone ? 'Select LGA' : 'Pick a state first'}</option>
             {lgasForState.map((lga) => (
@@ -174,7 +174,7 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
         <textarea
           name="address" rows={2} value={form.address} onChange={handleChange}
           placeholder="Street address, city"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none"
         />
       </div>
 
@@ -183,14 +183,14 @@ export default function AddressForm({ onSubmit, submitting, submitLabel = 'Conti
         <input
           type="text" name="landmark" value={form.landmark} onChange={handleChange}
           placeholder="Nearby bus stop, building, etc."
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-3.5 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-colors text-sm"
+        className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm"
       >
         {submitting ? 'Placing Order...' : submitLabel}
       </button>

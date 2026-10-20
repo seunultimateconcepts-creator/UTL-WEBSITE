@@ -42,7 +42,7 @@ export default function ServiceRequestForm({ onSubmit, submitting, submitLabel =
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="flex items-center gap-2 mb-1">
-        <Wrench size={16} className="text-orange-500" />
+        <Wrench size={16} className="text-amber-500" />
         <h3 className="text-gray-900 font-bold text-sm">Request This Service</h3>
       </div>
 
@@ -63,7 +63,7 @@ export default function ServiceRequestForm({ onSubmit, submitting, submitLabel =
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe the job — what's wrong, what you'd like done, any details that help"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none"
         />
       </div>
 
@@ -76,7 +76,7 @@ export default function ServiceRequestForm({ onSubmit, submitting, submitLabel =
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="Area / address where the work is needed"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
 
@@ -95,8 +95,8 @@ export default function ServiceRequestForm({ onSubmit, submitting, submitLabel =
               onClick={() => setUrgency(u.id)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
                 urgency === u.id
-                  ? 'bg-orange-500 border-orange-500 text-white'
-                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-orange-300'
+                  ? 'bg-amber-500 border-amber-500 text-[#0a0f2c]'
+                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-amber-300'
               }`}
             >
               {u.label}
@@ -108,7 +108,7 @@ export default function ServiceRequestForm({ onSubmit, submitting, submitLabel =
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-3.5 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-colors text-sm"
+        className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm"
       >
         {submitting ? 'Sending...' : submitLabel}
       </button>

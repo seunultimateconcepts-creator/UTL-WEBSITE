@@ -97,8 +97,8 @@ function BecomeSeller() {
       name: 'Platinum',
       price: '₦100,000',
       period: 'year',
-      borderColor: 'border-orange-400',
-      btnClass: 'bg-orange-500 hover:bg-orange-400 text-white',
+      borderColor: 'border-amber-400',
+      btnClass: 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]',
       featured: false,
       features: ['Unlimited products', 'Product videos', 'Everything in Gold'],
     },
@@ -263,7 +263,7 @@ function BecomeSeller() {
   if (checkingAuth) {
     return (
       <div className="pt-16 min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -274,19 +274,19 @@ function BecomeSeller() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
-            <Store size={13} className="text-orange-300" />
-            <span className="text-orange-300 text-xs font-medium tracking-wide">
+          <div className="inline-flex items-center gap-2 bg-amber-600/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+            <Store size={13} className="text-amber-300" />
+            <span className="text-amber-300 text-xs font-medium tracking-wide">
               SELL ON UTL
             </span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Grow Your Business{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-400">
               With Us
             </span>
           </h1>
@@ -298,7 +298,7 @@ function BecomeSeller() {
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="#apply"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5"
             >
               Apply Now — It's Free <ArrowRight size={16} />
             </a>
@@ -318,7 +318,7 @@ function BecomeSeller() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <p className="text-orange-500 text-sm font-semibold tracking-widest uppercase mb-3">
+            <p className="text-amber-500 text-sm font-semibold tracking-widest uppercase mb-3">
               WHY SELL WITH US
             </p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">
@@ -334,8 +334,8 @@ function BecomeSeller() {
                 key={benefit.title}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-100 transition-colors">
-                  <benefit.icon size={22} className="text-orange-600" />
+                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-100 transition-colors">
+                  <benefit.icon size={22} className="text-amber-600" />
                 </div>
                 <h3 className="text-gray-900 font-bold text-lg mb-2">{benefit.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{benefit.desc}</p>
@@ -349,7 +349,7 @@ function BecomeSeller() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <p className="text-orange-500 text-sm font-semibold tracking-widest uppercase mb-3">
+            <p className="text-amber-500 text-sm font-semibold tracking-widest uppercase mb-3">
               PRICING
             </p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">
@@ -403,7 +403,7 @@ function BecomeSeller() {
       <section id="apply" className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <p className="text-orange-500 text-sm font-semibold tracking-widest uppercase mb-3">
+            <p className="text-amber-500 text-sm font-semibold tracking-widest uppercase mb-3">
               GET STARTED
             </p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">
@@ -417,7 +417,7 @@ function BecomeSeller() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             {submitted ? (
               <div className="text-center py-12">
-                <PartyPopper size={56} className="mx-auto mb-4 text-orange-500" />
+                <PartyPopper size={56} className="mx-auto mb-4 text-amber-500" />
                 <h3 className="text-2xl font-black text-gray-900 mb-2">Application Submitted!</h3>
                 <p className="text-gray-500 mb-2">
                   We've received your details and verification is underway.
@@ -430,13 +430,13 @@ function BecomeSeller() {
               <>
                 {/* Step indicator */}
                 <div className="flex items-center gap-3 mb-8">
-                  <div className={`flex items-center gap-2 ${step === 1 ? 'text-orange-600' : 'text-gray-400'}`}>
-                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 1 ? 'bg-orange-500 text-white' : 'bg-gray-100'}`}>1</span>
+                  <div className={`flex items-center gap-2 ${step === 1 ? 'text-amber-600' : 'text-gray-400'}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 1 ? 'bg-amber-500 text-[#0a0f2c]' : 'bg-gray-100'}`}>1</span>
                     <span className="text-sm font-semibold">Shop Info</span>
                   </div>
                   <div className="flex-1 h-px bg-gray-200" />
-                  <div className={`flex items-center gap-2 ${step === 2 ? 'text-orange-600' : 'text-gray-400'}`}>
-                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 2 ? 'bg-orange-500 text-white' : 'bg-gray-100'}`}>2</span>
+                  <div className={`flex items-center gap-2 ${step === 2 ? 'text-amber-600' : 'text-gray-400'}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step === 2 ? 'bg-amber-500 text-[#0a0f2c]' : 'bg-gray-100'}`}>2</span>
                     <span className="text-sm font-semibold">Verification</span>
                   </div>
                 </div>
@@ -457,7 +457,7 @@ function BecomeSeller() {
                           value={formData.shopName}
                           onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
                           placeholder="e.g. Mama Tee Shop"
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         />
                       </div>
                       <div>
@@ -465,7 +465,7 @@ function BecomeSeller() {
                         <select
                           value={formData.businessCategory}
                           onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         >
                           {/* ✅ CRITICAL: options are generated from CATEGORY_FIELDS —
                               the SAME source getCheckoutMode(), the listing form's
@@ -513,7 +513,7 @@ function BecomeSeller() {
                         value={formData.bio}
                         onChange={handleChange}
                         placeholder="What do you sell? What makes your shop worth buying from?"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all resize-none"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-none"
                       />
                     </div>
 
@@ -522,7 +522,7 @@ function BecomeSeller() {
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">State *</label>
                         <select
                           value={selectedState} onChange={handleStateChange}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                         >
                           <option value="">Select state</option>
                           {zones.map((z) => (
@@ -535,7 +535,7 @@ function BecomeSeller() {
                         <select
                           value={selectedLGA} onChange={handleLGAChange}
                           disabled={!selectedState}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:border-amber-400 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">{selectedState ? 'Select LGA' : 'Pick a state first'}</option>
                           {lgasForState.map((lga) => (
@@ -556,13 +556,13 @@ function BecomeSeller() {
                         value={formData.shopAddress}
                         onChange={handleChange}
                         placeholder="Street, area, city"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5 text-sm"
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5 text-sm"
                     >
                       Continue to Verification <ArrowRight size={16} />
                     </button>
@@ -595,16 +595,16 @@ function BecomeSeller() {
                         value={formData.nin}
                         onChange={handleChange}
                         placeholder="National Identification Number"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                       />
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Photo of your NIMC Slip *</label>
-                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-300 cursor-pointer transition-colors">
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-amber-300 cursor-pointer transition-colors">
                           {compressingNin ? (
-                            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                           ) : ninPhotoBase64 ? (
                             <img src={ninPhotoBase64} alt="NIMC slip" className="w-full h-full object-cover rounded-xl" />
                           ) : (
@@ -618,9 +618,9 @@ function BecomeSeller() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selfie (Liveness Check) *</label>
-                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-300 cursor-pointer transition-colors">
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-200 hover:border-amber-300 cursor-pointer transition-colors">
                           {compressingSelfie ? (
-                            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                           ) : selfiePhotoBase64 ? (
                             <img src={selfiePhotoBase64} alt="Selfie" className="w-full h-full object-cover rounded-xl" />
                           ) : (
@@ -645,7 +645,7 @@ function BecomeSeller() {
                         value={formData.cacNumber}
                         onChange={handleChange}
                         placeholder="RC or BN number"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
                       />
                     </div>
 
@@ -661,9 +661,9 @@ function BecomeSeller() {
                           type="button"
                           onClick={handleGetLocation}
                           disabled={locating}
-                          className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 hover:border-orange-300 rounded-xl text-gray-700 text-sm font-semibold transition-colors"
+                          className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 hover:border-amber-300 rounded-xl text-gray-700 text-sm font-semibold transition-colors"
                         >
-                          <MapPin size={16} className="text-orange-500" /> {locating ? 'Getting location...' : 'Share My Live Location'}
+                          <MapPin size={16} className="text-amber-500" /> {locating ? 'Getting location...' : 'Share My Live Location'}
                         </button>
                       )}
                       {locationError && <p className="text-red-500 text-xs mt-1.5">{locationError}</p>}
@@ -680,7 +680,7 @@ function BecomeSeller() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-all text-sm"
+                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-all text-sm"
                       >
                         <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Application'}
                       </button>

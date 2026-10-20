@@ -43,7 +43,7 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
 
       <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-5 text-left">
         <div className="flex items-center gap-2 mb-4">
-          <Package size={16} className="text-orange-500" />
+          <Package size={16} className="text-amber-500" />
           <span className="text-gray-900 font-bold text-sm">{order.orderNumber}</span>
         </div>
 
@@ -70,7 +70,7 @@ export default function OrderConfirmation({ order, onContinue, continueLabel = '
             <p className="font-semibold text-gray-700 mb-0.5">Delivering to {order.deliveryAddress.fullName}</p>
             <p>{order.deliveryAddress.address}</p>
             {order.deliveryAddress.landmark && <p>Near: {order.deliveryAddress.landmark}</p>}
-            {order.estimatedDeliveryDays && <p className="mt-1 text-orange-600 font-medium">Est. arrival: {order.estimatedDeliveryDays}</p>}
+            {order.estimatedDeliveryDays && <p className="mt-1 text-amber-600 font-medium">Est. arrival: {order.estimatedDeliveryDays}</p>}
           </div>
         )}
 

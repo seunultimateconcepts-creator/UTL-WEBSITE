@@ -80,7 +80,7 @@ export default function CartDrawer({ open, onClose }) {
       <div className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="flex items-center gap-2 font-black text-gray-900">
-            <ShoppingBag size={18} className="text-orange-500" />
+            <ShoppingBag size={18} className="text-amber-500" />
             {confirmedRequest ? 'Request Sent' : 'Your Requests'}
           </h2>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-900">
@@ -121,7 +121,7 @@ export default function CartDrawer({ open, onClose }) {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-orange-600 font-semibold text-xs">{item.platform}</p>
+                    <p className="text-amber-600 font-semibold text-xs">{item.platform}</p>
                     <p className="text-gray-700 text-sm line-clamp-2">{item.description}</p>
                     {item.budget && <p className="text-gray-400 text-xs mt-0.5">Budget: ₦{item.budget.toLocaleString()}</p>}
                   </div>
@@ -139,19 +139,19 @@ export default function CartDrawer({ open, onClose }) {
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
                   placeholder="Contact phone *"
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
                 />
                 <textarea
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes — preferred area, pickup vs delivery, anything else (optional)"
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none"
                 />
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-all"
                 >
                   <Send size={16} /> {submitting ? 'Sending...' : `Send Request (${items.length})`}
                 </button>

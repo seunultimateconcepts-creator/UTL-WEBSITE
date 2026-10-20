@@ -217,7 +217,7 @@ function AddProduct() {
   if (loadingProduct) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -226,7 +226,7 @@ function AddProduct() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 max-w-md w-full text-center">
-          <PartyPopper size={48} className="mx-auto mb-4 text-orange-500" />
+          <PartyPopper size={48} className="mx-auto mb-4 text-amber-500" />
           <h2 className="text-xl font-black text-gray-900 mb-2">{isEditMode ? 'Product Updated!' : 'Product Listed!'}</h2>
           <p className="text-gray-500 text-sm mb-6">
             "{success.name}" {isEditMode ? 'has been updated.' : 'is now live on your store.'}
@@ -258,8 +258,8 @@ function AddProduct() {
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
-              <Package size={20} className="text-orange-600" />
+            <div className="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center">
+              <Package size={20} className="text-amber-600" />
             </div>
             <div>
               <h1 className="text-xl font-black text-gray-900">{isEditMode ? 'Edit Product' : 'List a New Product'}</h1>
@@ -295,14 +295,14 @@ function AddProduct() {
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Product Name *</label>
               <input type="text" name="name" value={formData.name} onChange={handleChange}
                 placeholder="e.g. Samsung Galaxy A55 5G 128GB"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Description *</label>
               <textarea name="description" rows={3} value={formData.description} onChange={handleChange}
                 placeholder="Describe the product — condition, specs, what's included..."
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none" />
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -310,13 +310,13 @@ function AddProduct() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">Price (₦) *</label>
                 <input type="number" name="price" value={formData.price} onChange={handleChange}
                   placeholder="150000"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">Stock Quantity</label>
                 <input type="number" name="stock" value={formData.stock} onChange={handleChange}
                   placeholder="10"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
               </div>
             </div>
 
@@ -335,7 +335,7 @@ function AddProduct() {
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">Product Type</label>
                 <select name="subCategory" value={formData.subCategory} onChange={handleChange}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors">
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors">
                   <option value="">Select a type (optional)</option>
                   {RETAIL_SUBCATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
@@ -360,7 +360,7 @@ function AddProduct() {
                       <select
                         value={attributeValues[field.key] || ''}
                         onChange={(e) => handleAttributeChange(field.key, e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors"
                       >
                         <option value="">Select</option>
                         {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
@@ -371,7 +371,7 @@ function AddProduct() {
                         value={attributeValues[field.key] || ''}
                         onChange={(e) => handleAttributeChange(field.key, e.target.value)}
                         placeholder={field.placeholder || ''}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
                       />
                     )}
                   </div>
@@ -402,7 +402,7 @@ function AddProduct() {
               ))}
             </div>
             <button type="button" onClick={addImageField}
-              className="flex items-center gap-1.5 text-orange-600 text-xs font-semibold hover:text-orange-700">
+              className="flex items-center gap-1.5 text-amber-600 text-xs font-semibold hover:text-amber-700">
               <Plus size={14} /> Add another photo
             </button>
           </div>
@@ -423,10 +423,10 @@ function AddProduct() {
               <div key={i} className="flex gap-2 items-start">
                 <input type="text" value={variant.name} onChange={(e) => updateVariant(i, 'name', e.target.value)}
                   placeholder="Size"
-                  className="w-32 flex-shrink-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="w-32 flex-shrink-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
                 <input type="text" value={variant.optionsText} onChange={(e) => updateVariant(i, 'optionsText', e.target.value)}
                   placeholder="S, M, L, XL"
-                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
                 <button type="button" onClick={() => removeVariant(i)}
                   className="w-10 h-10 flex-shrink-0 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
                   <X size={16} />
@@ -434,7 +434,7 @@ function AddProduct() {
               </div>
             ))}
             <button type="button" onClick={addVariant}
-              className="flex items-center gap-1.5 text-orange-600 text-xs font-semibold hover:text-orange-700">
+              className="flex items-center gap-1.5 text-amber-600 text-xs font-semibold hover:text-amber-700">
               <Plus size={14} /> Add an option type
             </button>
           </div>
@@ -455,14 +455,14 @@ function AddProduct() {
                 )}
                 <input type="text" value={faq.question} onChange={(e) => updateFaq(i, 'question', e.target.value)}
                   placeholder="Question (e.g. Does this come with a warranty?)"
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
                 <textarea rows={2} value={faq.answer} onChange={(e) => updateFaq(i, 'answer', e.target.value)}
                   placeholder="Answer"
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none" />
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none" />
               </div>
             ))}
             <button type="button" onClick={addFaqField}
-              className="flex items-center gap-1.5 text-orange-600 text-xs font-semibold hover:text-orange-700">
+              className="flex items-center gap-1.5 text-amber-600 text-xs font-semibold hover:text-amber-700">
               <Plus size={14} /> Add another FAQ
             </button>
           </div>
@@ -474,18 +474,18 @@ function AddProduct() {
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Delivery</label>
               <input type="text" name="deliveryPolicy" value={formData.deliveryPolicy} onChange={handleChange}
                 placeholder="e.g. 2-5 business days within Lagos"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Returns</label>
               <input type="text" name="returnsPolicy" value={formData.returnsPolicy} onChange={handleChange}
                 placeholder="e.g. 7-day return window, item must be unused"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors" />
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors" />
             </div>
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-all">
+            className="w-full py-4 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-all">
             {loading ? (isEditMode ? 'Saving Changes...' : 'Listing Product...') : (isEditMode ? 'Save Changes' : 'List Product')}
           </button>
 

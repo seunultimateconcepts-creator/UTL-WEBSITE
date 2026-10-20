@@ -1,3 +1,4 @@
+import { goAfterAuth } from './postAuthRedirect'
 /**
  * handleGoogleCredential.js
  *
@@ -51,7 +52,7 @@ export async function handleGoogleCredential(response, navigate, onError) {
 
     const redirect = localStorage.getItem('utl_redirect_after_login')
     localStorage.removeItem('utl_redirect_after_login')
-    navigate(redirect || '/dashboard')
+    goAfterAuth(navigate, redirect)
   } catch (err) {
     console.error('Google sign-in error:', err)
     if (onError) onError('Something went wrong signing in with Google. Please try again.')

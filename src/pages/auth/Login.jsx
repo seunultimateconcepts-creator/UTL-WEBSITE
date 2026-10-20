@@ -1,3 +1,4 @@
+import { goAfterAuth } from '../../utils/postAuthRedirect'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../../services/api'
@@ -50,7 +51,7 @@ function Login() {
         // ✅ Redirect to where they were before login, or dashboard
         const redirect = localStorage.getItem('utl_redirect_after_login')
         localStorage.removeItem('utl_redirect_after_login')
-        navigate(redirect || '/dashboard')
+        goAfterAuth(navigate, redirect)
       }
     } catch (err) {
       setError(err.message || 'Invalid email or password. Please try again.')

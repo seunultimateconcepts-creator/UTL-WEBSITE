@@ -49,7 +49,7 @@ export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. Tecno Spark 20 Pro, 8GB RAM 256GB, black"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none"
         />
       </div>
 
@@ -93,7 +93,7 @@ export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
           value={budget}
           onChange={(e) => setBudget(e.target.value)}
           placeholder="₦ e.g. 150000"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
 
@@ -109,7 +109,7 @@ export default function SourcingRequestItemForm({ platform, onAdd, onCancel }) {
         </button>
         <button
           type="submit"
-          className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-colors text-sm"
+          className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm"
         >
           Add to Cart
         </button>

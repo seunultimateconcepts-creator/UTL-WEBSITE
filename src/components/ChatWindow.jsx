@@ -95,8 +95,8 @@ export default function ChatWindow({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <MessageCircle size={18} className="text-orange-600" />
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <MessageCircle size={18} className="text-amber-600" />
             </div>
             <div className="min-w-0">
               <p className="text-gray-900 font-bold text-sm truncate">{otherPartyName}</p>
@@ -123,7 +123,7 @@ export default function ChatWindow({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading && (
             <div className="text-center py-10">
-              <div className="inline-block w-6 h-6 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <div className="inline-block w-6 h-6 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
@@ -139,10 +139,10 @@ export default function ChatWindow({
             return (
               <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                  isMine ? 'bg-orange-500 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                  isMine ? 'bg-amber-500 text-[#0a0f2c] rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                 }`}>
                   {msg.text}
-                  <p className={`text-[10px] mt-1 ${isMine ? 'text-orange-100' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] mt-1 ${isMine ? 'text-amber-100' : 'text-gray-400'}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -159,12 +159,12 @@ export default function ChatWindow({
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
           />
           <button
             type="submit"
             disabled={!text.trim() || sending}
-            className="w-10 h-10 flex items-center justify-center bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white rounded-full transition-colors flex-shrink-0"
+            className="w-10 h-10 flex items-center justify-center bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] rounded-full transition-colors flex-shrink-0"
           >
             <Send size={16} />
           </button>

@@ -215,7 +215,7 @@ function ProductDetail() {
   if (loading) {
     return (
       <div className="pt-16 min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -225,7 +225,7 @@ function ProductDetail() {
       <div className="pt-16 min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
         <ShoppingBag size={40} className="text-gray-300 mb-4" />
         <h2 className="text-xl font-black text-gray-900 mb-2">Product not found</h2>
-        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to U-Come</Link>
+        <Link to="/shop" className="text-amber-600 font-semibold text-sm hover:text-amber-700">← Back to U-Come</Link>
       </div>
     )
   }
@@ -271,7 +271,7 @@ function ProductDetail() {
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
-                      activeImage === i ? 'border-orange-500' : 'border-gray-100 hover:border-gray-300'
+                      activeImage === i ? 'border-amber-500' : 'border-gray-100 hover:border-gray-300'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
@@ -284,7 +284,7 @@ function ProductDetail() {
           {/* Right — Details */}
           <div>
             <div className="flex items-start justify-between gap-3 mb-3">
-              <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-orange-100 text-orange-700">
+              <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700">
                 {product.category}
               </span>
               <ShareLink
@@ -294,7 +294,7 @@ function ProductDetail() {
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">{product.name}</h1>
             {vendor && (
-              <Link to={`/shop/vendor/${urlVendorParam}`} className="text-gray-500 text-sm hover:text-orange-600 transition-colors">
+              <Link to={`/shop/vendor/${urlVendorParam}`} className="text-gray-500 text-sm hover:text-amber-600 transition-colors">
                 Sold by {vendor.firstName} {vendor.lastName}
               </Link>
             )}
@@ -306,7 +306,7 @@ function ProductDetail() {
             {getCategoryHighlights(product).length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {getCategoryHighlights(product).map((h, i) => (
-                  <span key={i} className="text-xs font-semibold px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg">
+                  <span key={i} className="text-xs font-semibold px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg">
                     {h}
                   </span>
                 ))}
@@ -326,7 +326,7 @@ function ProductDetail() {
                     <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
                       {variant.name}
                       {selectedVariants[variant.name] && (
-                        <span className="ml-2 text-orange-600 font-semibold normal-case tracking-normal">
+                        <span className="ml-2 text-amber-600 font-semibold normal-case tracking-normal">
                           {selectedVariants[variant.name]}
                         </span>
                       )}
@@ -339,8 +339,8 @@ function ProductDetail() {
                           onClick={() => { setSelectedVariants(prev => ({ ...prev, [variant.name]: option })); setVariantError('') }}
                           className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
                             selectedVariants[variant.name] === option
-                              ? 'bg-orange-500 border-orange-500 text-white'
-                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-orange-300'
+                              ? 'bg-amber-500 border-amber-500 text-[#0a0f2c]'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-amber-300'
                           }`}
                         >
                           {option}
@@ -416,7 +416,7 @@ function ProductDetail() {
                   <button
                     onClick={handleOrderClick}
                     disabled={product.stock === 0 || placing}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-200 disabled:text-gray-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5"
                   >
                     <Send size={16} /> {product.stock === 0 ? 'Out of Stock' : ctaLabel}
                   </button>

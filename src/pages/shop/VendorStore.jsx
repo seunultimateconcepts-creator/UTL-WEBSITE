@@ -113,7 +113,7 @@ function VendorStore() {
         <PackageX size={40} className="text-gray-300 mb-4" />
         <p className="text-gray-900 font-bold mb-2">Store not found</p>
         <p className="text-gray-500 text-sm mb-4">This link may be wrong, or the store isn't live yet.</p>
-        <Link to="/shop" className="text-orange-600 font-semibold text-sm hover:text-orange-700">← Back to U-Come</Link>
+        <Link to="/shop" className="text-amber-600 font-semibold text-sm hover:text-amber-700">← Back to U-Come</Link>
       </div>
     )
   }
@@ -124,7 +124,7 @@ function VendorStore() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-14 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to="/shop" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-4 transition-colors">
@@ -132,11 +132,11 @@ function VendorStore() {
           </Link>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {vendorPhoto ? (
                   <img src={vendorPhoto} alt={vendorName} className="w-full h-full object-cover" />
                 ) : (
-                  <Store size={28} className="text-orange-400" />
+                  <Store size={28} className="text-amber-400" />
                 )}
               </div>
               <div>
@@ -159,7 +159,7 @@ function VendorStore() {
 
           {loading && (
             <div className="text-center py-16">
-              <div className="inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
@@ -171,7 +171,7 @@ function VendorStore() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Search ${vendorName || 'this store'}...`}
-                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
           )}
@@ -211,7 +211,7 @@ function VendorStore() {
                   )}
                 </div>
                 <div className="p-5">
-                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 mb-3">
+                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 mb-3">
                     {product.category}
                   </span>
                   <h3 className="text-gray-900 font-bold text-sm leading-snug mb-1.5 line-clamp-2 min-h-[2.5rem]">
@@ -233,7 +233,7 @@ function VendorStore() {
                       className={`w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 text-xs font-bold rounded-lg transition-colors ${
                         justAdded === product._id
                           ? 'bg-green-500 text-white'
-                          : 'bg-orange-50 hover:bg-orange-100 text-orange-700'
+                          : 'bg-amber-50 hover:bg-amber-100 text-amber-700'
                       }`}
                     >
                       {justAdded === product._id ? 'Added ✓' : <><Plus size={13} /> Add to Cart</>}
@@ -243,7 +243,7 @@ function VendorStore() {
                        need their own details captured at checkout, so they
                        can't go in a shared cart — the card links through to
                        the product page where the right form renders. */
-                    <span className="block w-full text-center mt-3 py-2.5 text-xs font-bold rounded-lg bg-orange-50 text-orange-700">
+                    <span className="block w-full text-center mt-3 py-2.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-700">
                       {getCheckoutMode(product) === CHECKOUT_MODES.BOOK_DATES ? 'Book Now'
                         : getCheckoutMode(product) === CHECKOUT_MODES.TIME_SLOT ? 'Book Appointment'
                         : 'Request Service'} →

@@ -94,8 +94,8 @@ export default function ProductChat({ productId }) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-            <Bot size={16} className="text-orange-600" />
+          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <Bot size={16} className="text-amber-600" />
           </div>
           <div>
             <p className="text-gray-900 text-sm font-bold">Ask about this product</p>
@@ -134,7 +134,7 @@ export default function ProductChat({ productId }) {
               <div
                 className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.sender === 'buyer'
-                    ? 'bg-orange-500 text-white rounded-br-sm'
+                    ? 'bg-amber-500 text-[#0a0f2c] rounded-br-sm'
                     : msg.sender === 'ai'
                       ? 'bg-gray-100 text-gray-800 rounded-bl-sm'
                       : 'bg-blue-50 text-blue-900 rounded-bl-sm border border-blue-100'
@@ -160,7 +160,7 @@ export default function ProductChat({ productId }) {
           <div className="flex justify-start">
             <button
               onClick={escalate}
-              className="flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 hover:bg-orange-100 transition-colors"
+              className="flex items-center gap-2 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 hover:bg-amber-100 transition-colors"
             >
               <ArrowUpCircle size={14} /> I still need the vendor — ask them directly
             </button>
@@ -177,12 +177,12 @@ export default function ProductChat({ productId }) {
           onKeyDown={handleKeyDown}
           placeholder={inquiry?.status === 'escalated' ? 'Message the vendor...' : 'Ask a question...'}
           disabled={loading}
-          className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors disabled:opacity-60"
+          className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors disabled:opacity-60"
         />
         <button
           onClick={sendMessage}
           disabled={loading || !input.trim()}
-          className="w-10 h-10 flex-shrink-0 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-200 text-white rounded-xl flex items-center justify-center transition-colors"
+          className="w-10 h-10 flex-shrink-0 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-200 text-[#0a0f2c] rounded-xl flex items-center justify-center transition-colors"
         >
           <Send size={16} />
         </button>

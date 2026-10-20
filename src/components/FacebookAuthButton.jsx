@@ -1,3 +1,4 @@
+import { goAfterAuth } from '../utils/postAuthRedirect'
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -86,7 +87,7 @@ export default function FacebookAuthButton({ label = "Continue with Facebook", c
       if (data.isNewUser || !data.user.accountType) {
         navigate("/complete-profile");
       } else {
-        navigate("/dashboard");
+        goAfterAuth(navigate);
       }
     } catch (err) {
       console.error("Error sending Facebook token to backend:", err);

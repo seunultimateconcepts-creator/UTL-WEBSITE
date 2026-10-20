@@ -13,9 +13,9 @@ import { useCart } from '../context/CartContext'
 // stock. This IS what Ultimate Concepts actually does: source things
 // on request, not sell from a fixed shelf.
 const SOURCING_PLATFORMS = [
-  { name: 'Jumia', color: 'bg-orange-500' },
+  { name: 'Jumia', color: 'bg-amber-500' },
   { name: 'Jiji', color: 'bg-green-600' },
-  { name: 'Temu', color: 'bg-orange-600' },
+  { name: 'Temu', color: 'bg-amber-600' },
   { name: 'AliExpress', color: 'bg-red-500' },
   { name: 'CDCare', color: 'bg-blue-600' },
   { name: 'Amazon', color: 'bg-yellow-600' },
@@ -49,7 +49,7 @@ function UltimateConcepts() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-16 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
 
@@ -58,17 +58,17 @@ function UltimateConcepts() {
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <Link to="/shop" className="hover:text-white transition-colors">U-Come</Link>
               <span>›</span>
-              <span className="text-orange-400">Ultimate Concepts</span>
+              <span className="text-amber-400">Ultimate Concepts</span>
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
-            <ShoppingBag size={13} className="text-orange-300" />
-            <span className="text-orange-300 text-xs font-medium tracking-wide">ULTIMATE CONCEPTS</span>
+          <div className="inline-flex items-center gap-2 bg-amber-600/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+            <ShoppingBag size={13} className="text-amber-300" />
+            <span className="text-amber-300 text-xs font-medium tracking-wide">ULTIMATE CONCEPTS</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Tell Us What You Want,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-400">
               We'll Get It
             </span>
           </h1>
@@ -83,7 +83,7 @@ function UltimateConcepts() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <p className="text-orange-500 text-sm font-semibold tracking-widest uppercase mb-3">REQUEST SOURCING</p>
+            <p className="text-amber-500 text-sm font-semibold tracking-widest uppercase mb-3">REQUEST SOURCING</p>
             <h2 className="text-3xl font-black text-gray-900">Where should we shop for you?</h2>
           </div>
 
@@ -99,7 +99,7 @@ function UltimateConcepts() {
                 <span className={`inline-flex items-center gap-1 text-xs font-bold rounded-lg px-3 py-1.5 transition-colors ${
                   justAdded === platform.name
                     ? 'bg-green-500 text-white'
-                    : 'bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white'
+                    : 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-[#0a0f2c]'
                 }`}>
                   {justAdded === platform.name ? 'Added ✓' : (
                     <><ShoppingCart size={12} /> Add to Cart</>
@@ -139,22 +139,22 @@ function UltimateConcepts() {
       <section className="bg-white py-12 border-t border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 grid sm:grid-cols-3 gap-6 text-center">
           <div>
-            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <Send size={18} className="text-orange-600" />
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Send size={18} className="text-amber-600" />
             </div>
             <p className="text-gray-900 font-bold text-sm mb-1">1. Send Request</p>
             <p className="text-gray-500 text-xs">Add what you want, submit — no price needed upfront</p>
           </div>
           <div>
-            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <ShoppingBag size={18} className="text-orange-600" />
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <ShoppingBag size={18} className="text-amber-600" />
             </div>
             <p className="text-gray-900 font-bold text-sm mb-1">2. We Source It</p>
             <p className="text-gray-500 text-xs">We confirm price and place the actual order</p>
           </div>
           <div>
-            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <ShoppingCart size={18} className="text-orange-600" />
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <ShoppingCart size={18} className="text-amber-600" />
             </div>
             <p className="text-gray-900 font-bold text-sm mb-1">3. Track & Collect</p>
             <p className="text-gray-500 text-xs">Track it in your dashboard, we arrange pickup or delivery</p>
@@ -173,7 +173,7 @@ function UltimateConcepts() {
         />
         <button
           onClick={() => setCartOpen(true)}
-          className="relative w-14 h-14 flex items-center justify-center bg-orange-500 hover:bg-orange-400 rounded-full text-white shadow-lg transition-colors"
+          className="relative w-14 h-14 flex items-center justify-center bg-amber-500 hover:bg-amber-400 rounded-full text-[#0a0f2c] shadow-lg transition-colors"
         >
           <ShoppingCart size={22} />
           {cartCount > 0 && (

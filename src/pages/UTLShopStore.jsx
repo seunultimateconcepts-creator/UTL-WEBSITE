@@ -23,7 +23,7 @@ function UTLShopStore() {
   // ✅ Store filters — dot color visually distinguishes each store
   const stores = [
     { name: 'All', dot: 'bg-gray-400' },
-    { name: 'Jumia', dot: 'bg-orange-500' },
+    { name: 'Jumia', dot: 'bg-amber-500' },
     { name: 'Amazon', dot: 'bg-yellow-500' },
     { name: 'AliExpress', dot: 'bg-red-500' },
     { name: 'Konga', dot: 'bg-purple-500' },
@@ -189,7 +189,7 @@ function UTLShopStore() {
 
   // ✅ Store badge colors
   const storeColors = {
-    Jumia: 'bg-orange-100 text-orange-700',
+    Jumia: 'bg-amber-100 text-amber-700',
     Amazon: 'bg-yellow-100 text-yellow-700',
     AliExpress: 'bg-red-100 text-red-700',
     Konga: 'bg-purple-100 text-purple-700',
@@ -201,7 +201,7 @@ function UTLShopStore() {
       {/* Hero */}
       <section className="bg-[#0a0f2c] py-16 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
         </div>
 
@@ -210,7 +210,7 @@ function UTLShopStore() {
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <Link to="/shop" className="hover:text-white transition-colors">U-Come</Link>
               <span>›</span>
-              <span className="text-orange-400">Ultimate Shop</span>
+              <span className="text-amber-400">Ultimate Shop</span>
             </div>
             <div className="flex items-center gap-2">
               <ShareLink
@@ -224,20 +224,20 @@ function UTLShopStore() {
               >
                 <ShoppingCart size={18} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center bg-orange-500 text-white text-[10px] font-bold rounded-full">
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center bg-amber-500 text-[#0a0f2c] text-[10px] font-bold rounded-full">
                     {cartCount}
                   </span>
                 )}
               </button>
             </div>
           </div>
-          <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
-            <ShoppingBag size={13} className="text-orange-300" />
-            <span className="text-orange-300 text-xs font-medium tracking-wide">UTL SHOP</span>
+          <div className="inline-flex items-center gap-2 bg-amber-600/10 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
+            <ShoppingBag size={13} className="text-amber-300" />
+            <span className="text-amber-300 text-xs font-medium tracking-wide">UTL SHOP</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
             Order Anything,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-400">
               Delivered to You
             </span>
           </h1>
@@ -252,9 +252,9 @@ function UTLShopStore() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for phones, laptops, fashion..."
-              className="flex-1 min-w-[200px] px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-orange-400 transition-colors"
+              className="flex-1 min-w-[200px] px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             />
-            <button className="px-6 py-3.5 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl transition-all hover:-translate-y-0.5">
+            <button className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-semibold rounded-xl transition-all hover:-translate-y-0.5">
               Search
             </button>
           </div>
@@ -262,7 +262,7 @@ function UTLShopStore() {
       </section>
 
       {/* How It Works */}
-      <section className="bg-orange-50 border-b border-orange-100 py-6">
+      <section className="bg-amber-50 border-b border-amber-100 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
@@ -272,8 +272,8 @@ function UTLShopStore() {
               { icon: Truck, title: 'Delivered', desc: 'To your doorstep' },
             ].map((step, index) => (
               <div key={step.title} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <step.icon size={17} className="text-orange-600" />
+                <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <step.icon size={17} className="text-amber-600" />
                 </div>
                 <div>
                   <p className="text-gray-900 text-sm font-semibold">{step.title}</p>
@@ -330,7 +330,7 @@ function UTLShopStore() {
                       onClick={() => setActiveCategory(cat)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeCategory === cat
-                          ? 'bg-orange-500 text-white'
+                          ? 'bg-amber-500 text-[#0a0f2c]'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
@@ -452,7 +452,7 @@ function UTLShopStore() {
                           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all active:scale-95 ${
                             justAdded === product.id
                               ? 'bg-green-500 text-white'
-                              : 'bg-orange-500 hover:bg-orange-400 text-white'
+                              : 'bg-amber-500 hover:bg-amber-400 text-[#0a0f2c]'
                           }`}
                         >
                           {justAdded === product.id ? (
@@ -496,7 +496,7 @@ function UTLShopStore() {
             href="https://wa.me/2348038786037?text=Hello! I need help finding a product."
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-[#0a0f2c] font-bold rounded-xl transition-all hover:-translate-y-0.5"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>

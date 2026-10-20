@@ -74,7 +74,7 @@ export default function BookingDateForm({ isRange, bookedDates = [], onSubmit, s
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-left">
       <div className="flex items-center gap-2 mb-1">
-        <Calendar size={16} className="text-orange-500" />
+        <Calendar size={16} className="text-amber-500" />
         <h3 className="text-gray-900 font-bold text-sm">{isRange ? 'Stay Dates' : 'Booking Date'}</h3>
       </div>
 
@@ -106,7 +106,7 @@ export default function BookingDateForm({ isRange, bookedDates = [], onSubmit, s
           <input
             type="date" name="startDate" value={form.startDate} onChange={handleChange}
             min={new Date().toISOString().split('T')[0]}
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors"
           />
         </div>
         {isRange && (
@@ -115,7 +115,7 @@ export default function BookingDateForm({ isRange, bookedDates = [], onSubmit, s
             <input
               type="date" name="endDate" value={form.endDate} onChange={handleChange}
               min={form.startDate || new Date().toISOString().split('T')[0]}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors"
             />
           </div>
         )}
@@ -128,7 +128,7 @@ export default function BookingDateForm({ isRange, bookedDates = [], onSubmit, s
         <input
           type="number" name="guests" min="1" value={form.guests} onChange={handleChange}
           placeholder="Number of guests"
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
 
@@ -137,14 +137,14 @@ export default function BookingDateForm({ isRange, bookedDates = [], onSubmit, s
         <textarea
           name="details" rows={2} value={form.details} onChange={handleChange}
           placeholder="Anything the vendor should know — arrival time, special requests, etc."
-          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-colors resize-none"
+          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-400 transition-colors resize-none"
         />
       </div>
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-3.5 bg-orange-500 hover:bg-orange-400 disabled:bg-gray-300 text-white font-bold rounded-xl transition-colors text-sm"
+        className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-300 text-[#0a0f2c] font-bold rounded-xl transition-colors text-sm"
       >
         {submitting ? 'Placing Order...' : submitLabel}
       </button>

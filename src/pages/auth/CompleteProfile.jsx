@@ -1,3 +1,4 @@
+import { goAfterAuth } from '../../utils/postAuthRedirect'
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -22,7 +23,7 @@ function CompleteProfile() {
     }
     const user = JSON.parse(userStr)
     if (user.accountTypeConfirmed) {
-      navigate('/dashboard')
+      goAfterAuth(navigate)
       return
     }
     setFirstName(user.firstName || '')
@@ -49,7 +50,7 @@ function CompleteProfile() {
       }
 
       localStorage.setItem('utl_current_user', JSON.stringify(data.user))
-      navigate('/dashboard')
+      goAfterAuth(navigate)
     } catch (err) {
       setError(err.message)
     } finally {

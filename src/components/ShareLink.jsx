@@ -39,7 +39,7 @@ export default function ShareLink({ url, title = 'Check this out on Ultimate Tec
   return (
     <button
       onClick={handleShare}
-      className={`inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700 hover:text-orange-700 text-sm font-semibold rounded-xl transition-all ${className}`}
+      className={`inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50 text-gray-700 hover:text-amber-700 text-sm font-semibold rounded-xl transition-all ${className}`}
     >
       {copied ? (
         <><Check size={15} className="text-green-600" /> Link copied</>
